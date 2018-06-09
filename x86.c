@@ -13,6 +13,11 @@ inline void enable_cpu_intr(void)
 	asm volatile ("sti");
 }
 
+inline void disable_cpu_intr(void)
+{
+	asm volatile ("cli");
+}
+
 inline void cpu_halt(void)
 {
 	asm volatile ("hlt");

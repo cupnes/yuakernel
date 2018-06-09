@@ -28,11 +28,12 @@ unsigned char counter = 0;
 void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 		  struct platform_info *pi, void *_fs_start)
 {
+	disable_cpu_intr();
+
 	/* フレームバッファ周りの初期化 */
 	fb_init(&pi->fb);
 	set_fg(255, 255, 255);
 	set_bg(0, 70, 250);
-	clear_screen();
 
 	/* CPU周りの初期化 */
 	gdt_init();
@@ -50,7 +51,10 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 
 	hpet_init();
 
-	periodic_timer(1 * SEC_TO_US, handler);
+	/* 画像ビューアの初期化 */
+	iv_init();
+
+	periodic_timer(3 * SEC_TO_US, handler);
 
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
@@ -62,12 +66,6 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 
 void handler(void)
 {
-	putc('.');
-	if (++counter >= 10)
-		periodic_timer(0.5 * SEC_TO_US, handler2);
-}
-
-void handler2(void)
-{
-	putc('!');
+	if (iv_idx < iv_num_files - 1)
+		view(++iv_idx);
 }

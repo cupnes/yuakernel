@@ -1,0 +1,21 @@
+0,Divide Error Exception,DE,divide_error_exception
+1,Debug Exception,DB,debug_exception
+2,NMI Interrupt,NM,nmi_interrupt
+3,Breakpoint Exception,BP,breakpoint_exception
+4,Overflow Exception,OF,overflow_exception
+5,BOUND Range Exceeded Exception,BR,bound_range_exceeded_exception
+6,Invalid Opcode Exception,UD,invalid_opcode_exception
+7,Device Not Available Exception,NM,device_not_available_exception
+8,Double Fault Exception,DF,double_fault_exception
+9,Coprocessor Segment Overrun,CS,coprocessor_segment_overrun
+10,Invalid TSS Exception,TS,invalid_tss_exception
+11,Segment Not Present,NP,segment_not_present
+12,Stack Fault Exception,SS,stack_fault_exception
+13,General Protection Exception,GP,general_protection_exception
+14,Page-Fault Exception,PF,page_fault_exception
+16,x87 FPU Floating-Point Error,MF,x87_fpu_floating_point_error
+17,Alignment Check Exception,AC,alignment_check_exception
+18,Machine-Check Exception,MC,machine_check_exception
+19,SIMD Floating-Point Exception,XM,simd_floating_point_exception
+20,Virtualization Exception,VE,virtualization_exception
+# 32 to 255,User Defined Interrupts,

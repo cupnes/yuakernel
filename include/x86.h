@@ -21,6 +21,7 @@ struct interrupt_descriptor {
 };
 
 void enable_cpu_intr(void);
+void disable_cpu_intr(void);
 void cpu_halt(void);
 unsigned char io_read(unsigned short addr);
 void io_write(unsigned short addr, unsigned char value);
