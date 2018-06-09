@@ -24,6 +24,30 @@ int strcmp(char *s1, char *s2)
 	}
 }
 
+int strncmp(char *s1, char *s2, unsigned long long n)
+{
+	char is_equal = 1;
+
+	for (; (*s1 != '\0') && (*s2 != '\0'); s1++, s2++, n--) {
+		if (*s1 != *s2 || n == 1) {
+			is_equal = 0;
+			break;
+		}
+	}
+
+	if (is_equal) {
+		if (*s1 != '\0') {
+			return 1;
+		} else if (*s2 != '\0') {
+			return -1;
+		} else {
+			return 0;
+		}
+	} else {
+		return (int)(*s1 - *s2);
+	}
+}
+
 void memcpy(void *dst, void *src, unsigned long long size)
 {
 	unsigned char *d = (unsigned char *)dst;
