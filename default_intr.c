@@ -1,5 +1,7 @@
 #include <fb.h>
 #include <fbcon.h>
+#include <x86.h>
+#include <pic.h>
 
 void do_default_interrupt_21(void)
 {
@@ -131,6 +133,13 @@ void do_default_interrupt_39(void)
 {
 	clear_screen();
 	puts("DO DEFAULT INTERRUPT 39\r\n");
+
+	puts("MPIC IMR ");
+	puth(io_read(MPIC_IMR_ADDR), 2);
+	puts(" SPIC IMR ");
+	puth(io_read(SPIC_IMR_ADDR), 2);
+	puts("\r\n");
+
 	while (1);
 }
 
