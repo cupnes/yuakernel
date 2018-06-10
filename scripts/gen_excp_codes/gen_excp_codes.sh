@@ -14,8 +14,8 @@ done > intr_handler.c
 
 # create intr_handler_declaration.c
 for e in $(grep -v '^#' excp_list.txt | cut -d',' -f4); do
-	echo "void do_${e}(void);"
+	echo "void ${e}(void);"
 done > intr_handler_declaration.c
 
 # create intr_init.c
-grep -v '^#' excp_list.txt | cut -d',' -f1,4 | awk 'BEGIN{FS=","}{print "\tset_intr_desc("$1", do_"$2");"}' > intr_init.c
+grep -v '^#' excp_list.txt | cut -d',' -f1,4 | awk 'BEGIN{FS=","}{print "\tset_intr_desc("$1", "$2");"}' > intr_init.c
