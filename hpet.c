@@ -3,6 +3,7 @@
 #include <fbcon.h>
 #include <intr.h>
 #include <pic.h>
+#include <fb.h>
 
 #define HPET_INTR_NO		32
 
@@ -104,6 +105,7 @@ union tnccr {
 void hpet_handler(void);
 void (*user_handler)(void);
 unsigned char is_periodic = 0;
+unsigned long long cmpr_clk_counts;
 
 void hpet_init(void)
 {
@@ -227,16 +229,12 @@ void ptimer_setup(unsigned long long us, void *handler)
 	is_periodic = 1;
 	user_handler = handler;
 
-	/* main counterをゼロクリア */
-	MCR = (unsigned long long)0;
-
 	/* 割り込み有効化・エッジトリガー設定 */
 	union tnccr tnccr;
 	tnccr.raw = TNCCR(TIMER_N);
 	tnccr.int_enb_cnf = 1;
 	tnccr.int_type_cnf = TNCCR_INT_TYPE_EDGE;
 	tnccr.type_cnf = TNCCR_TYPE_PERIODIC;
-	tnccr.val_set_cnf = 1;
 	tnccr._reserved1 = 0;
 	tnccr._reserved2 = 0;
 	tnccr._reserved3 = 0;
@@ -244,8 +242,7 @@ void ptimer_setup(unsigned long long us, void *handler)
 
 	/* コンパレータ設定 */
 	unsigned long long femt_sec = us * US_TO_FS;
-	unsigned long long clk_counts = femt_sec / hi.counter_clk_period;
-	TNCR(TIMER_N) = clk_counts;
+	cmpr_clk_counts = femt_sec / hi.counter_clk_period;
 
 	/* LegacyReplacement Route有効化 */
 	gcr.raw = GCR;
@@ -255,6 +252,17 @@ void ptimer_setup(unsigned long long us, void *handler)
 
 void ptimer_start(void)
 {
+	/* コンパレータ初期化 */
+	union tnccr tnccr;
+	tnccr.raw = TNCCR(TIMER_N);
+	tnccr.val_set_cnf = 1;
+	TNCCR(TIMER_N) = tnccr.raw;
+	TNCR(TIMER_N) = cmpr_clk_counts;
+
+	/* main counter初期化 */
+	MCR = (unsigned long long)0;
+
+	/* タイマーを有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 1;
@@ -263,6 +271,7 @@ void ptimer_start(void)
 
 void ptimer_stop(void)
 {
+	/* タイマーを無効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 0;
