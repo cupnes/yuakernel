@@ -54,7 +54,8 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 	/* 画像ビューアの初期化 */
 	iv_init();
 
-	periodic_timer(3 * SEC_TO_US, handler);
+	ptimer_setup(3 * SEC_TO_US, handler);
+	ptimer_start();
 
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();

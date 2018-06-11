@@ -216,7 +216,7 @@ void alert(unsigned long long us, void *handler)
 	GCR = gcr.raw;
 }
 
-void periodic_timer(unsigned long long us, void *handler)
+void ptimer_setup(unsigned long long us, void *handler)
 {
 	/* 一旦タイマーを全体的に無効化 */
 	union gcr gcr;
@@ -247,10 +247,25 @@ void periodic_timer(unsigned long long us, void *handler)
 	unsigned long long clk_counts = femt_sec / hi.counter_clk_period;
 	TNCR(TIMER_N) = clk_counts;
 
-	/* LegacyReplacement Route有効化・タイマー起動 */
+	/* LegacyReplacement Route有効化 */
 	gcr.raw = GCR;
 	gcr.leg_rt_cnf = 1;
+	GCR = gcr.raw;
+}
+
+void ptimer_start(void)
+{
+	union gcr gcr;
+	gcr.raw = GCR;
 	gcr.enable_cnf = 1;
+	GCR = gcr.raw;
+}
+
+void ptimer_stop(void)
+{
+	union gcr gcr;
+	gcr.raw = GCR;
+	gcr.enable_cnf = 0;
 	GCR = gcr.raw;
 }
 
