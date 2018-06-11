@@ -2,6 +2,7 @@
 #include <fb.h>
 #include <fs.h>
 #include <common.h>
+#include <hpet.h>
 
 struct file *iv_files[MAX_IV_FILES];
 unsigned long long iv_num_files;
@@ -22,10 +23,14 @@ void iv_kbc_handler(char c)
 {
 	switch (c) {
 	case 'j':
+		if (iv_idx == iv_num_files - 2)
+			ptimer_stop();
 		if (iv_idx < iv_num_files - 1)
 			view(++iv_idx);
 		break;
 	case 'k':
+		if (iv_idx >= iv_num_files - 1)
+			ptimer_start();
 		if (iv_idx > 0)
 			view (--iv_idx);
 	}

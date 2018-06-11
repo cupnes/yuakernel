@@ -32,7 +32,7 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 
 	/* フレームバッファ周りの初期化 */
 	fb_init(&pi->fb);
-	set_fg(255, 255, 255);
+	set_fg(0, 255, 0);
 	set_bg(0, 70, 250);
 
 	/* CPU周りの初期化 */
@@ -67,6 +67,8 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 
 void handler(void)
 {
+	if (iv_idx == iv_num_files - 2)
+		ptimer_stop();
 	if (iv_idx < iv_num_files - 1)
 		view(++iv_idx);
 }
