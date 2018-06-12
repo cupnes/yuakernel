@@ -64,6 +64,7 @@ void intr_init(void)
 	set_intr_desc(19, simd_floating_point_exception);
 	set_intr_desc(20, virtualization_exception);
 
+#ifdef DEBUG_INTR_EACH_HANDLER
 	set_intr_desc(21, default_handler_21);
 	set_intr_desc(22, default_handler_22);
 	set_intr_desc(23, default_handler_23);
@@ -299,6 +300,11 @@ void intr_init(void)
 	set_intr_desc(253, default_handler_253);
 	set_intr_desc(254, default_handler_254);
 	set_intr_desc(255, default_handler_255);
+#else
+	unsigned short i;
+	for (i = 21; i <= 255; i++)
+		set_intr_desc(i, default_handler);
+#endif
 
 	idtr[0] = ((unsigned long long)idt << 16) | (sizeof(idt) - 1);
 	idtr[1] = ((unsigned long long)idt >> 48);
