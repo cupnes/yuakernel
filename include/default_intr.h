@@ -1,6 +1,9 @@
 #ifndef _DEFAULT_INTR_H_
 #define _DEFAULT_INTR_H_
 
+/* #define DEBUG_INTR_EACH_HANDLER */
+
+#ifdef DEBUG_INTR_EACH_HANDLER
 void default_handler_21(void);
 void default_handler_22(void);
 void default_handler_23(void);
@@ -236,5 +239,6 @@ void default_handler_252(void);
 void default_handler_253(void);
 void default_handler_254(void);
 void default_handler_255(void);
+#endif
 
 #endif

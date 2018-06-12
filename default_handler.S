@@ -1,3 +1,6 @@
+#include <default_intr.h>
+
+#ifdef DEBUG_INTR_EACH_HANDLER
 	.global default_handler_21
 default_handler_21:
 	push	%rax
@@ -4462,4 +4465,4 @@ default_handler_255:
 	pop	%rcx
 	pop	%rax
 	iretq
-
+#endif

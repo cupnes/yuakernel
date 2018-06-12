@@ -11,6 +11,8 @@ $(TARGET): $(OBJS)
 	gcc $(CFLAGS) -c -o $@ $<
 %.o: %.s
 	gcc $(CFLAGS) -c -o $@ $<
+%.o: %.S
+	gcc $(CFLAGS) -c -o $@ $<
 
 run: $(TARGET)
 	cp $(TARGET) ../fs/
