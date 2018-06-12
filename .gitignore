@@ -8,3 +8,11 @@ GPATH
 GRTAGS
 GSYMS
 GTAGS
+scripts/gen_default_intr_codes/default_*
+scripts/gen_default_intr_codes/intr_init.c
+scripts/gen_excp_codes/excp.txt
+scripts/gen_excp_codes/excp_name.txt
+scripts/gen_excp_codes/handler.s
+scripts/gen_excp_codes/intr_handler.c
+scripts/gen_excp_codes/intr_handler_declaration.c
+scripts/gen_excp_codes/intr_init.c
