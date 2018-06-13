@@ -26,6 +26,7 @@ unsigned char counter = 0;
 void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 		  struct platform_info *pi, void *_fs_start)
 {
+	/* 一旦CPUの割り込みを無効化 */
 	disable_cpu_intr();
 
 	/* フレームバッファ周りの初期化 */
@@ -45,10 +46,10 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 	if (_fs_start)
 		fs_init(_fs_start);
 
-    /* ACPIの初期化 */
+	/* ACPIの初期化 */
 	acpi_init(pi->rsdp);
 
-    /* HPETの初期化 */
+	/* HPETの初期化 */
 	hpet_init();
 
 	/* 画像ビューアの初期化 */
