@@ -3,6 +3,7 @@
 *.bgra
 *.img
 *.bin
+*.map
 GPATH
 GRTAGS
 GSYMS
