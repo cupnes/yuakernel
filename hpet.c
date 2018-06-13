@@ -5,8 +5,6 @@
 #include <fb.h>
 #include <fbcon.h>
 
-#define DEBUG_HPET_MC_64BITS
-
 #define HPET_INTR_NO		32
 
 struct HPET_TABLE {
@@ -142,19 +140,7 @@ void sleep(unsigned long long us)
 	union gcidr gcidr;
 	gcidr.raw = GCIDR;
 	unsigned long long mc_duration = fs / gcidr.counter_clk_period;
-
-#ifdef DEBUG_HPET_MC_64BITS
-	/* TODO: mc_afterが64bitsを超えたら良しなにラップしてくれるのか確認 */
-	mc_now = 0xffffffffffffffff;
-	mc_duration = 0x10;
 	unsigned long long mc_after = mc_now + mc_duration;
-	puts("MC AFTER ");
-	puth(mc_after, 16);
-	puts("\r\n");
-	while (1);
-#else
-	unsigned long long mc_after = mc_now + mc_duration;
-#endif
 
 	/* タイマーが無効であれば有効化する */
 	union gcr gcr;
