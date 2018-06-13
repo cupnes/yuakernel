@@ -11,8 +11,6 @@
 #include <acpi.h>
 #include <hpet.h>
 
-#define SEC_TO_US	1000000
-
 /* begin: poiboot.h */
 struct platform_info {
 	struct framebuffer fb;

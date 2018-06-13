@@ -5,9 +5,9 @@
 #include <fb.h>
 #include <fbcon.h>
 
-#define HPET_INTR_NO		32
+#define DEBUG_HPET_MC_64BITS
 
-#define US_TO_FS	1000000000
+#define HPET_INTR_NO		32
 
 struct HPET_TABLE {
 	struct SDTH header;
@@ -134,36 +134,38 @@ void hpet_init(void)
 
 void sleep(unsigned long long us)
 {
-	/* 割り込み無効化・レベルトリガー設定 */
-	union tnccr tnccr;
-	tnccr.raw = TNCCR(TIMER_N);
-	tnccr.int_enb_cnf = 0;
-	tnccr.int_type_cnf = TNCCR_INT_TYPE_LEVEL;
-	tnccr._reserved1 = 0;
-	tnccr._reserved2 = 0;
-	tnccr._reserved3 = 0;
-	TNCCR(TIMER_N) = tnccr.raw;
+	/* 現在のmain counterのカウント値を取得 */
+	unsigned long long mc_now = MCR;
 
-	/* コンパレータ設定 */
-	unsigned long long femt_sec = us * US_TO_FS;
-	unsigned long long clk_counts = femt_sec / hi.counter_clk_period;
-	TNCR(TIMER_N) = clk_counts;
+	/* usマイクロ秒後のmain counterのカウント値を算出 */
+	unsigned long long fs = us * US_TO_FS;
+	union gcidr gcidr;
+	gcidr.raw = GCIDR;
+	unsigned long long mc_duration = fs / gcidr.counter_clk_period;
 
-	/* タイマー有効化 */
+#ifdef DEBUG_HPET_MC_64BITS
+	/* TODO: mc_afterが64bitsを超えたら良しなにラップしてくれるのか確認 */
+	mc_now = 0xffffffffffffffff;
+	mc_duration = 0x10;
+	unsigned long long mc_after = mc_now + mc_duration;
+	puts("MC AFTER ");
+	puth(mc_after, 16);
+	puts("\r\n");
+	while (1);
+#else
+	unsigned long long mc_after = mc_now + mc_duration;
+#endif
+
+	/* タイマーが無効であれば有効化する */
 	union gcr gcr;
 	gcr.raw = GCR;
-	gcr.enable_cnf = 1;
-	GCR = gcr.raw;
+	if (!gcr.enable_cnf) {
+		gcr.enable_cnf = 1;
+		GCR = gcr.raw;
+	}
 
-	/* 割り込みステータスビットがセットされるのを待つ */
-	while (!(GISR & TIMER_N_MASK)); /* GISRにビットがセットされるまで待つ */
-
-	/* クリアする */
-	union gisr gisr;
-	gisr.raw = GISR;
-	gisr.raw = 0;
-	gisr.t0_int_sts = 1;
-	GISR = gisr.raw;
+	/* usマイクロ秒の経過を待つ */
+	while (MCR < mc_after);
 }
 
 void do_hpet_interrupt(void)
