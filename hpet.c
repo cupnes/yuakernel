@@ -1,9 +1,9 @@
 #include <hpet.h>
 #include <acpi.h>
-#include <fbcon.h>
 #include <intr.h>
 #include <pic.h>
 #include <fb.h>
+#include <fbcon.h>
 
 #define HPET_INTR_NO		32
 
@@ -104,7 +104,7 @@ union tnccr {
 
 void hpet_handler(void);
 void (*user_handler)(void);
-unsigned char is_periodic = 0;
+unsigned char is_oneshot = 0;
 unsigned long long cmpr_clk_counts;
 
 void hpet_init(void)
@@ -121,7 +121,7 @@ void hpet_init(void)
 		 * タイマーの数としては1を足す */
 	hi.counter_clk_period = gcidr.counter_clk_period;
 
-	/* 一旦タイマーを全体的に無効化 */
+	/* タイマー無効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 0;
@@ -152,7 +152,7 @@ void sleep(unsigned long long us)
 	unsigned long long clk_counts = femt_sec / hi.counter_clk_period;
 	TNCR(TIMER_N) = clk_counts;
 
-	/* タイマーを起動 */
+	/* タイマー有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 1;
@@ -171,12 +171,14 @@ void sleep(unsigned long long us)
 
 void do_hpet_interrupt(void)
 {
-	if (is_periodic == 0) {
-		/* タイマーを全体的に無効化 */
+	if (is_oneshot == 1) {
+		/* タイマー無効化 */
 		union gcr gcr;
 		gcr.raw = GCR;
 		gcr.enable_cnf = 0;
 		GCR = gcr.raw;
+
+		is_oneshot = 0;
 	}
 
 	/* ユーザーハンドラを呼び出す */
@@ -188,7 +190,7 @@ void do_hpet_interrupt(void)
 
 void alert(unsigned long long us, void *handler)
 {
-	is_periodic = 0;
+	/* ユーザーハンドラ設定 */
 	user_handler = handler;
 
 	/* 割り込み有効化・エッジトリガー設定 */
@@ -210,7 +212,9 @@ void alert(unsigned long long us, void *handler)
 	unsigned long long clk_counts = femt_sec / hi.counter_clk_period;
 	TNCR(TIMER_N) = clk_counts;
 
-	/* LegacyReplacement Route有効化・タイマー起動 */
+	is_oneshot = 1;
+
+	/* LegacyReplacement Route有効化・タイマー有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.leg_rt_cnf = 1;
@@ -220,13 +224,13 @@ void alert(unsigned long long us, void *handler)
 
 void ptimer_setup(unsigned long long us, void *handler)
 {
-	/* 一旦タイマーを全体的に無効化 */
+	/* タイマー無効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 0;
 	GCR = gcr.raw;
 
-	is_periodic = 1;
+	/* ユーザーハンドラ設定 */
 	user_handler = handler;
 
 	/* 割り込み有効化・エッジトリガー設定 */
@@ -262,7 +266,7 @@ void ptimer_start(void)
 	/* main counter初期化 */
 	MCR = (unsigned long long)0;
 
-	/* タイマーを有効化 */
+	/* タイマー有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 1;
@@ -271,7 +275,7 @@ void ptimer_start(void)
 
 void ptimer_stop(void)
 {
-	/* タイマーを無効化 */
+	/* タイマー無効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 0;

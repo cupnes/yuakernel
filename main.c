@@ -47,15 +47,14 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 	if (_fs_start)
 		fs_init(_fs_start);
 
+    /* ACPIの初期化 */
 	acpi_init(pi->rsdp);
 
+    /* HPETの初期化 */
 	hpet_init();
 
 	/* 画像ビューアの初期化 */
 	iv_init();
-
-	ptimer_setup(3 * SEC_TO_US, handler);
-	ptimer_start();
 
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
@@ -65,10 +64,4 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st __attribute__ ((unused)),
 		cpu_halt();
 }
 
-void handler(void)
-{
-	if (iv_idx == iv_num_files - 2)
-		ptimer_stop();
-	if (iv_idx < iv_num_files - 1)
-		view(++iv_idx);
-}
+

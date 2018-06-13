@@ -8,17 +8,6 @@ struct file *iv_files[MAX_IV_FILES];
 unsigned long long iv_num_files;
 unsigned long long iv_idx = 0;
 
-void view(unsigned long long idx)
-{
-	memcpy(fb.base, iv_files[idx]->data, iv_files[idx]->size);
-}
-
-void iv_init(void)
-{
-	iv_num_files = get_files(iv_files);
-	view(iv_idx);
-}
-
 void iv_kbc_handler(char c)
 {
 	switch (c) {
@@ -34,4 +23,27 @@ void iv_kbc_handler(char c)
 		if (iv_idx > 0)
 			view (--iv_idx);
 	}
+}
+
+void iv_timer_handler(void)
+{
+	if (iv_idx == iv_num_files - 2)
+		ptimer_stop();
+	if (iv_idx < iv_num_files - 1)
+		view(++iv_idx);
+}
+
+void view(unsigned long long idx)
+{
+	memcpy(fb.base, iv_files[idx]->data, iv_files[idx]->size);
+}
+
+void iv_init(void)
+{
+	iv_num_files = get_files(iv_files);
+
+	ptimer_setup(3 * SEC_TO_US, iv_timer_handler);
+	ptimer_start();
+
+	view(iv_idx);
 }
