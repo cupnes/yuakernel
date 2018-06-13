@@ -144,9 +144,6 @@ void sleep(unsigned long long us)
 	tnccr._reserved3 = 0;
 	TNCCR(TIMER_N) = tnccr.raw;
 
-	/* main counterをゼロクリア */
-	MCR = (unsigned long long)0;
-
 	/* コンパレータ設定 */
 	unsigned long long femt_sec = us * US_TO_FS;
 	unsigned long long clk_counts = femt_sec / hi.counter_clk_period;
