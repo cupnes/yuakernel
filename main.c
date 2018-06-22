@@ -8,13 +8,31 @@
 #include <common.h>
 #include <iv.h>
 
-void start_kernel(void *_t __attribute__ ((unused)), struct framebuffer *_fb,
+struct platform_info {
+	struct framebuffer fb;
+	void *rsdp;
+};
+
+void start_kernel(void *_t __attribute__ ((unused)), struct platform_info *pi,
 		  void *_fs_start)
 {
 	/* フレームバッファ周りの初期化 */
-	fb_init(_fb);
+	fb_init(&pi->fb);
 	set_fg(255, 255, 255);
 	set_bg(0, 70, 250);
+	clear_screen();
+
+	/* RSDPのシグネチャを表示 */
+	char *s = (char *)pi->rsdp;
+	putc(*s++);	/* 'R' */
+	putc(*s++);	/* 'S' */
+	putc(*s++);	/* 'D' */
+	putc(*s++);	/* ' ' */
+	putc(*s++);	/* 'P' */
+	putc(*s++);	/* 'T' */
+	putc(*s++);	/* 'R' */
+	putc(*s);	/* ' ' */
+	while (1);
 
 	/* CPU周りの初期化 */
 	gdt_init();
