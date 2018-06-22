@@ -9,3 +9,10 @@ struct RSDP {
 	unsigned char Extended_Checksum;
 	unsigned char Reserved[3];
 };
+
+unsigned long long xsdt;
+
+void acpi_init(void *rsdp)
+{
+	xsdt = ((struct RSDP *)rsdp)->XsdtAddress;
+}

@@ -1,6 +1,7 @@
 #include <x86.h>
 #include <intr.h>
 #include <pic.h>
+#include <acpi.h>
 #include <fb.h>
 #include <kbc.h>
 #include <fbcon.h>
@@ -21,6 +22,9 @@ void start_kernel(void *_t __attribute__ ((unused)), struct platform_info *pi,
 	set_fg(255, 255, 255);
 	set_bg(0, 70, 250);
 	clear_screen();
+
+	/* ACPIの初期化 */
+	acpi_init(pi->rsdp);
 
 	/* RSDPのシグネチャを表示 */
 	char *s = (char *)pi->rsdp;
