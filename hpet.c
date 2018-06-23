@@ -1,6 +1,8 @@
 #include <acpi.h>
 #include <fbcon.h>
 
+#define US_TO_FS	1000000000
+
 struct __attribute__((packed)) HPET_TABLE {
 	unsigned int event_timer_block_id;
 	struct ACPI_ADDRESS base_address;
@@ -108,4 +110,28 @@ void dump_mcr(void)
 	puts("MCR ");
 	puth(MCR, 16);
 	puts("\r\n");
+}
+
+void sleep(unsigned long long us)
+{
+	/* 現在のmain counterのカウント値を取得 */
+	unsigned long long mc_now = MCR;
+
+	/* usマイクロ秒後のmain counterのカウント値を算出 */
+	unsigned long long fs = us * US_TO_FS;
+	union gcidr gcidr;
+	gcidr.raw = GCIDR;
+	unsigned long long mc_duration = fs / gcidr.counter_clk_period;
+	unsigned long long mc_after = mc_now + mc_duration;
+
+	/* タイマーが無効であれば有効化する */
+	union gcr gcr;
+	gcr.raw = GCR;
+	if (!gcr.enable_cnf) {
+		gcr.enable_cnf = 1;
+		GCR = gcr.raw;
+	}
+
+	/* usマイクロ秒の経過を待つ */
+	while (MCR < mc_after);
 }

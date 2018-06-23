@@ -30,17 +30,11 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* HPETの初期化 */
 	hpet_init();
 
-	/* HPETの各種レジスタをダンプ */
-	dump_gcidr();
-	puts("\r\n");
+	/* 5秒sleepしてみる */
+	puts("WAIT ...");
+	sleep(5 * SEC_TO_US);
+	puts(" DONE\r\n");
 
-	dump_gcr();
-	puts("\r\n");
-
-	dump_mcr();
-	volatile unsigned int wait = 1000000;
-	while (wait--);
-	dump_mcr();
 	while (1);
 
 	/* CPU周りの初期化 */
