@@ -15,6 +15,8 @@ struct __attribute__((packed)) platform_info {
 	void *rsdp;
 };
 
+void handler(void);
+
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  void *_fs_start)
 {
@@ -27,29 +29,24 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* ACPIの初期化 */
 	acpi_init(pi->rsdp);
 
-	/* HPETの初期化 */
-	hpet_init();
-
-	/* 5秒sleepしてみる */
-	puts("WAIT ...");
-	sleep(5 * SEC_TO_US);
-	puts(" DONE\r\n");
-
-	while (1);
-
 	/* CPU周りの初期化 */
 	gdt_init();
 	intr_init();
 
 	/* 周辺ICの初期化 */
 	pic_init();
+	hpet_init();
 	kbc_init();
 
 	/* ファイルシステムの初期化 */
 	fs_init(_fs_start);
 
-	/* 画像ビューアの初期化 */
-	iv_init();
+	/* 5秒sleepしてみる */
+	puts("WAIT ...");
+	alert(5 * SEC_TO_US, handler);
+
+	/* /\* 画像ビューアの初期化 *\/ */
+	/* iv_init(); */
 
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
@@ -57,4 +54,9 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* haltして待つ */
 	while (1)
 		cpu_halt();
+}
+
+void handler(void)
+{
+	puts(" DONE");
 }
