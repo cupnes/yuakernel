@@ -14,7 +14,7 @@ struct __attribute__((packed)) platform_info {
 	void *rsdp;
 };
 
-void start_kernel(void *_t __attribute__ ((unused)), struct platform_info *pi,
+void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  void *_fs_start)
 {
 	/* フレームバッファ周りの初期化 */
