@@ -1,4 +1,5 @@
 #include <fbcon.h>
+#include <common.h>
 
 struct __attribute__((packed)) RSDP {
 	char Signature[8];
@@ -62,4 +63,24 @@ void dump_xsdt(void)
 		putc(' ');
 	}
 	puts("\r\n");
+}
+
+void *acpi_get_dev_table(char *sig)
+{
+	unsigned long long i;
+	for (i = 0; i < num_sdts; i++) {
+		if (!strncmp(sig, xsdt->Entry[i]->Signature, 4))
+			return (unsigned char *)xsdt->Entry[i]
+				+ sizeof(struct SDTH);
+	}
+
+	return NULL;
+}
+
+void acpi_check_dev_table(void *contents)
+{
+	struct SDTH *sdth =
+		(struct SDTH *)((unsigned char *)contents
+				- sizeof(struct SDTH));
+	dump_sdth_sig(sdth);
 }

@@ -26,8 +26,9 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* ACPIの初期化 */
 	acpi_init(pi->rsdp);
 
-	/* XSDTをダンプ */
-	dump_xsdt();
+	/* HPETの情報を取得 */
+	void *hpet_table = acpi_get_dev_table("HPET");
+	acpi_check_dev_table(hpet_table);
 	while (1);
 
 	/* CPU周りの初期化 */
