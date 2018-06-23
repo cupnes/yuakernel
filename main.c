@@ -9,7 +9,7 @@
 #include <common.h>
 #include <iv.h>
 
-struct platform_info {
+struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
 	void *rsdp;
 };

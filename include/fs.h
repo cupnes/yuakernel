@@ -3,7 +3,7 @@
 
 #define FILE_NAME_LEN	28
 
-struct file {
+struct __attribute__((packed)) file {
 	char name[FILE_NAME_LEN];
 	unsigned int size;
 	unsigned char data[0];

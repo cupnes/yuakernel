@@ -1,14 +1,14 @@
 #ifndef _FB_H_
 #define _FB_H_
 
-struct pixelformat {
+struct __attribute__((packed)) pixelformat {
 	unsigned char b;
 	unsigned char g;
 	unsigned char r;
 	unsigned char _reserved;
 };
 
-struct framebuffer {
+struct __attribute__((packed)) framebuffer {
 	struct pixelformat *base;
 	unsigned long long size;
 	unsigned int hr;

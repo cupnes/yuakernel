@@ -1,6 +1,6 @@
 #include <fbcon.h>
 
-struct RSDP {
+struct __attribute__((packed)) RSDP {
 	char Signature[8];
 	unsigned char Checksum;
 	char OEMID[6];
@@ -12,7 +12,7 @@ struct RSDP {
 	unsigned char Reserved[3];
 };
 
-struct SDTH {
+struct __attribute__((packed)) SDTH {
 	char Signature[4];
 	unsigned int Length;
 	unsigned char Revision;
