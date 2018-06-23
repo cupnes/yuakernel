@@ -27,6 +27,18 @@ union gcidr {
 	};
 };
 
+/* General Configuration Register */
+#define GCR_ADDR	(reg_base + 0x10)
+#define GCR	(*(volatile unsigned long long *)GCR_ADDR)
+union gcr {
+	unsigned long long raw;
+	struct __attribute__((packed)) {
+		unsigned long long enable_cnf:1;
+		unsigned long long leg_rt_cnf:1;
+		unsigned long long _reserved:62;
+	};
+};
+
 /* Main Counter Register */
 #define MCR_ADDR	(reg_base + 0xf0)
 #define MCR	(*(volatile unsigned long long *)MCR_ADDR)
@@ -66,6 +78,22 @@ void dump_gcidr(void)
 
 	puts("COUNTER CLK PERIOD ");
 	putd(r.counter_clk_period, 10);
+	puts("\r\n");
+}
+
+void dump_gcr(void)
+{
+	puts("GCR\r\n");
+
+	union gcr r;
+	r.raw = GCR;
+
+	puts("ENABLE CNF ");
+	putd(r.enable_cnf, 1);
+	puts("\r\n");
+
+	puts("LEG RT CNF ");
+	putd(r.leg_rt_cnf, 1);
 	puts("\r\n");
 }
 
