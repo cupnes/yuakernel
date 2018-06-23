@@ -29,6 +29,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 	/* HPETの初期化 */
 	hpet_init();
+	dump_gcidr();
 	while (1);
 
 	/* CPU周りの初期化 */

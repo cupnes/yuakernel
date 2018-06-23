@@ -1,4 +1,5 @@
 #include <acpi.h>
+#include <fbcon.h>
 
 struct __attribute__((packed)) HPET_TABLE {
 	unsigned int event_timer_block_id;
@@ -20,7 +21,7 @@ union gcidr {
 		unsigned long long num_tim_cap:5;
 		unsigned long long count_size_cap:1;
 		unsigned long long _reserved:1;
-		unsigned long long leg_route_cap:1;
+		unsigned long long leg_rt_cap:1;
 		unsigned long long vendor_id:16;
 		unsigned long long counter_clk_period:32;
 	};
@@ -34,4 +35,28 @@ void hpet_init(void)
 
 	/* レジスタの先頭アドレスを取得 */
 	reg_base = hpet_table->base_address.address;
+}
+
+void dump_gcidr(void)
+{
+	puts("GCIDR\r\n");
+
+	union gcidr r;
+	r.raw = GCIDR;
+
+	puts("REV ID             ");
+	putd(r.rev_id, 3);
+	puts("\r\n");
+
+	puts("NUM TIM CAP        ");
+	putd(r.num_tim_cap, 2);
+	puts("\r\n");
+
+	puts("COUNT SIZE CAP     ");
+	putd(r.count_size_cap, 1);
+	puts("\r\n");
+
+	puts("COUNTER CLK PERIOD ");
+	putd(r.counter_clk_period, 10);
+	puts("\r\n");
 }
