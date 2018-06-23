@@ -60,6 +60,10 @@ void dump_gcidr(void)
 	putd(r.count_size_cap, 1);
 	puts("\r\n");
 
+	puts("LEG RT CAP         ");
+	putd(r.leg_rt_cap, 1);
+	puts("\r\n");
+
 	puts("COUNTER CLK PERIOD ");
 	putd(r.counter_clk_period, 10);
 	puts("\r\n");
