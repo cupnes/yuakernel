@@ -30,10 +30,14 @@ struct __attribute__((packed)) XSDT {
 };
 
 struct XSDT *xsdt;
+unsigned long long num_sdts;
 
 void acpi_init(void *rsdp)
 {
 	xsdt = (struct XSDT *)((struct RSDP *)rsdp)->XsdtAddress;
+
+	num_sdts = (xsdt->Header.Length - sizeof(struct SDTH))
+		/ sizeof(struct SDTH *);
 }
 
 void dump_sdth_sig(struct SDTH *h)
@@ -48,9 +52,6 @@ void dump_xsdt(void)
 	dump_sdth_sig(&xsdt->Header);
 	puts("\r\n");
 
-	unsigned long long num_sdts =
-		(xsdt->Header.Length - sizeof(struct SDTH))
-		/ sizeof(struct SDTH *);
 	puts("NUM SDTS ");
 	putd(num_sdts, 2);
 	puts("\r\n");
