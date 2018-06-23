@@ -3,5 +3,6 @@
 
 void hpet_init(void);
 void dump_gcidr(void);
+void dump_mcr(void);
 
 #endif

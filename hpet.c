@@ -27,6 +27,10 @@ union gcidr {
 	};
 };
 
+/* Main Counter Register */
+#define MCR_ADDR	(reg_base + 0xf0)
+#define MCR	(*(volatile unsigned long long *)MCR_ADDR)
+
 void hpet_init(void)
 {
 	/* HPET tableを取得 */
@@ -58,5 +62,12 @@ void dump_gcidr(void)
 
 	puts("COUNTER CLK PERIOD ");
 	putd(r.counter_clk_period, 10);
+	puts("\r\n");
+}
+
+void dump_mcr(void)
+{
+	puts("MCR ");
+	puth(MCR, 16);
 	puts("\r\n");
 }
