@@ -26,16 +26,8 @@ void start_kernel(void *_t __attribute__ ((unused)), struct platform_info *pi,
 	/* ACPIの初期化 */
 	acpi_init(pi->rsdp);
 
-	/* RSDPのシグネチャを表示 */
-	char *s = (char *)pi->rsdp;
-	putc(*s++);	/* 'R' */
-	putc(*s++);	/* 'S' */
-	putc(*s++);	/* 'D' */
-	putc(*s++);	/* ' ' */
-	putc(*s++);	/* 'P' */
-	putc(*s++);	/* 'T' */
-	putc(*s++);	/* 'R' */
-	putc(*s);	/* ' ' */
+	/* XSDTをダンプ */
+	dump_xsdt();
 	while (1);
 
 	/* CPU周りの初期化 */
