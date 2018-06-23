@@ -51,6 +51,12 @@ void hpet_init(void)
 
 	/* レジスタの先頭アドレスを取得 */
 	reg_base = hpet_table->base_address.address;
+
+	/* 使うまでタイマーは止めておく */
+	union gcr gcr;
+	gcr.raw = GCR;
+	gcr.enable_cnf = 0;
+	GCR = gcr.raw;
 }
 
 void dump_gcidr(void)
