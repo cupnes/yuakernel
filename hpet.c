@@ -2,11 +2,11 @@
 #include <pic.h>
 #include <acpi.h>
 #include <fbcon.h>
+#include <hpet.h>
 
 #define TIMER_N		0	/* 使用するタイマー番号 */
 
 #define US_TO_FS	1000000000
-#define HPET_INTR_NO	32
 
 struct __attribute__((packed)) HPET_TABLE {
 	unsigned int event_timer_block_id;
@@ -85,7 +85,7 @@ union tnccr {
 #define TNCR(n)	(*(volatile unsigned long long *)(TNCR_ADDR(n)))
 
 void hpet_handler(void);
-void (*user_handler)(void);
+void (*user_handler)(unsigned long long current_rsp);
 
 void hpet_init(void)
 {
@@ -187,7 +187,7 @@ void sleep(unsigned long long us)
 	while (MCR < mc_after);
 }
 
-void do_hpet_interrupt(void)
+void do_hpet_interrupt(unsigned long long current_rsp)
 {
 	if (is_oneshot == 1) {
 		/* タイマー無効化 */
@@ -200,7 +200,7 @@ void do_hpet_interrupt(void)
 	}
 
 	/* ユーザーハンドラを呼び出す */
-	user_handler();
+	user_handler(current_rsp);
 
 	/* PICへ割り込み処理終了を通知(EOI) */
 	set_pic_eoi(HPET_INTR_NO);

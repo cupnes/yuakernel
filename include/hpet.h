@@ -3,6 +3,7 @@
 
 #define MS_TO_US	1000
 #define SEC_TO_US	1000000
+#define HPET_INTR_NO	32
 
 void hpet_init(void);
 void dump_gcidr(void);

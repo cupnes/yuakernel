@@ -11,6 +11,7 @@ hpet_handler:
 	push	%rbp
 	push	%rsi
 	push	%rdi
+	mov	%rsp, %rdi
 	call	do_hpet_interrupt
 	pop	%rdi
 	pop	%rsi
