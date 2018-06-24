@@ -18,6 +18,8 @@ struct __attribute__((packed)) HPET_TABLE {
 
 unsigned long long reg_base;
 unsigned int counter_clk_period;
+unsigned char is_oneshot = 0;
+unsigned long long cmpr_clk_counts;
 
 /* General Capabilities and ID Register */
 #define GCIDR_ADDR	(reg_base)
@@ -187,11 +189,15 @@ void sleep(unsigned long long us)
 
 void do_hpet_interrupt(void)
 {
-	/* タイマー無効化 */
-	union gcr gcr;
-	gcr.raw = GCR;
-	gcr.enable_cnf = 0;
-	GCR = gcr.raw;
+	if (is_oneshot == 1) {
+		/* タイマー無効化 */
+		union gcr gcr;
+		gcr.raw = GCR;
+		gcr.enable_cnf = 0;
+		GCR = gcr.raw;
+
+		is_oneshot = 0;
+	}
 
 	/* ユーザーハンドラを呼び出す */
 	user_handler();
@@ -224,10 +230,72 @@ void alert(unsigned long long us, void *handler)
 	unsigned long long clk_counts = femt_sec / counter_clk_period;
 	TNCR(TIMER_N) = clk_counts;
 
+	is_oneshot = 1;
+
 	/* LegacyReplacement Route有効化・タイマー有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.leg_rt_cnf = 1;
 	gcr.enable_cnf = 1;
+	GCR = gcr.raw;
+}
+
+void ptimer_setup(unsigned long long us, void *handler)
+{
+	/* タイマー無効化 */
+	union gcr gcr;
+	gcr.raw = GCR;
+	gcr.enable_cnf = 0;
+	GCR = gcr.raw;
+
+	/* ユーザーハンドラ設定 */
+	user_handler = handler;
+
+	/* 割り込み有効化・エッジトリガー設定 */
+	union tnccr tnccr;
+	tnccr.raw = TNCCR(TIMER_N);
+	tnccr.int_enb_cnf = 1;
+	tnccr.int_type_cnf = TNCCR_INT_TYPE_EDGE;
+	tnccr.type_cnf = TNCCR_TYPE_PERIODIC;
+	tnccr._reserved1 = 0;
+	tnccr._reserved2 = 0;
+	tnccr._reserved3 = 0;
+	TNCCR(TIMER_N) = tnccr.raw;
+
+	/* コンパレータ設定 */
+	unsigned long long femt_sec = us * US_TO_FS;
+	cmpr_clk_counts = femt_sec / counter_clk_period;
+
+	/* LegacyReplacement Route有効化 */
+	gcr.raw = GCR;
+	gcr.leg_rt_cnf = 1;
+	GCR = gcr.raw;
+}
+
+void ptimer_start(void)
+{
+	/* コンパレータ初期化 */
+	union tnccr tnccr;
+	tnccr.raw = TNCCR(TIMER_N);
+	tnccr.val_set_cnf = 1;
+	TNCCR(TIMER_N) = tnccr.raw;
+	TNCR(TIMER_N) = cmpr_clk_counts;
+
+	/* main counter初期化 */
+	MCR = (unsigned long long)0;
+
+	/* タイマー有効化 */
+	union gcr gcr;
+	gcr.raw = GCR;
+	gcr.enable_cnf = 1;
+	GCR = gcr.raw;
+}
+
+void ptimer_stop(void)
+{
+	/* タイマー無効化 */
+	union gcr gcr;
+	gcr.raw = GCR;
+	gcr.enable_cnf = 0;
 	GCR = gcr.raw;
 }

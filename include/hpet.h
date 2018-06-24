@@ -9,5 +9,8 @@ void dump_gcr(void);
 void dump_mcr(void);
 void sleep(unsigned long long us);
 void alert(unsigned long long us, void *handler);
+void ptimer_setup(unsigned long long us, void *handler);
+void ptimer_start(void);
+void ptimer_stop(void);
 
 #endif
