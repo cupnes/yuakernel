@@ -46,6 +46,19 @@ void sched_init(void)
 	/* TODO: 予めTaskBのスタックを適当に積んでおき、スタックポインタを揃える */
 	unsigned long long *sp =
 		(unsigned long long *)((unsigned char *)taskB_stack + TASK_B_STASK_BYTES);
+	unsigned long long old_sp = (unsigned long long)sp;
+
+	/* push RIP */
+	--sp;
+	*sp = (unsigned long long)do_taskB;
+
+	/* push SS */
+	--sp;
+	*sp = 0x10;
+
+	/* push old RSP */
+	--sp;
+	*sp = old_sp;
 
 	/* push RFLAGS */
 	--sp;
