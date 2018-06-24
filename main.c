@@ -7,15 +7,15 @@
 #include <fbcon.h>
 #include <fs.h>
 #include <hpet.h>
+#include <sched.h>
 #include <common.h>
-#include <iv.h>
 
 struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
 	void *rsdp;
 };
 
-void handler(void);
+void do_taskA(void);
 
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  void *_fs_start)
@@ -41,27 +41,24 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* ファイルシステムの初期化 */
 	fs_init(_fs_start);
 
-	/* 1秒周期の周期タイマー設定 */
-	ptimer_setup(1 * SEC_TO_US, handler);
-
-	dump_gcidr();
+	sched_init();
 
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
-	/* 周期タイマースタート */
-	ptimer_start();
+	sched_start();
+
+	do_taskA();
 
 	/* haltして待つ */
 	while (1)
 		cpu_halt();
 }
 
-void handler(void)
+void do_taskA(void)
 {
-	static unsigned char counter = 0;
-	if (counter++ < 10)
-		dump_mcr();
-	else
-		ptimer_stop();
+	while (1) {
+		putc('A');
+		sleep(100 * MS_TO_US);
+	}
 }

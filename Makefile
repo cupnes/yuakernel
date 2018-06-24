@@ -2,7 +2,7 @@ TARGET = kernel.bin
 CFLAGS = -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-common -Iinclude
 LDFLAGS = -Map kernel.map -s -x -T kernel.ld
 OBJS = main.o iv.o fbcon.o fb.o font.o kbc.o x86.o intr.o pic.o	\
-	hpet.o acpi.o handler.o fs.o common.o
+	sched.o hpet.o acpi.o handler.o fs.o common.o
 
 $(TARGET): $(OBJS)
 	ld $(LDFLAGS) -o $@ $+
