@@ -44,6 +44,8 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* 1秒周期の周期タイマー設定 */
 	ptimer_setup(1 * SEC_TO_US, handler);
 
+	dump_gcidr();
+
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
@@ -58,8 +60,8 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 void handler(void)
 {
 	static unsigned char counter = 0;
-	if (counter < 10)
-		putc('0' + counter++);
+	if (counter++ < 10)
+		dump_mcr();
 	else
 		ptimer_stop();
 }
