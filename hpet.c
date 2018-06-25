@@ -178,13 +178,24 @@ void sleep(unsigned long long us)
 	/* タイマーが無効であれば有効化する */
 	union gcr gcr;
 	gcr.raw = GCR;
+	unsigned char to_disable = 0;
 	if (!gcr.enable_cnf) {
 		gcr.enable_cnf = 1;
 		GCR = gcr.raw;
+
+		/* sleep()を抜ける際に元に戻す(disableする) */
+		to_disable = 1;
 	}
 
 	/* usマイクロ秒の経過を待つ */
 	while (MCR < mc_after);
+
+	/* 元々無効であった場合は無効に戻しておく */
+	if (to_disable) {
+		gcr.raw = GCR;
+		gcr.enable_cnf = 0;
+		GCR = gcr.raw;
+	}
 }
 
 void do_hpet_interrupt(unsigned long long current_rsp)
