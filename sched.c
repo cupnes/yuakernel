@@ -15,13 +15,18 @@ unsigned char taskB_stack[TASK_B_STASK_BYTES];
 void do_taskB(void)
 {
 	while (1) {
-		putc('B');
-		sleep(100 * MS_TO_US);
+		/* putc('B'); */
+		/* sleep(100 * MS_TO_US); */
+
+		dump_gcr();
+		dump_mcr();
+		sleep(1 * SEC_TO_US);
 	}
 }
 
 void schedule(unsigned long long current_rsp)
 {
+	putc('.');
 	task_sp[current_task] = current_rsp;
 	current_task = (current_task + 1) % NUM_TASKS;
 	set_pic_eoi(HPET_INTR_NO);

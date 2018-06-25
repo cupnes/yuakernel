@@ -67,8 +67,7 @@ void do_kbc_interrupt(void)
 		goto kbc_exit;
 
 	/* KBC割り込み処理を呼び出す */
-	char c = keymap[keycode];
-	iv_kbc_handler(c);
+	putc('K');
 
 kbc_exit:
 	/* PICへ割り込み処理終了を通知(EOI) */

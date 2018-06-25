@@ -41,6 +41,8 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* ファイルシステムの初期化 */
 	fs_init(_fs_start);
 
+	sleep(5 * SEC_TO_US);
+
 	sched_init();
 
 	/* CPUの割り込み有効化 */
