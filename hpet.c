@@ -9,6 +9,7 @@
 #define US_TO_FS	1000000000
 
 struct __attribute__((packed)) HPET_TABLE {
+	struct SDTH header;
 	unsigned int event_timer_block_id;
 	struct ACPI_ADDRESS base_address;
 	unsigned char hpet_number;
