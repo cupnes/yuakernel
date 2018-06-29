@@ -54,7 +54,7 @@ void dump_xsdt(void)
 	puts("\r\n");
 }
 
-struct SDTH *acpi_get_dev_table(char *sig)
+struct SDTH *get_sdt(char *sig)
 {
 	unsigned long long i;
 	for (i = 0; i < num_sdts; i++) {

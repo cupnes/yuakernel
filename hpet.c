@@ -92,7 +92,7 @@ void hpet_init(void)
 {
 	/* HPET tableを取得 */
 	struct HPET_TABLE *hpet_table =
-		(struct HPET_TABLE *)acpi_get_dev_table("HPET");
+		(struct HPET_TABLE *)get_sdt("HPET");
 
 	/* レジスタの先頭アドレスを取得 */
 	reg_base = hpet_table->base_address.address;

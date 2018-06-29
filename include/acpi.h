@@ -23,6 +23,6 @@ struct __attribute__((packed)) ACPI_ADDRESS {
 
 void acpi_init(void *rsdp);
 void dump_xsdt(void);
-struct SDTH *acpi_get_dev_table(char *sig);
+struct SDTH *get_sdt(char *sig);
 
 #endif
