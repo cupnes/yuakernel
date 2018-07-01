@@ -233,6 +233,7 @@ void do_hpet_interrupt(unsigned long long current_rsp)
 		tnccr._reserved3 = 0;
 		TNCCR(TIMER_N) = tnccr.raw;
 
+		/* ワンショットタイマー設定を解除 */
 		is_oneshot = 0;
 	}
 
@@ -266,6 +267,7 @@ void alert(unsigned long long us, void *handler)
 	unsigned long long clk_counts = femt_sec / counter_clk_period;
 	TNCR(TIMER_N) = clk_counts;
 
+	/* ワンショットタイマー設定 */
 	is_oneshot = 1;
 
 	/* タイマー有効化 */
