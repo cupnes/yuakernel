@@ -8,24 +8,20 @@
 
 unsigned int cursor_x = 0, cursor_y = 0;
 
-void putc(char c)
+void putc(char _c)
 {
 	unsigned int x, y;
 
-	switch(c) {
-	case '\r':
+	unsigned char c = (unsigned char)_c;
+	if (c == '\r') {
 		cursor_x = 0;
-		break;
-
-	case '\n':
+	} else if (c == '\n') {
 		cursor_y += FONT_HEIGHT;
 		if ((cursor_y + FONT_HEIGHT) >= fb.vr) {
 			cursor_x = cursor_y = 0;
 			clear_screen();
 		}
-		break;
-
-	default:
+	} else if (c < 128) {
 		/* カーソル座標(cursor_x,cursor_y)へ文字を描画 */
 		for (y = 0; y < FONT_HEIGHT; y++)
 			for (x = 0; x < FONT_WIDTH; x++)
@@ -38,6 +34,23 @@ void putc(char c)
 			cursor_x = 0;
 			cursor_y += FONT_HEIGHT;
 			if ((cursor_y + FONT_HEIGHT) >= fb.vr) {
+				cursor_x = cursor_y = 0;
+				clear_screen();
+			}
+		}
+	} else {
+		/* カーソル座標(cursor_x,cursor_y)へ文字を描画 */
+		for (y = 0; y < FONT_HIRA_HEIGHT; y++)
+			for (x = 0; x < FONT_HIRA_WIDTH; x++)
+				if (font_hira_bitmap[(unsigned int)c][y][x])
+					draw_px_fg(cursor_x + x, cursor_y + y);
+
+		/* カーソル座標の更新 */
+		cursor_x += FONT_HIRA_WIDTH;
+		if ((cursor_x + FONT_HIRA_WIDTH) >= fb.hr) {
+			cursor_x = 0;
+			cursor_y += FONT_HIRA_HEIGHT;
+			if ((cursor_y + FONT_HIRA_HEIGHT) >= fb.vr) {
 				cursor_x = cursor_y = 0;
 				clear_screen();
 			}

@@ -10,6 +10,7 @@
 #include <hpet.h>
 #include <sched.h>
 #include <common.h>
+#include <font.h>
 
 struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
@@ -26,6 +27,16 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 	set_fg(255, 255, 255);
 	set_bg(0, 70, 250);
 	clear_screen();
+
+	unsigned char s[] = {
+		FONT_hira_ko,
+		FONT_hira_n,
+		FONT_hira_ni,
+		FONT_hira_chi,
+		FONT_hira_ha,
+		'\0'};
+	puts((char *)s);
+	puts("HELLO\r\n");
 
 	/* EFIの初期化 */
 	efi_init(_st);
@@ -50,9 +61,9 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
-	sched_start();
+	/* sched_start(); */
 
-	do_taskA();
+	/* do_taskA(); */
 
 	/* haltして待つ */
 	while (1)
