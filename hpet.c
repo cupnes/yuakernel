@@ -319,4 +319,13 @@ void ptimer_stop(void)
 	gcr.raw = GCR;
 	gcr.enable_cnf = 0;
 	GCR = gcr.raw;
+
+	/* 割り込みを無効化 */
+	union tnccr tnccr;
+	tnccr.raw = TNCCR(TIMER_N);
+	tnccr.int_enb_cnf = 0;
+	tnccr._reserved1 = 0;
+	tnccr._reserved2 = 0;
+	tnccr._reserved3 = 0;
+	TNCCR(TIMER_N) = tnccr.raw;
 }
