@@ -97,7 +97,7 @@ void hpet_init(void)
 	/* レジスタの先頭アドレスを取得 */
 	reg_base = hpet_table->base_address.address;
 
-	/* 使うまでタイマーは止めておく
+	/* 使うまでHPETは止めておく
 	 * 併せてLegacy Replacement Route有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
@@ -194,7 +194,7 @@ void sleep(unsigned long long us)
 	unsigned long long mc_duration = fs / gcidr.counter_clk_period;
 	unsigned long long mc_after = mc_now + mc_duration;
 
-	/* タイマーが無効であれば有効化する */
+	/* HPETが無効であれば有効化する */
 	union gcr gcr;
 	gcr.raw = GCR;
 	unsigned char to_disable = 0;
@@ -220,7 +220,7 @@ void sleep(unsigned long long us)
 void do_hpet_interrupt(unsigned long long current_rsp)
 {
 	if (is_oneshot == 1) {
-		/* タイマー無効化 */
+		/* HPET無効化 */
 		union gcr gcr;
 		gcr.raw = GCR;
 		gcr.enable_cnf = 0;
@@ -272,7 +272,7 @@ void alert(unsigned long long us, void *handler)
 	/* ワンショットタイマー設定 */
 	is_oneshot = 1;
 
-	/* タイマー有効化 */
+	/* HPET有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 1;
@@ -281,7 +281,7 @@ void alert(unsigned long long us, void *handler)
 
 void ptimer_setup(unsigned long long us, void *handler)
 {
-	/* タイマー無効化 */
+	/* HPET無効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 0;
@@ -300,7 +300,7 @@ void ptimer_setup(unsigned long long us, void *handler)
 	tnccr._reserved3 = 0;
 	TNCCR(TIMER_N) = tnccr.raw;
 
-	/* コンパレータ設定 */
+	/* コンパレータ設定値を計算しておく */
 	unsigned long long femt_sec = us * US_TO_FS;
 	cmpr_clk_counts = femt_sec / counter_clk_period;
 }
@@ -317,7 +317,7 @@ void ptimer_start(void)
 	/* main counter初期化 */
 	MCR = (unsigned long long)0;
 
-	/* タイマー有効化 */
+	/* HPET有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 1;
@@ -326,7 +326,7 @@ void ptimer_start(void)
 
 void ptimer_stop(void)
 {
-	/* タイマー無効化 */
+	/* HPET無効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 0;
