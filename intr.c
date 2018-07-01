@@ -8,7 +8,6 @@
 struct interrupt_descriptor idt[MAX_INTR_NO];
 unsigned long long idtr[2];
 
-void default_handler(void);
 void divide_error_exception(void);
 void debug_exception(void);
 void nmi_interrupt(void);

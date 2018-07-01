@@ -1,5 +1,6 @@
 	.global default_handler
 default_handler:
+	/*
 	push	%rax
 	push	%rcx
 	push	%rdx
@@ -15,6 +16,7 @@ default_handler:
 	pop	%rdx
 	pop	%rcx
 	pop	%rax
+	*/
 	iretq
 
 	.global divide_error_exception
