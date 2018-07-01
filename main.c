@@ -2,6 +2,7 @@
 #include <intr.h>
 #include <pic.h>
 #include <acpi.h>
+#include <efi.h>
 #include <fb.h>
 #include <kbc.h>
 #include <fbcon.h>
@@ -17,7 +18,7 @@ struct __attribute__((packed)) platform_info {
 
 void do_taskA(void);
 
-void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
+void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 		  void *_fs_start)
 {
 	/* フレームバッファ周りの初期化 */
@@ -25,6 +26,9 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	set_fg(255, 255, 255);
 	set_bg(0, 70, 250);
 	clear_screen();
+
+	/* EFIの初期化 */
+	efi_init(_st);
 
 	/* ACPIの初期化 */
 	acpi_init(pi->rsdp);

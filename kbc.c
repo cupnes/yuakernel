@@ -3,7 +3,9 @@
 #include <fbcon.h>
 #include <intr.h>
 #include <pic.h>
-#include <iv.h>
+#include <efi.h>
+#include <hpet.h>
+#include <common.h>
 
 #define KBC_DATA_ADDR		0x0060
 #define KBC_DATA_BIT_IS_BRAKE	0x80
@@ -68,7 +70,13 @@ void do_kbc_interrupt(void)
 
 	/* KBC割り込み処理を呼び出す */
 	char c = keymap[keycode];
-	iv_kbc_handler(c);
+	switch (c) {
+	case 'e':
+		puts("\r\n\r\nSHUTDOWN ...");
+		sleep(1);
+		efi_st->RuntimeServices->ResetSystem(
+			EfiResetShutdown, EFI_SUCCESS, 0, NULL);
+	}
 
 kbc_exit:
 	/* PICへ割り込み処理終了を通知(EOI) */

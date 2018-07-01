@@ -492,4 +492,8 @@ struct __attribute__((packed)) EFI_DEVICE_PATH_UTILITIES_PROTOCOL {
 		const struct EFI_DEVICE_PATH_PROTOCOL *DeviceNode);
 };
 
+extern struct EFI_SYSTEM_TABLE *efi_st;
+
+void efi_init(struct EFI_SYSTEM_TABLE *st);
+
 #endif

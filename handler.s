@@ -1,6 +1,6 @@
 	.global default_handler
 default_handler:
-	jmp	default_handler
+	iretq
 
 	.global	hpet_handler
 hpet_handler:
