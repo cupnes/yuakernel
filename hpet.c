@@ -124,8 +124,10 @@ void hpet_init(void)
 	tnccr._reserved3 = 0;
 	TNCCR(TIMER_N) = tnccr.raw;
 
-	/* IDTへループバック関数登録 */
+	/* IDTへHPET割り込みのハンドラ登録 */
 	set_intr_desc(HPET_INTR_NO, hpet_handler);
+
+	/* PICの割り込みマスク解除 */
 	enable_pic_intr(HPET_INTR_NO);
 }
 
