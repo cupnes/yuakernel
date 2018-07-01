@@ -97,16 +97,32 @@ void hpet_init(void)
 	/* レジスタの先頭アドレスを取得 */
 	reg_base = hpet_table->base_address.address;
 
-	/* 使うまでタイマーは止めておく */
+	/* 使うまでタイマーは止めておく
+	 * 併せてLegacy Replacement Route有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
 	gcr.enable_cnf = 0;
+	gcr.leg_rt_cnf = 1;
 	GCR = gcr.raw;
 
 	/* カウント周期を取得 */
 	union gcidr gcidr;
 	gcidr.raw = GCIDR;
 	counter_clk_period = gcidr.counter_clk_period;
+
+	/* 割り込み設定初期化 */
+	union tnccr tnccr;
+	tnccr.raw = TNCCR(TIMER_N);
+	tnccr.int_type_cnf = TNCCR_INT_TYPE_EDGE;
+	tnccr.int_enb_cnf = 0;
+	tnccr.type_cnf = TNCCR_TYPE_NON_PERIODIC;
+	tnccr.val_set_cnf = 0;
+	tnccr.mode32_cnf = 0;
+	tnccr.fsb_en_cnf = 0;
+	tnccr._reserved1 = 0;
+	tnccr._reserved2 = 0;
+	tnccr._reserved3 = 0;
+	TNCCR(TIMER_N) = tnccr.raw;
 
 	/* IDTへループバック関数登録 */
 	set_intr_desc(HPET_INTR_NO, hpet_handler);
@@ -232,11 +248,10 @@ void alert(unsigned long long us, void *handler)
 	/* ユーザーハンドラ設定 */
 	user_handler = handler;
 
-	/* 割り込み有効化・エッジトリガー設定 */
+	/* 非周期割り込みで割り込み有効化 */
 	union tnccr tnccr;
 	tnccr.raw = TNCCR(TIMER_N);
 	tnccr.int_enb_cnf = 1;
-	tnccr.int_type_cnf = TNCCR_INT_TYPE_EDGE;
 	tnccr.type_cnf = TNCCR_TYPE_NON_PERIODIC;
 	tnccr._reserved1 = 0;
 	tnccr._reserved2 = 0;
@@ -253,10 +268,9 @@ void alert(unsigned long long us, void *handler)
 
 	is_oneshot = 1;
 
-	/* LegacyReplacement Route有効化・タイマー有効化 */
+	/* タイマー有効化 */
 	union gcr gcr;
 	gcr.raw = GCR;
-	gcr.leg_rt_cnf = 1;
 	gcr.enable_cnf = 1;
 	GCR = gcr.raw;
 }
@@ -272,11 +286,10 @@ void ptimer_setup(unsigned long long us, void *handler)
 	/* ユーザーハンドラ設定 */
 	user_handler = handler;
 
-	/* 割り込み有効化・エッジトリガー設定 */
+	/* 周期割り込みで割り込み有効化 */
 	union tnccr tnccr;
 	tnccr.raw = TNCCR(TIMER_N);
 	tnccr.int_enb_cnf = 1;
-	tnccr.int_type_cnf = TNCCR_INT_TYPE_EDGE;
 	tnccr.type_cnf = TNCCR_TYPE_PERIODIC;
 	tnccr._reserved1 = 0;
 	tnccr._reserved2 = 0;
@@ -286,11 +299,6 @@ void ptimer_setup(unsigned long long us, void *handler)
 	/* コンパレータ設定 */
 	unsigned long long femt_sec = us * US_TO_FS;
 	cmpr_clk_counts = femt_sec / counter_clk_period;
-
-	/* LegacyReplacement Route有効化 */
-	gcr.raw = GCR;
-	gcr.leg_rt_cnf = 1;
-	GCR = gcr.raw;
 }
 
 void ptimer_start(void)
