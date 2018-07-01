@@ -28,6 +28,16 @@ void schedule(unsigned long long current_rsp)
 	asm volatile ("mov %[sp], %%rsp"
 		      :: [sp]"a"(task_sp[current_task]));
 	asm volatile (
+		/*
+		"pop	%r15\n"
+		"pop	%r14\n"
+		"pop	%r13\n"
+		"pop	%r12\n"
+		"pop	%r11\n"
+		"pop	%r10\n"
+		"pop	%r9\n"
+		"pop	%r8\n"
+		*/
 		"pop	%rdi\n"
 		"pop	%rsi\n"
 		"pop	%rbp\n"
