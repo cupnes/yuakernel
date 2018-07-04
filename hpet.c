@@ -3,6 +3,7 @@
 #include <acpi.h>
 #include <fbcon.h>
 #include <hpet.h>
+#include <common.h>
 
 #define TIMER_N		0	/* 使用するタイマー番号 */
 
@@ -86,7 +87,7 @@ union tnccr {
 #define TNCR(n)	(*(volatile unsigned long long *)(TNCR_ADDR(n)))
 
 void hpet_handler(void);
-void (*user_handler)(unsigned long long current_rsp);
+static void (*user_handler)(unsigned long long current_rsp) = NULL;
 
 void hpet_init(void)
 {
@@ -240,7 +241,8 @@ void do_hpet_interrupt(unsigned long long current_rsp)
 	}
 
 	/* ユーザーハンドラを呼び出す */
-	user_handler(current_rsp);
+	if (user_handler)
+		user_handler(current_rsp);
 
 	/* PICへ割り込み処理終了を通知(EOI) */
 	set_pic_eoi(HPET_INTR_NO);
