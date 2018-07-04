@@ -34,6 +34,8 @@ const char keymap[] = {
 
 void kbc_handler(void);
 
+static void (*user_handler)(char c) = NULL;
+
 unsigned char get_kbc_data(void)
 {
 	/* ステータスレジスタのOBFがセットされるまで待つ */
@@ -79,6 +81,11 @@ void do_kbc_interrupt(void)
 		sleep(1);
 		efi_st->RuntimeServices->ResetSystem(
 			EfiResetShutdown, EFI_SUCCESS, 0, NULL);
+		break;
+
+	default:
+		if (user_handler)
+			user_handler(c);
 	}
 
 kbc_exit:
@@ -90,4 +97,9 @@ void kbc_init(void)
 {
 	set_intr_desc(KBC_INTR_NO, kbc_handler);
 	enable_pic_intr(KBC_INTR_NO);
+}
+
+void kbc_set_handler(void *handler)
+{
+	user_handler = handler;
 }
