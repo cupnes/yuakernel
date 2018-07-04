@@ -50,7 +50,7 @@ unsigned char asc2kana[] = {
 	[','] = FONT_hira_ne,
 	['.'] = FONT_hira_ru,
 	['/'] = FONT_hira_me,
-	['\\'] = FONT_hira_ro
+	[0x5f] = FONT_hira_ro
 };
 
 static void kbc_handler(char c)
