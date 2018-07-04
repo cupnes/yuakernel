@@ -7,6 +7,12 @@
 #define MAX_STR_BUF	21
 
 unsigned int cursor_x = 0, cursor_y = 0;
+unsigned char is_vertical_writing = 0;
+
+void set_text_direction(unsigned char test_direction)
+{
+	is_vertical_writing = test_direction;
+}
 
 void putc(char _c)
 {
