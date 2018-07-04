@@ -73,7 +73,7 @@ void do_kbc_interrupt(void)
 	/* KBC割り込み処理を呼び出す */
 	char c = keymap[keycode];
 	switch (c) {
-	case 'r':
+	case ASCII_ESC:
 		puts("\r\n\r\nREBOOT ...");
 		int i;
 		for (i = 0; i < MAX_INTR_NO; i++)
