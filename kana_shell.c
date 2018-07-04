@@ -50,11 +50,17 @@ unsigned char asc2kana[] = {
 	[','] = FONT_hira_ne,
 	['.'] = FONT_hira_ru,
 	['/'] = FONT_hira_me,
-	[0x5f] = FONT_hira_ro
+	[0x5f] = FONT_hira_ro,
+
+	[' '] = FONT_hira_space,
+	['\r'] = '\r',
+	['\n'] = '\n'
 };
 
 static void kbc_handler(char c)
 {
+	if (c == '\n')
+		puts("\r\n\r");
 	putc(asc2kana[(unsigned char)c]);
 }
 
