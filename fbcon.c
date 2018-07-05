@@ -18,6 +18,7 @@ void putc(char _c)
 {
 	static unsigned char delayed_clear_screen = 0;
 	if (delayed_clear_screen) {
+		cursor_x = cursor_y = 0;
 		clear_screen();
 		delayed_clear_screen = 0;
 	}
@@ -45,10 +46,8 @@ void putc(char _c)
 		if ((cursor_x + FONT_WIDTH) >= fb.hr) {
 			cursor_x = 0;
 			cursor_y += FONT_HEIGHT;
-			if ((cursor_y + FONT_HEIGHT) >= fb.vr) {
-				cursor_x = cursor_y = 0;
+			if ((cursor_y + FONT_HEIGHT) >= fb.vr)
 				delayed_clear_screen = 1;
-			}
 		}
 	} else {
 		/* カーソル座標(cursor_x,cursor_y)へ文字を描画 */
@@ -62,10 +61,8 @@ void putc(char _c)
 		if ((cursor_x + FONT_HIRA_WIDTH) >= fb.hr) {
 			cursor_x = 0;
 			cursor_y += FONT_HIRA_HEIGHT;
-			if ((cursor_y + FONT_HIRA_HEIGHT) >= fb.vr) {
-				cursor_x = cursor_y = 0;
+			if ((cursor_y + FONT_HIRA_HEIGHT) >= fb.vr)
 				delayed_clear_screen = 1;
-			}
 		}
 	}
 }
