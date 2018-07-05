@@ -16,6 +16,12 @@ void set_text_direction(unsigned char test_direction)
 
 void putc(char _c)
 {
+	static unsigned char delayed_clear_screen = 0;
+	if (delayed_clear_screen) {
+		clear_screen();
+		delayed_clear_screen = 0;
+	}
+
 	unsigned int x, y;
 
 	unsigned char c = (unsigned char)_c;
@@ -41,7 +47,7 @@ void putc(char _c)
 			cursor_y += FONT_HEIGHT;
 			if ((cursor_y + FONT_HEIGHT) >= fb.vr) {
 				cursor_x = cursor_y = 0;
-				clear_screen();
+				delayed_clear_screen = 1;
 			}
 		}
 	} else {
@@ -58,7 +64,7 @@ void putc(char _c)
 			cursor_y += FONT_HIRA_HEIGHT;
 			if ((cursor_y + FONT_HIRA_HEIGHT) >= fb.vr) {
 				cursor_x = cursor_y = 0;
-				clear_screen();
+				delayed_clear_screen = 1;
 			}
 		}
 	}
