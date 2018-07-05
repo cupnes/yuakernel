@@ -60,11 +60,12 @@ unsigned char asc2kana[] = {
 static void kbc_handler(char c)
 {
 	if (c == '\n')
-		puts("\r\n\r");
-	putc(asc2kana[(unsigned char)c]);
+		vputc('\r');
+	vputc(asc2kana[(unsigned char)c]);
 }
 
 void kana_main(void)
 {
 	kbc_set_handler(kbc_handler);
+	vcursor_reset();
 }
