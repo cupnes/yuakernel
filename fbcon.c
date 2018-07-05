@@ -12,12 +12,17 @@ void putc_pos(unsigned int pos_x, unsigned int pos_y, unsigned char c)
 {
 	unsigned int x, y;
 
-	for (y = 0; y < FONT_HEIGHT; y++) {
-		for (x = 0; x < FONT_WIDTH; x++) {
-			if (c < 128) {
+	if (c < 128) {
+		for (y = 0; y < FONT_HEIGHT; y++) {
+			for (x = 0; x < FONT_WIDTH; x++) {
 				if (font_bitmap[(unsigned int)c][y][x])
 					draw_px_fg(pos_x + x, pos_y + y);
-			} else {
+
+			}
+		}
+	} else {
+		for (y = 0; y < VFONT_HEIGHT; y++) {
+			for (x = 0; x < VFONT_WIDTH; x++) {
 				if (font_hira_bitmap[(unsigned int)c][y][x])
 					draw_px_fg(pos_x + x, pos_y + y);
 			}
