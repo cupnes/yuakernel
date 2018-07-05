@@ -168,7 +168,7 @@ unsigned char vupdate_cursor(unsigned char c)
 	return do_clear_screen;
 }
 
-void vputc(char _c)
+void vputc(unsigned char c)
 {
 	static unsigned char delayed_clear_screen = 0;
 	if (delayed_clear_screen) {
@@ -177,7 +177,6 @@ void vputc(char _c)
 		delayed_clear_screen = 0;
 	}
 
-	unsigned char c = (unsigned char)_c;
 	if (c == '\r') {
 		vcr();
 	} else if (c == '\n') {
@@ -193,7 +192,7 @@ void vputc(char _c)
 	}
 }
 
-void vputs(char *s)
+void vputs(unsigned char *s)
 {
 	while (*s != '\0')
 		vputc(*s++);
