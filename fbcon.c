@@ -7,11 +7,22 @@
 #define MAX_STR_BUF	21
 
 unsigned int cursor_x = 0, cursor_y = 0;
-unsigned char is_vertical_writing = 0;
 
-void set_text_direction(unsigned char test_direction)
+void putc_pos(unsigned int pos_x, unsigned int pos_y, unsigned char c)
 {
-	is_vertical_writing = test_direction;
+	unsigned int x, y;
+
+	for (y = 0; y < FONT_HEIGHT; y++) {
+		for (x = 0; x < FONT_WIDTH; x++) {
+			if (c < 128) {
+				if (font_bitmap[(unsigned int)c][y][x])
+					draw_px_fg(pos_x + x, pos_y + y);
+			} else {
+				if (font_hira_bitmap[(unsigned int)c][y][x])
+					draw_px_fg(pos_x + x, pos_y + y);
+			}
+		}
+	}
 }
 
 void putc(char _c)
@@ -104,4 +115,81 @@ void puth(unsigned long long val, unsigned char num_digits)
 	str[num_digits] = '\0';
 
 	puts(str);
+}
+
+void vcursor_reset(void)
+{
+	cursor_x = fb.hr - VFONT_WIDTH;
+	cursor_y = 0;
+}
+
+void vcr(void)
+{
+	cursor_y = 0;
+}
+
+unsigned char vlf(void)
+{
+	unsigned char do_clear_screen = 0;
+
+	if (cursor_x >= VFONT_WIDTH) {
+		cursor_x -= VFONT_WIDTH;
+	} else {
+		vcursor_reset();
+		do_clear_screen = 1;
+	}
+
+	return do_clear_screen;
+}
+
+unsigned char vupdate_cursor(unsigned char c)
+{
+	unsigned char do_clear_screen = 0;
+
+	if (c < 128) {
+		cursor_y += FONT_HEIGHT;
+		if ((cursor_y + FONT_HEIGHT) >= fb.vr) {
+			vcr();
+			do_clear_screen = vlf();
+		}
+	} else {
+		cursor_y += VFONT_HEIGHT;
+		if ((cursor_y + VFONT_HEIGHT) >= fb.vr) {
+			vcr();
+			do_clear_screen = vlf();
+		}
+	}
+
+	return do_clear_screen;
+}
+
+void vputc(char _c)
+{
+	static unsigned char delayed_clear_screen = 0;
+	if (delayed_clear_screen) {
+		vcursor_reset();
+		clear_screen();
+		delayed_clear_screen = 0;
+	}
+
+	unsigned char c = (unsigned char)_c;
+	if (c == '\r') {
+		vcr();
+	} else if (c == '\n') {
+		unsigned char do_clear_screen = vlf();
+		if (do_clear_screen)
+			clear_screen();
+	} else {
+		/* カーソル座標(cursor_x,cursor_y)へ文字を描画 */
+		putc_pos(cursor_x, cursor_y, c);
+
+		/* カーソル座標の更新 */
+		delayed_clear_screen = vupdate_cursor(c);
+	}
+}
+
+void vputs(char *s)
+{
+	while (*s != '\0')
+		vputc(*s++);
 }

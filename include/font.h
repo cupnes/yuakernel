@@ -3,10 +3,14 @@
 
 #define FONT_WIDTH		8
 #define FONT_HEIGHT		10
+
 #define FONT_HIRA_WIDTH		16
 #define FONT_HIRA_HEIGHT	21
 /* #define FONT_HIRA_WIDTH		24 */
 /* #define FONT_HIRA_HEIGHT	32 */
+
+#define VFONT_WIDTH		FONT_HIRA_WIDTH
+#define VFONT_HEIGHT		FONT_HIRA_HEIGHT
 
 enum FONT_HIRA_IDX {
 	FONT_hira_space = 128,
