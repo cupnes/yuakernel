@@ -10,7 +10,7 @@
 #include <hpet.h>
 #include <sched.h>
 #include <common.h>
-#include <kana_shell.h>
+#include <kana_echoback.h>
 
 struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
