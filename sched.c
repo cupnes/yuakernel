@@ -23,16 +23,18 @@ struct task_fb {
 
 void do_taskB(void)
 {
-	unsigned char r = 0, g = 0, b = 0;
+	unsigned char c = 0;
 	while (1) {
 		unsigned int x, y;
-		for (y = 0; y < tfb[1].h; y++) {
-			for (x = 0; x < tfb[1].w; x++) {
-				draw_px(x, y, r++, g, b);
+		for (y = 0; y < 200; y++) {
+			for (x = 0; x < 200; x++) {
+				draw_px(x, y, x, y, c);
+				c++;
 			}
-			g++;
 		}
-		b++;
+
+		unsigned long long w = 10000000;
+		while (w--);
 	}
 }
 
@@ -73,15 +75,20 @@ void sched_init(void)
 	/* 5ms周期の周期タイマー設定 */
 	ptimer_setup(SCHED_PERIOD, schedule);
 
-	tfb[0].x = fb_real.hr / 2;
-	tfb[0].y = 0;
-	tfb[0].w = fb_real.hr / 2;
-	tfb[0].h = fb_real.vr;
+	/* tfb[0].x = fb_real.hr / 2; */
+	/* tfb[0].y = 0; */
+	/* tfb[0].w = fb_real.hr / 2; */
+	/* tfb[0].h = fb_real.vr; */
 
-	tfb[1].x = 0;
-	tfb[1].y = 0;
-	tfb[1].w = fb_real.hr / 2;
-	tfb[1].h = fb_real.vr;
+	/* tfb[1].x = 0; */
+	/* tfb[1].y = 0; */
+	/* tfb[1].w = fb_real.hr / 2; */
+	/* tfb[1].h = fb_real.vr; */
+
+	tfb[0].x = tfb[1].x = 0;
+	tfb[0].y = tfb[1].y = 0;
+	tfb[0].w = tfb[1].w = fb_real.hr;
+	tfb[0].h = tfb[1].h = fb_real.vr;
 
 	fb.hr = tfb[0].w;
 	fb.vr = tfb[0].h;

@@ -48,11 +48,11 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
-	/* kana_main(); */
+	kana_main();
 
 	sched_start();
 
-	do_taskA();
+	/* do_taskA(); */
 
 	/* haltして待つ */
 	while (1)
