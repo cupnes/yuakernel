@@ -3,7 +3,8 @@
 #include <kbc.h>
 
 #define MAX_COM_LEN	128
-#define KS_UNDEFINED	-1
+#define KS_NONE		-1
+#define KS_UNDEFINED	-2
 
 #define NU	FONT_hira_nu
 #define FU	FONT_hira_fu
@@ -51,6 +52,7 @@
 #define ME	FONT_hira_me
 #define RO	FONT_hira_ro
 #define SPC	FONT_hira_space
+#define YEN	FONT_yen
 
 unsigned char asc2kana[] = {
 	['1'] = FONT_hira_nu,
@@ -126,10 +128,14 @@ static void exec_command(int com_id)
 
 static void kbc_handler(char c)
 {
-	static int com_id = KS_UNDEFINED;
+	static int com_id = KS_NONE;
 	if (c == '\n') {
 		vputs((unsigned char *)"\r\n");
-		exec_command(com_id);
+		if (com_id != KS_NONE)
+			exec_command(com_id);
+		com_id = KS_NONE;
+		vputc(YEN);
+		vputc(SPC);
 	} else {
 		unsigned char _c = asc2kana[(unsigned char)c];
 		vputc(_c);
@@ -141,4 +147,6 @@ void kana_main(void)
 {
 	kbc_set_handler(kbc_handler);
 	vcursor_reset();
+	vputc(YEN);
+	vputc(SPC);
 }

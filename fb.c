@@ -1,8 +1,11 @@
 #include <fb.h>
 
 struct framebuffer fb;
+struct framebuffer fb_real;
 struct pixelformat color_fg;
 struct pixelformat color_bg;
+
+unsigned int start_x, start_y;
 
 void fb_init(struct framebuffer *_fb)
 {
@@ -10,6 +13,18 @@ void fb_init(struct framebuffer *_fb)
 	fb.size = _fb->size;
 	fb.hr = _fb->hr;
 	fb.vr = _fb->vr;
+	start_x = start_y = 0;
+
+	fb_real.base = _fb->base;
+	fb_real.size = _fb->size;
+	fb_real.hr = _fb->hr;
+	fb_real.vr = _fb->vr;
+}
+
+void set_start(unsigned int _sx, unsigned int _sy)
+{
+	start_x = _sx;
+	start_y = _sy;
 }
 
 void set_fg(unsigned char r, unsigned char g, unsigned char b)
@@ -41,7 +56,7 @@ static inline void draw_px_real(unsigned int x, unsigned int y,
 inline void draw_px(unsigned int x, unsigned int y,
 		    unsigned char r, unsigned char g, unsigned char b)
 {
-	draw_px_real(x, y, r, g, b);
+	draw_px_real(start_x + x, start_y + y, r, g, b);
 }
 
 inline void draw_px_fg(unsigned int x, unsigned int y)

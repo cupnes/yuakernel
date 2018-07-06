@@ -60,6 +60,7 @@ enum FONT_HIRA_IDX {
 	FONT_hira_ya,
 	FONT_hira_yo,
 	FONT_hira_yu,
+	FONT_yen,
 };
 
 extern const unsigned char font_bitmap[][FONT_HEIGHT][FONT_WIDTH];
