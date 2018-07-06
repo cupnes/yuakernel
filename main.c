@@ -53,7 +53,7 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 
 	kana_main();
 
-	/* sched_start(); */
+	sched_start();
 
 	/* do_taskA(); */
 
@@ -66,6 +66,8 @@ void do_taskA(void)
 {
 	while (1) {
 		putc('A');
-		sleep(100 * MS_TO_US);
+		/* sleep(1000 * MS_TO_US); */
+		unsigned long long wait = 100000000;
+		while (wait--);
 	}
 }

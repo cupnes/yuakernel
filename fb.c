@@ -52,6 +52,12 @@ inline void fill_rect(unsigned int x, unsigned int y,
 			draw_px(j, i, r, g, b);
 }
 
+inline void fill_rect_bg(unsigned int x, unsigned int y,
+			 unsigned int w, unsigned int h)
+{
+	fill_rect(x, y, w, h, color_bg.r, color_bg.g, color_bg.b);
+}
+
 void clear_screen(void)
 {
 	fill_rect(0, 0, fb.hr, fb.vr, color_bg.r, color_bg.g, color_bg.b);

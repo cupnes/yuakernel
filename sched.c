@@ -1,6 +1,8 @@
 #include <hpet.h>
 #include <pic.h>
 
+#include <fb.h>
+#include <font.h>
 #include <fbcon.h>
 
 #define SCHED_PERIOD	(5 * MS_TO_US)
@@ -15,8 +17,14 @@ unsigned char taskB_stack[TASK_B_STASK_BYTES];
 void do_taskB(void)
 {
 	while (1) {
-		putc('B');
-		sleep(100 * MS_TO_US);
+		char i;
+		for (i = 0; i < 10; i++) {
+			fill_rect_bg(0, 0, FONT_WIDTH, FONT_HEIGHT);
+			putc_pos(0, 0, '0' + i);
+			/* sleep(1 * SEC_TO_US); */
+			unsigned long long wait = 10000000;
+			while (wait--);
+		}
 	}
 }
 

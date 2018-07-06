@@ -126,7 +126,7 @@ static void exec_command(int com_id)
 
 static void kbc_handler(char c)
 {
-	static int com_id;
+	static int com_id = KS_UNDEFINED;
 	if (c == '\n') {
 		vputs((unsigned char *)"\r\n");
 		exec_command(com_id);
