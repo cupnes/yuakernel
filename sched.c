@@ -21,6 +21,8 @@ struct task_fb {
 	unsigned int h;
 } tfb[NUM_TASKS];
 
+unsigned char demo_flag = 0;
+
 void do_taskB(void)
 {
 	unsigned char c = 0;
@@ -41,7 +43,10 @@ void do_taskB(void)
 void schedule(unsigned long long current_rsp)
 {
 	task_sp[current_task] = current_rsp;
-	current_task = (current_task + 1) % NUM_TASKS;
+	if (demo_flag)
+		current_task = (current_task + 1) % NUM_TASKS;
+	else
+		current_task = 0;
 	fb.hr = tfb[current_task].w;
 	fb.vr = tfb[current_task].h;
 	set_start(tfb[current_task].x, tfb[current_task].y);
