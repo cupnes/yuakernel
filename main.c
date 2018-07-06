@@ -24,9 +24,6 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 {
 	/* フレームバッファ周りの初期化 */
 	fb_init(&pi->fb);
-	set_fg(255, 255, 255);
-	set_bg(0, 70, 250);
-	clear_screen();
 
 	/* EFIの初期化 */
 	efi_init(_st);
@@ -51,11 +48,11 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
-	kana_main();
+	/* kana_main(); */
 
 	sched_start();
 
-	/* do_taskA(); */
+	do_taskA();
 
 	/* haltして待つ */
 	while (1)
@@ -64,6 +61,10 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 
 void do_taskA(void)
 {
+	set_fg(255, 255, 255);
+	set_bg(0, 70, 250);
+	clear_screen();
+
 	while (1) {
 		putc('A');
 		/* sleep(1000 * MS_TO_US); */

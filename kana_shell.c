@@ -1,3 +1,4 @@
+#include <fb.h>
 #include <fbcon.h>
 #include <font.h>
 #include <kbc.h>
@@ -146,6 +147,9 @@ static void kbc_handler(char c)
 void kana_main(void)
 {
 	kbc_set_handler(kbc_handler);
+	set_fg(255, 255, 255);
+	set_bg(0, 70, 250);
+	clear_screen();
 	vcursor_reset();
 	vputc(YEN);
 	vputc(SPC);

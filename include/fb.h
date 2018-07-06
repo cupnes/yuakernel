@@ -16,8 +16,10 @@ struct __attribute__((packed)) framebuffer {
 };
 
 extern struct framebuffer fb;
+extern struct framebuffer fb_real;
 
 void fb_init(struct framebuffer *_fb);
+void set_start(unsigned int _sx, unsigned int _sy);
 void set_fg(unsigned char r, unsigned char g, unsigned char b);
 void set_bg(unsigned char r, unsigned char g, unsigned char b);
 void draw_px(unsigned int x, unsigned int y,

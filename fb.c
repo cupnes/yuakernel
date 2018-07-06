@@ -45,8 +45,8 @@ static inline void draw_px_real(unsigned int x, unsigned int y,
 				unsigned char r, unsigned char g,
 				unsigned char b)
 {
-	struct pixelformat *p = fb.base;
-	p += y * fb.hr + x;
+	struct pixelformat *p = fb_real.base;
+	p += y * fb_real.hr + x;
 
 	p->b = b;
 	p->g = g;

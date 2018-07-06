@@ -13,4 +13,6 @@ void vcursor_reset(void);
 void vputc(unsigned char c);
 void vputs(unsigned char *s);
 
+extern unsigned int cursor_x, cursor_y;
+
 #endif

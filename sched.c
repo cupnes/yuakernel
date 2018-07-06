@@ -14,15 +14,30 @@ volatile unsigned int current_task = 0;
 #define TASK_B_STASK_BYTES	4096
 unsigned char taskB_stack[TASK_B_STASK_BYTES];
 
+struct task_fb {
+	unsigned int x;
+	unsigned int y;
+	unsigned int w;
+	unsigned int h;
+} tfb[NUM_TASKS];
+
 void do_taskB(void)
 {
+	unsigned long long wait;
+
+	while (1) {
+		putc('B');
+		wait = 10000000;
+		while (wait--);
+	}
+
 	while (1) {
 		char i;
 		for (i = 0; i < 10; i++) {
 			fill_rect_bg(0, 0, FONT_WIDTH, FONT_HEIGHT);
 			putc_pos(0, 0, '0' + i);
 			/* sleep(1 * SEC_TO_US); */
-			unsigned long long wait = 10000000;
+			wait = 10000000;
 			while (wait--);
 		}
 	}
@@ -32,6 +47,10 @@ void schedule(unsigned long long current_rsp)
 {
 	task_sp[current_task] = current_rsp;
 	current_task = (current_task + 1) % NUM_TASKS;
+	fb.hr = tfb[current_task].w;
+	fb.vr = tfb[current_task].h;
+	set_start(tfb[current_task].x, tfb[current_task].y);
+
 	set_pic_eoi(HPET_INTR_NO);
 	asm volatile ("mov %[sp], %%rsp"
 		      :: [sp]"a"(task_sp[current_task]));
@@ -60,6 +79,20 @@ void sched_init(void)
 {
 	/* 5ms周期の周期タイマー設定 */
 	ptimer_setup(SCHED_PERIOD, schedule);
+
+	tfb[0].x = fb_real.hr / 2;
+	tfb[0].y = 0;
+	tfb[0].w = fb_real.hr / 2;
+	tfb[0].h = fb_real.vr;
+
+	tfb[1].x = 0;
+	tfb[1].y = 0;
+	tfb[1].w = fb_real.hr / 2;
+	tfb[1].h = fb_real.vr;
+
+	fb.hr = tfb[0].w;
+	fb.vr = tfb[0].h;
+	set_start(tfb[0].x, tfb[0].y);
 
 	/* TODO: 予めTaskBのスタックを適当に積んでおき、スタックポインタを揃える */
 	unsigned long long *sp =
