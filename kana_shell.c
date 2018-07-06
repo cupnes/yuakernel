@@ -2,6 +2,7 @@
 #include <fbcon.h>
 #include <font.h>
 #include <kbc.h>
+#include <sched.h>
 
 #define MAX_COM_LEN	128
 #define KS_NONE		-1
@@ -110,6 +111,11 @@ unsigned char asc2kana[] = {
 	['\n'] = '\n'
 };
 
+enum KS_COMMANDS {
+	KS_DEMO,
+	KS_MAX_CMDS
+};
+
 static void cmd_undefined(void)
 {
 	unsigned char s[] = {WA, KA, RA, N, '\r', '\n', '\0'};
@@ -118,6 +124,10 @@ static void cmd_undefined(void)
 
 static int select_command(unsigned char c)
 {
+	switch (c) {
+	case TE:
+		return KS_DEMO;
+	}
 	return KS_UNDEFINED;
 }
 
@@ -125,11 +135,20 @@ static void exec_command(int com_id)
 {
 	if (com_id < 0)
 		cmd_undefined();
+
+	switch (com_id) {
+	case KS_DEMO:
+		demo_flag = !demo_flag;
+		clear_screen();
+		vcursor_reset();
+		break;
+	}
 }
 
 static void kbc_handler(char c)
 {
 	static int com_id = KS_NONE;
+	static unsigned char is_first_char = 1;
 	if (c == '\n') {
 		vputs((unsigned char *)"\r\n");
 		if (com_id != KS_NONE)
@@ -137,10 +156,15 @@ static void kbc_handler(char c)
 		com_id = KS_NONE;
 		vputc(YEN);
 		vputc(SPC);
-	} else {
+		is_first_char = 1;
+	} else if (is_first_char) {
 		unsigned char _c = asc2kana[(unsigned char)c];
 		vputc(_c);
 		com_id = select_command(_c);
+		is_first_char = 0;
+	} else {
+		unsigned char _c = asc2kana[(unsigned char)c];
+		vputc(_c);
 	}
 }
 

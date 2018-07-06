@@ -4,4 +4,6 @@
 void sched_init(void);
 void sched_start(void);
 
+extern unsigned char demo_flag;
+
 #endif
