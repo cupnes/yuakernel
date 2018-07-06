@@ -23,23 +23,16 @@ struct task_fb {
 
 void do_taskB(void)
 {
-	unsigned long long wait;
-
+	unsigned char r = 0, g = 0, b = 0;
 	while (1) {
-		putc('B');
-		wait = 10000000;
-		while (wait--);
-	}
-
-	while (1) {
-		char i;
-		for (i = 0; i < 10; i++) {
-			fill_rect_bg(0, 0, FONT_WIDTH, FONT_HEIGHT);
-			putc_pos(0, 0, '0' + i);
-			/* sleep(1 * SEC_TO_US); */
-			wait = 10000000;
-			while (wait--);
+		unsigned int x, y;
+		for (y = 0; y < tfb[1].h; y++) {
+			for (x = 0; x < tfb[1].w; x++) {
+				draw_px(x, y, r++, g, b);
+			}
+			g++;
 		}
+		b++;
 	}
 }
 
