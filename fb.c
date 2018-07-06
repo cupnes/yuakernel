@@ -26,8 +26,9 @@ void set_bg(unsigned char r, unsigned char g, unsigned char b)
 	color_bg.r = r;
 }
 
-inline void draw_px(unsigned int x, unsigned int y,
-		    unsigned char r, unsigned char g, unsigned char b)
+static inline void draw_px_real(unsigned int x, unsigned int y,
+				unsigned char r, unsigned char g,
+				unsigned char b)
 {
 	struct pixelformat *p = fb.base;
 	p += y * fb.hr + x;
@@ -35,6 +36,12 @@ inline void draw_px(unsigned int x, unsigned int y,
 	p->b = b;
 	p->g = g;
 	p->r = r;
+}
+
+inline void draw_px(unsigned int x, unsigned int y,
+		    unsigned char r, unsigned char g, unsigned char b)
+{
+	draw_px_real(x, y, r, g, b);
 }
 
 inline void draw_px_fg(unsigned int x, unsigned int y)
