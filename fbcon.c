@@ -8,10 +8,11 @@
 
 unsigned int cursor_x = 0, cursor_y = 0;
 
-void putc(char c)
+void putc(char _c)
 {
 	unsigned int x, y;
 
+	unsigned char c = (unsigned char)_c;
 	switch(c) {
 	case '\r':
 		cursor_x = 0;
@@ -82,4 +83,10 @@ void puth(unsigned long long val, unsigned char num_digits)
 	str[num_digits] = '\0';
 
 	puts(str);
+}
+
+void move_cursor(unsigned int x, unsigned int y)
+{
+	cursor_x = x;
+	cursor_y = y;
 }

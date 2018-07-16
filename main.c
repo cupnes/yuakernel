@@ -9,6 +9,7 @@
 #include <hpet.h>
 #include <sched.h>
 #include <common.h>
+#include <cover.h>
 
 struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
@@ -41,17 +42,20 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* ファイルシステムの初期化 */
 	fs_init(_fs_start);
 
-	/* スケジューラの初期化 */
-	sched_init();
+	/* /\* スケジューラの初期化 *\/ */
+	/* sched_init(); */
 
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
-	/* スケジューラの開始 */
-	sched_start();
+	/* /\* スケジューラの開始 *\/ */
+	/* sched_start(); */
 
-	/* タスクAの開始 */
-	do_taskA();
+	/* /\* タスクAの開始 *\/ */
+	/* do_taskA(); */
+
+	/* 表紙アプリ開始 */
+	cover_main();
 
 	/* haltして待つ */
 	while (1)
