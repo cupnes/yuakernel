@@ -8,11 +8,31 @@
 
 unsigned int cursor_x = 0, cursor_y = 0;
 
-void putc(char _c)
+void draw_char_default(unsigned int c)
 {
 	unsigned int x, y;
 
-	unsigned char c = (unsigned char)_c;
+	/* カーソル座標(cursor_x,cursor_y)へ文字を描画 */
+	for (y = 0; y < FONT_HEIGHT; y++)
+		for (x = 0; x < FONT_WIDTH; x++)
+			if (font_bitmap[c][y][x])
+				draw_px_fg(cursor_x + x, cursor_y + y);
+
+	/* カーソル座標の更新 */
+	cursor_x += FONT_WIDTH;
+	if ((cursor_x + FONT_WIDTH) >= fb.hr) {
+		cursor_x = 0;
+		cursor_y += FONT_HEIGHT;
+		if ((cursor_y + FONT_HEIGHT) >= fb.vr) {
+			cursor_x = cursor_y = 0;
+			clear_screen();
+		}
+	}
+}
+
+void putc(char _c)
+{
+	unsigned int c = (unsigned char)_c;
 	switch(c) {
 	case '\r':
 		cursor_x = 0;
@@ -27,22 +47,7 @@ void putc(char _c)
 		break;
 
 	default:
-		/* カーソル座標(cursor_x,cursor_y)へ文字を描画 */
-		for (y = 0; y < FONT_HEIGHT; y++)
-			for (x = 0; x < FONT_WIDTH; x++)
-				if (font_bitmap[(unsigned int)c][y][x])
-					draw_px_fg(cursor_x + x, cursor_y + y);
-
-		/* カーソル座標の更新 */
-		cursor_x += FONT_WIDTH;
-		if ((cursor_x + FONT_WIDTH) >= fb.hr) {
-			cursor_x = 0;
-			cursor_y += FONT_HEIGHT;
-			if ((cursor_y + FONT_HEIGHT) >= fb.vr) {
-				cursor_x = cursor_y = 0;
-				clear_screen();
-			}
-		}
+		draw_char_default(c);
 	}
 }
 
