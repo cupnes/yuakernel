@@ -53,9 +53,11 @@ static void draw_char_13x18(unsigned int c)
 	}
 }
 
-static void draw_char_68x73(unsigned int c)
+static void draw_char_68x73(unsigned int _c)
 {
 	unsigned int x, y;
+
+	unsigned int c = font_idx_to_68x73[_c];
 
 	/* カーソル座標(cursor_x,cursor_y)へ文字を描画 */
 	for (y = 0; y < FONT_68x73_HEIGHT; y++)
@@ -161,4 +163,9 @@ void move_cursor(unsigned int x, unsigned int y)
 {
 	cursor_x = x;
 	cursor_y = y;
+}
+
+void set_font_size(unsigned char _font_size)
+{
+	font_size = _font_size;
 }
