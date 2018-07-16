@@ -3,6 +3,10 @@
 
 #define FONT_WIDTH	24
 #define FONT_HEIGHT	32
+#define FONT_13x18_WIDTH	13
+#define FONT_13x18_HEIGHT	18
+#define FONT_68x73_WIDTH	68
+#define FONT_68x73_HEIGHT	73
 
 enum FONT_IDX {
 	FONT_ascii_20_spc = 0x20,
@@ -170,8 +174,38 @@ enum FONT_IDX {
 	FONT_x_toku,
 	FONT_x_yu,
 	FONT_x_yuki,
+	FONT_MAX
+};
+
+enum FONT_68x73_IDX {
+	FONT_68x73_ascii_20_spc,
+	FONT_68x73_ascii_2D_hyphen,
+	FONT_68x73_ascii_41_A,
+	FONT_68x73_ascii_43_C,
+	FONT_68x73_ascii_45_E,
+	FONT_68x73_ascii_48_H,
+	FONT_68x73_ascii_49_I,
+	FONT_68x73_ascii_50_P,
+	FONT_68x73_ascii_54_T,
+	FONT_68x73_hira_de,
+	FONT_68x73_hira_ru,
+	FONT_68x73_hira_shi,
+	FONT_68x73_hira_te,
+	FONT_68x73_hira_wo,
+	FONT_68x73_kata_ji,
+	FONT_68x73_kata_ke,
+	FONT_68x73_kata_ra,
+	FONT_68x73_kata_su,
+	FONT_68x73_kata_xyu,
+	FONT_68x73_x_hon,
+	FONT_68x73_x_saku,
+	FONT_68x73_x_shu,
+	FONT_68x73_x_toku,
 };
 
 extern const unsigned char font_bitmap[][FONT_HEIGHT][FONT_WIDTH];
+extern const unsigned char font_bitmap_13x18[][FONT_13x18_HEIGHT][FONT_13x18_WIDTH];
+extern const unsigned char font_idx_to_68x73[FONT_MAX];
+extern const unsigned char font_bitmap_68x73[][FONT_68x73_HEIGHT][FONT_68x73_WIDTH];
 
 #endif
