@@ -8,6 +8,12 @@
 #define FONT_68x73_WIDTH	68
 #define FONT_68x73_HEIGHT	73
 
+enum FONT_SIZE {
+	FONT_SIZE_DEFAULT,
+	FONT_SIZE_13x18,
+	FONT_SIZE_68x73
+};
+
 enum FONT_IDX {
 	FONT_ascii_20_spc = 0x20,
 	FONT_ascii_21_exc,
