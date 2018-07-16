@@ -6,7 +6,8 @@
 
 #define UNIT	10
 #define FC_MAX	255
-#define TOP_MARGIN	10
+/* #define TOP_MARGIN	10 */
+#define TOP_MARGIN	0
 #define BOTTOM_MARGIN	25
 
 unsigned char fc_r = FC_MAX, fc_g = FC_MAX, fc_b = FC_MAX;
@@ -41,7 +42,8 @@ void dump_titles(void)
 	set_font_size(FONT_SIZE_68x73);
 	str_width_half = (FONT_68x73_WIDTH * 5) / 2;
 	start_x = screen_center_x - str_width_half;
-	start_y += FONT_13x18_HEIGHT * 2;
+	/* start_y += FONT_13x18_HEIGHT * 2; */
+	start_y += FONT_13x18_HEIGHT;
 	move_cursor(start_x, start_y);
 	char title_1[] = {'A', 'C', 'P', 'I', FONT_hira_de, '\0'};
 	puts(title_1);
@@ -75,7 +77,7 @@ void dump_titles(void)
 	str_width_half = (FONT_WIDTH * 7) / 2;
 	start_x = screen_center_x - str_width_half;
 	start_y += FONT_68x73_HEIGHT;
-	move_cursor(start_x, start_y + 15);
+	move_cursor(start_x, start_y);
 	char author[] = {
 		FONT_x_dai, FONT_x_kami, ' ', FONT_x_yu, FONT_x_shin,
 		' ', FONT_x_cho, '\0'};
@@ -84,7 +86,8 @@ void dump_titles(void)
 	/* 2018-04-22版(11文字) */
 	str_width_half = (FONT_WIDTH * 11) / 2;
 	start_x = screen_center_x - str_width_half;
-	start_y += FONT_HEIGHT * 2;
+	/* start_y += FONT_HEIGHT * 2; */
+	start_y += FONT_HEIGHT;
 	move_cursor(start_x, start_y);
 	char pub[] = {
 		'2', '0', '1', '8', '-', '0', '4', '-', '2', '2', FONT_x_han,
@@ -94,7 +97,8 @@ void dump_titles(void)
 	/* へにゃぺんて 発行(9文字) */
 	str_width_half = (FONT_WIDTH * 9) / 2;
 	start_x = screen_center_x - str_width_half;
-	start_y += FONT_HEIGHT * 2;
+	/* start_y += FONT_HEIGHT * 2; */
+	start_y += FONT_HEIGHT;
 	move_cursor(start_x, start_y);
 	char circle[] = {
 		FONT_hira_he, FONT_hira_ni, FONT_hira_xya, FONT_hira_pe,
