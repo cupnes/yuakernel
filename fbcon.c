@@ -8,7 +8,7 @@
 
 unsigned int cursor_x = 0, cursor_y = 0;
 
-void draw_char_default(unsigned int c)
+static void draw_char_default(unsigned int c)
 {
 	unsigned int x, y;
 
