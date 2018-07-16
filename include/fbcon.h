@@ -4,5 +4,6 @@
 void putc(char c);
 void puts(char *s);
 void putd(unsigned long long val, unsigned char num_digits);
+void puth(unsigned long long val, unsigned char num_digits);
 
 #endif

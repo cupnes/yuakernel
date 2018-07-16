@@ -65,3 +65,21 @@ void putd(unsigned long long val, unsigned char num_digits)
 
 	puts(str);
 }
+
+void puth(unsigned long long val, unsigned char num_digits)
+{
+	char str[MAX_STR_BUF];
+
+	int i;
+	for (i = num_digits - 1; i >= 0; i--) {
+		unsigned char v = (unsigned char)(val & 0x0f);
+		if (v < 0xa)
+			str[i] = '0' + v;
+		else
+			str[i] = 'A' + (v - 0xa);
+		val >>= 4;
+	}
+	str[num_digits] = '\0';
+
+	puts(str);
+}
