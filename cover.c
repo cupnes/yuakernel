@@ -10,7 +10,7 @@
 #define TOP_MARGIN	0
 #define BOTTOM_MARGIN	25
 
-unsigned char fc_r = FC_MAX, fc_g = FC_MAX, fc_b = FC_MAX;
+unsigned char fc_r = 0, fc_g = 0, fc_b = 0;
 
 void dump_titles(void)
 {
@@ -18,6 +18,9 @@ void dump_titles(void)
 	unsigned int screen_center_x = fb.hr / 2;
 	unsigned int str_width_half;
 	unsigned int start_x, start_y;
+
+	/* 文字色設定 */
+	set_fg(fc_r, fc_g, fc_b);
 
 	/* フルスクラッチで作る!x86_64自作OS パート2(26文字) */
 	set_font_size(FONT_SIZE_13x18);
@@ -45,27 +48,36 @@ void dump_titles(void)
 	/* start_y += FONT_13x18_HEIGHT * 2; */
 	start_y += FONT_13x18_HEIGHT;
 	move_cursor(start_x, start_y);
-	char title_1[] = {'A', 'C', 'P', 'I', FONT_hira_de, '\0'};
+	set_fg(0xff, 0, 0);
+	char title_1[] = {'A', 'C', 'P', 'I', '\0'};
 	puts(title_1);
+	set_fg(0, 0, 0);
+	putc(FONT_hira_de);
 
 	start_y += FONT_68x73_HEIGHT;
 	move_cursor(start_x, start_y);
-	char title_2[] = {'H', 'P', 'E', 'T', FONT_x_shu, '\0'};
+	set_fg(0xff, 0, 0);
+	char title_2[] = {'H', 'P', 'E', 'T', '\0'};
 	puts(title_2);
+	set_fg(0, 0, 0);
+	putc(FONT_x_shu);
 
 	start_y += FONT_68x73_HEIGHT;
 	move_cursor(start_x, start_y);
 	char title_3[] = {
-		FONT_x_toku, FONT_hira_shi, FONT_hira_te, FONT_kata_su,
-		FONT_kata_ke, '\0'};
+		FONT_x_toku, FONT_hira_shi, FONT_hira_te, '\0'};
 	puts(title_3);
+	set_fg(0xff, 0, 0);
+	putc(FONT_kata_su);
+	putc(FONT_kata_ke);
 
 	start_y += FONT_68x73_HEIGHT;
 	move_cursor(start_x, start_y);
 	char title_4[] = {
-		FONT_kata_ji, FONT_kata_xyu, '-', FONT_kata_ra, FONT_hira_wo,
-		'\0'};
+		FONT_kata_ji, FONT_kata_xyu, '-', FONT_kata_ra, '\0'};
 	puts(title_4);
+	set_fg(0, 0, 0);
+	putc(FONT_hira_wo);
 
 	start_y += FONT_68x73_HEIGHT;
 	move_cursor(start_x, start_y);
@@ -83,14 +95,14 @@ void dump_titles(void)
 		' ', FONT_x_cho, '\0'};
 	puts(author);
 
-	/* 2018-04-22版(11文字) */
+	/* 2018-08-10版(11文字) */
 	str_width_half = (FONT_WIDTH * 11) / 2;
 	start_x = screen_center_x - str_width_half;
 	/* start_y += FONT_HEIGHT * 2; */
 	start_y += FONT_HEIGHT;
 	move_cursor(start_x, start_y);
 	char pub[] = {
-		'2', '0', '1', '8', '-', '0', '4', '-', '2', '2', FONT_x_han,
+		'2', '0', '1', '8', '-', '0', '8', '-', '1', '0', FONT_x_han,
 		'\0'};
 	puts(pub);
 
@@ -108,14 +120,11 @@ void dump_titles(void)
 
 void cover_main(void)
 {
-	/* /\* 背景画像表示 *\/ */
-	/* iv_init(); */
-	/* view(0);		/\* ファイルシステム1番目のファイルを使う *\/ */
+	/* 背景画像表示 */
+	iv_init();
+	view(0);		/* ファイルシステム1番目のファイルを使う */
 
 	/* 以降、独自フォントを使った文字の描画 */
-
-	/* 文字色設定 */
-	set_fg(fc_r, fc_g, fc_b);
 
 	dump_titles();
 }
