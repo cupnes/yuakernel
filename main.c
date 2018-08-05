@@ -16,6 +16,22 @@ struct __attribute__((packed)) platform_info {
 	void *rsdp;
 };
 
+#define PCI_IO_CONFIG_ADDR	0x0cf8
+#define PCI_IO_CONFIG_DATA	0x0cfc
+
+union pci_config_address {
+	unsigned int raw;
+	struct __attribute__((packed)) {
+		unsigned int _ro_zero:2;
+		unsigned int reg_addr:6;
+		unsigned int func_num:3;
+		unsigned int dev_num:5;
+		unsigned int bus_num:8;
+		unsigned int _reserved:7;
+		unsigned int enable_bit:1;
+	};
+};
+
 void do_taskA(void);
 /* PCI */
 unsigned short PCIConfigReadWord(unsigned char bus, unsigned char slot,
@@ -32,7 +48,11 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	clear_screen();
 
 	/* PCI test */
-	unsigned short vendor = PCICheckVendor(0,0);
+	union pci_config_address addr;
+	addr.raw = 0;
+	addr.enable_bit = 1;
+	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+	unsigned short vendor = io_read32(PCI_IO_CONFIG_DATA);
 	puth(vendor, 4);
 	while (1);
 
