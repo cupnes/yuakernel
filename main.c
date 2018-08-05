@@ -37,6 +37,7 @@ void do_taskA(void);
 unsigned short PCIConfigReadWord(unsigned char bus, unsigned char slot,
 				 unsigned char func, unsigned char offset);
 unsigned short PCICheckVendor(unsigned char bus, unsigned char slot);
+unsigned short PCICheckDevice(unsigned char bus, unsigned char slot);
 
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  void *_fs_start)
@@ -52,8 +53,38 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	addr.raw = 0;
 	addr.enable_bit = 1;
 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-	unsigned short vendor = io_read32(PCI_IO_CONFIG_DATA);
-	puth(vendor, 4);
+	unsigned short vendor_id = io_read32(PCI_IO_CONFIG_DATA);
+	puth(vendor_id, 4);
+
+	putc(' ');
+
+	addr.reg_addr = 2;
+	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+	volatile unsigned short dev_id = io_read32(PCI_IO_CONFIG_DATA);
+	puth(dev_id, 4);
+
+	puts("\r\n");
+
+	if (dev_id == 0x1237)
+		puts("Yes\r\n");
+	else
+		puts("No\r\n");
+
+	vendor_id = PCICheckVendor(0, 0);
+	puth(vendor_id, 4);
+
+	putc(' ');
+
+	dev_id = PCICheckDevice(0, 0);
+	puth(dev_id, 4);
+
+	puts("\r\n");
+
+	if (dev_id == 0x1237)
+		puts("Yes\r\n");
+	else
+		puts("No\r\n");
+
 	while (1);
 
 	/* ACPIの初期化 */
@@ -125,12 +156,21 @@ unsigned short PCIConfigReadWord(unsigned char bus, unsigned char slot,
 
 unsigned short PCICheckVendor(unsigned char bus, unsigned char slot)
 {
-	unsigned short vendor, device;
+	unsigned short vendor;
+
+	vendor = PCIConfigReadWord(bus, slot, 0, 0);
+
+	return vendor;
+}
+
+unsigned short PCICheckDevice(unsigned char bus, unsigned char slot)
+{
+	unsigned short vendor, device = 0xffff;
 	/* 最初のコンフィギュレーションを読み込むテスト */
 	/* ベンダーなし(0xFFFF)の場合、デバイスは存在しないことになる */
 	if((vendor = PCIConfigReadWord(bus, slot, 0, 0)) != 0xFFFF)
 	{
 		device = PCIConfigReadWord(bus, slot, 0, 2);
 	}
-	return(vendor);
+	return device;
 }
