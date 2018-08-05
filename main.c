@@ -17,6 +17,10 @@ struct __attribute__((packed)) platform_info {
 };
 
 void do_taskA(void);
+/* PCI */
+unsigned short PCIConfigReadWord(unsigned char bus, unsigned char slot,
+				 unsigned char func, unsigned char offset);
+unsigned short PCICheckVendor(unsigned char bus, unsigned char slot);
 
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  void *_fs_start)
@@ -26,6 +30,11 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	set_fg(255, 255, 255);
 	set_bg(0, 70, 250);
 	clear_screen();
+
+	/* PCI test */
+	unsigned short vendor = PCICheckVendor(0,0);
+	puth(vendor, 4);
+	while (1);
 
 	/* ACPIの初期化 */
 	acpi_init(pi->rsdp);
@@ -69,4 +78,39 @@ void do_taskA(void)
 		volatile unsigned long long wait = 10000000;
 		while (wait--);
 	}
+}
+
+/* PCI */
+unsigned short PCIConfigReadWord(unsigned char bus, unsigned char slot,
+				 unsigned char func, unsigned char offset)
+{
+	unsigned int address;
+	unsigned int lbus = (unsigned int)bus;
+	unsigned int lslot = (unsigned int)slot;
+	unsigned int lfunc = (unsigned int)func;
+	unsigned short tmp = 0;
+
+	/* コンフィギュレーションアドレスを作成 */
+	address = (unsigned int)((lbus << 16) | (lslot << 11) | (lfunc << 8)
+				 | (offset & 0xFC)
+				 | ((unsigned int)0x80000000));
+
+	/* アドレスの書き出し*/
+	io_write32(0xCF8, address);
+	/* データの読み込み */
+	tmp = (unsigned short)(
+		(io_read32(0xCFC) >> ((offset & 2) * 8)) & 0xFFFF);
+	return(tmp);
+}
+
+unsigned short PCICheckVendor(unsigned char bus, unsigned char slot)
+{
+	unsigned short vendor, device;
+	/* 最初のコンフィギュレーションを読み込むテスト */
+	/* ベンダーなし(0xFFFF)の場合、デバイスは存在しないことになる */
+	if((vendor = PCIConfigReadWord(bus, slot, 0, 0)) != 0xFFFF)
+	{
+		device = PCIConfigReadWord(bus, slot, 0, 2);
+	}
+	return(vendor);
 }
