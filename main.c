@@ -43,25 +43,6 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	set_bg(0, 70, 250);
 	clear_screen();
 
-	/* PCI test */
-	union pci_config_address addr;
-	addr.raw = 0;
-	addr.enable_bit = 1;
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-	unsigned int dev_vendor_id = io_read32(PCI_IO_CONFIG_DATA);
-
-	unsigned short vendor_id = dev_vendor_id;
-	puth(vendor_id, 4);
-
-	putc(' ');
-
-	unsigned short dev_id = dev_vendor_id >> 16;
-	puth(dev_id, 4);
-
-	puts("\r\n");
-
-	while (1);
-
 	/* ACPIの初期化 */
 	acpi_init(pi->rsdp);
 
@@ -76,6 +57,46 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 	/* ファイルシステムの初期化 */
 	fs_init(_fs_start);
+
+
+
+
+	/* PCI test */
+	unsigned short bus;
+	for (bus = 0; bus <= 255; bus++) {
+		unsigned char dev;
+		for (dev = 0; dev <= 31; dev++) {
+			unsigned char func;
+			for (func = 0; func <= 7; func++) {
+				union pci_config_address addr;
+				addr.raw = 0;
+				addr.enable_bit = 1;
+				addr.bus_num = bus;
+				addr.dev_num = dev;
+				addr.func_num = func;
+
+				io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+				unsigned int dev_vendor_id = io_read32(PCI_IO_CONFIG_DATA);
+
+				unsigned short vendor_id = dev_vendor_id;
+				if (vendor_id == 0xffff)
+					continue;
+
+				puth(vendor_id, 4);
+
+				unsigned short dev_id = dev_vendor_id >> 16;
+				puth(dev_id, 4);
+
+				putc(',');
+			}
+		}
+	}
+
+	puts("END");
+
+	while (1);
+
+
 
 	/* /\* スケジューラの初期化 *\/ */
 	/* sched_init(); */
