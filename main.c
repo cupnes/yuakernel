@@ -33,11 +33,6 @@ union pci_config_address {
 };
 
 void do_taskA(void);
-/* PCI */
-unsigned short PCIConfigReadWord(unsigned char bus, unsigned char slot,
-				 unsigned char func, unsigned char offset);
-unsigned short PCICheckVendor(unsigned char bus, unsigned char slot);
-unsigned short PCICheckDevice(unsigned char bus, unsigned char slot);
 
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  void *_fs_start)
@@ -53,37 +48,17 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	addr.raw = 0;
 	addr.enable_bit = 1;
 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-	unsigned short vendor_id = io_read32(PCI_IO_CONFIG_DATA);
+	unsigned int dev_vendor_id = io_read32(PCI_IO_CONFIG_DATA);
+
+	unsigned short vendor_id = dev_vendor_id;
 	puth(vendor_id, 4);
 
 	putc(' ');
 
-	addr.reg_addr = 2;
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-	volatile unsigned short dev_id = io_read32(PCI_IO_CONFIG_DATA);
+	unsigned short dev_id = dev_vendor_id >> 16;
 	puth(dev_id, 4);
 
 	puts("\r\n");
-
-	if (dev_id == 0x1237)
-		puts("Yes\r\n");
-	else
-		puts("No\r\n");
-
-	vendor_id = PCICheckVendor(0, 0);
-	puth(vendor_id, 4);
-
-	putc(' ');
-
-	dev_id = PCICheckDevice(0, 0);
-	puth(dev_id, 4);
-
-	puts("\r\n");
-
-	if (dev_id == 0x1237)
-		puts("Yes\r\n");
-	else
-		puts("No\r\n");
 
 	while (1);
 
@@ -129,48 +104,4 @@ void do_taskA(void)
 		volatile unsigned long long wait = 10000000;
 		while (wait--);
 	}
-}
-
-/* PCI */
-unsigned short PCIConfigReadWord(unsigned char bus, unsigned char slot,
-				 unsigned char func, unsigned char offset)
-{
-	unsigned int address;
-	unsigned int lbus = (unsigned int)bus;
-	unsigned int lslot = (unsigned int)slot;
-	unsigned int lfunc = (unsigned int)func;
-	unsigned short tmp = 0;
-
-	/* コンフィギュレーションアドレスを作成 */
-	address = (unsigned int)((lbus << 16) | (lslot << 11) | (lfunc << 8)
-				 | (offset & 0xFC)
-				 | ((unsigned int)0x80000000));
-
-	/* アドレスの書き出し*/
-	io_write32(0xCF8, address);
-	/* データの読み込み */
-	tmp = (unsigned short)(
-		(io_read32(0xCFC) >> ((offset & 2) * 8)) & 0xFFFF);
-	return(tmp);
-}
-
-unsigned short PCICheckVendor(unsigned char bus, unsigned char slot)
-{
-	unsigned short vendor;
-
-	vendor = PCIConfigReadWord(bus, slot, 0, 0);
-
-	return vendor;
-}
-
-unsigned short PCICheckDevice(unsigned char bus, unsigned char slot)
-{
-	unsigned short vendor, device = 0xffff;
-	/* 最初のコンフィギュレーションを読み込むテスト */
-	/* ベンダーなし(0xFFFF)の場合、デバイスは存在しないことになる */
-	if((vendor = PCIConfigReadWord(bus, slot, 0, 0)) != 0xFFFF)
-	{
-		device = PCIConfigReadWord(bus, slot, 0, 2);
-	}
-	return device;
 }
