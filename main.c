@@ -80,6 +80,11 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	unsigned long long bar = (bar1 << 31) | (bar0 & 0xfffffff0);
 	puth(bar, 16);
 
+	puts("\r\n");
+
+	volatile unsigned long long *csr_hw_if_config_reg = (unsigned long long *)bar;
+	puth(*csr_hw_if_config_reg, 16);
+
 	while (1);
 
 
