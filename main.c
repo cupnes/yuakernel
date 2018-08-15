@@ -65,46 +65,20 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 
 	/* PCI test */
-	unsigned short bus;
-	for (bus = 0; bus <= 255; bus++) {
-		unsigned char dev;
-		for (dev = 0; dev <= 31; dev++) {
-			unsigned char func;
-			for (func = 0; func <= 7; func++) {
-				union pci_config_address addr;
-				addr.raw = 0;
-				addr.enable_bit = 1;
-				addr.bus_num = bus;
-				addr.dev_num = dev;
-				addr.func_num = func;
+	union pci_config_address addr;
+	addr.raw = 0;
+	addr.enable_bit = 1;
+	addr.bus_num = 4;
+	addr.reg_addr = 0x10;
+	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+	unsigned int bar0 = io_read32(PCI_IO_CONFIG_DATA);
 
-				io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-				unsigned int dev_vendor_id = io_read32(PCI_IO_CONFIG_DATA);
+	addr.reg_addr = 0x14;
+	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+	unsigned int bar1 = io_read32(PCI_IO_CONFIG_DATA);
 
-				unsigned short vendor_id = dev_vendor_id;
-				if (vendor_id == 0xffff)
-					continue;
-
-				unsigned short dev_id = dev_vendor_id >> 16;
-
-				if ((vendor_id == PCI_VID_INTEL)
-				    && (dev_id == PCI_DID_IWM7265)) {
-					puth(bus, 4);
-					putc(' ');
-					puth(dev, 2);
-					putc(' ');
-					puth(func, 1);
-					putc(':');
-					puth(vendor_id, 4);
-					putc(' ');
-					puth(dev_id, 4);
-					puts("\r\n");
-				}
-			}
-		}
-	}
-
-	puts("END");
+	unsigned long long bar = (bar1 << 31) | (bar0 & 0xfffffff0);
+	puth(bar, 16);
 
 	while (1);
 
