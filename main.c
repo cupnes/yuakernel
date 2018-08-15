@@ -19,6 +19,9 @@ struct __attribute__((packed)) platform_info {
 #define PCI_IO_CONFIG_ADDR	0x0cf8
 #define PCI_IO_CONFIG_DATA	0x0cfc
 
+#define PCI_VID_INTEL		0x8086
+#define PCI_DID_IWM7265		0x095b
+
 union pci_config_address {
 	unsigned int raw;
 	struct __attribute__((packed)) {
@@ -82,12 +85,21 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 				if (vendor_id == 0xffff)
 					continue;
 
-				puth(vendor_id, 4);
-
 				unsigned short dev_id = dev_vendor_id >> 16;
-				puth(dev_id, 4);
 
-				putc(',');
+				if ((vendor_id == PCI_VID_INTEL)
+				    && (dev_id == PCI_DID_IWM7265)) {
+					puth(bus, 4);
+					putc(' ');
+					puth(dev, 2);
+					putc(' ');
+					puth(func, 1);
+					putc(':');
+					puth(vendor_id, 4);
+					putc(' ');
+					puth(dev_id, 4);
+					puts("\r\n");
+				}
 			}
 		}
 	}
