@@ -22,6 +22,9 @@ struct __attribute__((packed)) platform_info {
 #define PCI_VID_INTEL		0x8086
 #define PCI_DID_IWM7265		0x095b
 
+#define CSR_HW_IF_CONFIG_REG_NIC_READY	(0x00400000) /* PCI_OWN_SEM */
+#define CSR_HW_IF_CONFIG_REG_PREPARE	(0x08000000) /* WAKE_ME */
+
 union pci_config_address {
 	unsigned int raw;
 	struct __attribute__((packed)) {
@@ -72,6 +75,8 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	addr.reg_addr = 0x10;
 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
 	unsigned int bar0 = io_read32(PCI_IO_CONFIG_DATA);
+	puth(bar0, 8);
+	puts("\r\n");
 
 	addr.reg_addr = 0x14;
 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
@@ -82,8 +87,29 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 	puts("\r\n");
 
-	volatile unsigned long long *csr_hw_if_config_reg = (unsigned long long *)bar;
+	volatile unsigned long long *csr_hw_if_config_reg =
+		(unsigned long long *)bar;
 	puth(*csr_hw_if_config_reg, 16);
+	puts("\r\n");
+
+	*csr_hw_if_config_reg =
+		CSR_HW_IF_CONFIG_REG_PREPARE | CSR_HW_IF_CONFIG_REG_NIC_READY;
+
+	puts("wait for nic_ready\r\n");
+	unsigned long long wait_counter = 0;
+	while (1) {
+		/* volatile unsigned long long wait = 10000000; */
+		/* while (wait--); */
+
+		if (*csr_hw_if_config_reg | CSR_HW_IF_CONFIG_REG_NIC_READY)
+			break;
+
+		wait_counter++;
+	}
+	puts("done\r\n");
+	puth(*csr_hw_if_config_reg, 16);
+	puts("\r\nwait_counter\r\n");
+	puth(wait_counter, 16);
 
 	while (1);
 
