@@ -72,44 +72,49 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	addr.raw = 0;
 	addr.enable_bit = 1;
 	addr.bus_num = 4;
-	addr.reg_addr = 0x10;
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-	unsigned int bar0 = io_read32(PCI_IO_CONFIG_DATA);
-	puth(bar0, 8);
+
+	/* dump config registers */
+	unsigned char raddr;
+	unsigned int config_data;
+	unsigned long long bar;
+	unsigned short command;
+	for (raddr = 0x00; raddr < 0x30; raddr += 4) {
+		addr.reg_addr = raddr;
+		io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+		config_data = io_read32(PCI_IO_CONFIG_DATA);
+
+		if (raddr == 0x04)
+			command = config_data;
+		if (raddr == 0x14)
+			bar = config_data;
+		if (raddr == 0x18) {
+			unsigned long long tmp = config_data;
+			bar += tmp << 32;
+		}
+
+		puth(config_data, 8);
+		if ((raddr + 4) % 8 == 0)
+			puts("\r\n");
+		else
+			putc(' ');
+	}
+
+	/* set mem access to Command */
+	puts("command: ");
+	puth(command, 4);
 	puts("\r\n");
 
-	addr.reg_addr = 0x14;
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-	unsigned int bar1 = io_read32(PCI_IO_CONFIG_DATA);
-
-	unsigned long long bar = (bar1 << 31) | (bar0 & 0xfffffff0);
+	/* dump bar */
+	puts("bar: ");
 	puth(bar, 16);
-
 	puts("\r\n");
 
-	volatile unsigned long long *csr_hw_if_config_reg =
-		(unsigned long long *)bar;
-	puth(*csr_hw_if_config_reg, 16);
-	puts("\r\n");
-
-	*csr_hw_if_config_reg =
+	unsigned int bar_wdata =
 		CSR_HW_IF_CONFIG_REG_PREPARE | CSR_HW_IF_CONFIG_REG_NIC_READY;
 
-	puts("wait for nic_ready\r\n");
-	unsigned long long wait_counter = 0;
-	while (1) {
-		/* volatile unsigned long long wait = 10000000; */
-		/* while (wait--); */
+	/* io access to bar */
 
-		if (*csr_hw_if_config_reg | CSR_HW_IF_CONFIG_REG_NIC_READY)
-			break;
-
-		wait_counter++;
-	}
-	puts("done\r\n");
-	puth(*csr_hw_if_config_reg, 16);
-	puts("\r\nwait_counter\r\n");
-	puth(wait_counter, 16);
+	/* mem access to bar */
 
 	while (1);
 
