@@ -76,6 +76,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* dump config registers */
 	unsigned char raddr;
 	unsigned int config_data;
+	unsigned int bar0;
 	unsigned long long bar;
 	unsigned short command;
 	for (raddr = 0x00; raddr < 0x30; raddr += 4) {
@@ -85,6 +86,8 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 		if (raddr == 0x04)
 			command = config_data;
+		if (raddr == 0x10)
+			bar0 = config_data;
 		if (raddr == 0x14)
 			bar = config_data;
 		if (raddr == 0x18) {
@@ -100,21 +103,90 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	}
 
 	/* set mem access to Command */
-	puts("command: ");
-	puth(command, 4);
-	puts("\r\n");
+	/* puts("command: "); */
+	/* puth(command, 4); */
+	/* puts("\r\n"); */
+	/* command |= 0x02; */
+	/* addr.reg_addr = 0x04; */
+	/* io_write32(PCI_IO_CONFIG_ADDR, addr.raw); */
+	/* config_data = command; */
+	/* puts("set: "); */
+	/* puth(config_data, 8); */
+	/* puts("\r\n"); */
+	/* io_write32(PCI_IO_CONFIG_DATA, config_data); */
+
+	/* io_write32(PCI_IO_CONFIG_ADDR, addr.raw); */
+	/* config_data = io_read32(PCI_IO_CONFIG_DATA); */
+	/* puth(config_data, 8); */
+	/* puts("\r\n"); */
 
 	/* dump bar */
-	puts("bar: ");
-	puth(bar, 16);
+	puts("bar0: ");
+	puth(bar0, 8);
 	puts("\r\n");
+	/* puts("bar: "); */
+	/* puth(bar, 16); */
+	/* puts("\r\n"); */
 
 	unsigned int bar_wdata =
 		CSR_HW_IF_CONFIG_REG_PREPARE | CSR_HW_IF_CONFIG_REG_NIC_READY;
 
 	/* io access to bar */
+	unsigned int hicr_data = io_read32(bar0);
+	puts("hicr_data: ");
+	puth(hicr_data, 8);
+	puts("\r\n");
+
+	hicr_data |= CSR_HW_IF_CONFIG_REG_PREPARE;
+	puts("hicr_data: ");
+	puth(hicr_data, 8);
+	puts("\r\n");
+
+	io_write32(bar0, hicr_data);
+
+	hicr_data = io_read32(bar0);
+	puts("hicr_data: ");
+	puth(hicr_data, 8);
+	puts("\r\n");
+
+	unsigned long long hicr_wait;
+	for (hicr_wait = 0;
+	     (io_read32(bar0) & CSR_HW_IF_CONFIG_REG_NIC_READY) == 0;
+	     hicr_wait++);
+	puts("wait: ");
+	puth(hicr_wait, 16);
+	puts("\r\n");
+
+	hicr_data = io_read32(bar0);
+	puts("hicr_data: ");
+	puth(hicr_data, 8);
+	puts("\r\n");
+
 
 	/* mem access to bar */
+	/* volatile unsigned long long *hw_if_config_reg = */
+	/* 	(unsigned long long *)bar; */
+	/* puts("HICR: "); */
+	/* puth(*hw_if_config_reg, 16); */
+	/* puts("\r\n"); */
+
+	/* *hw_if_config_reg |= bar_wdata; */
+
+	/* puts("HICR: "); */
+	/* puth(*hw_if_config_reg, 16); */
+	/* puts("\r\n"); */
+
+	/* unsigned long long hicr_wait; */
+	/* for (hicr_wait = 0; */
+	/*      (*hw_if_config_reg & CSR_HW_IF_CONFIG_REG_NIC_READY) == 0; */
+	/*      hicr_wait++); */
+	/* puts("wait: "); */
+	/* puth(hicr_wait, 16); */
+	/* puts("\r\n"); */
+
+	/* puts("HICR: "); */
+	/* puth(*hw_if_config_reg, 16); */
+	/* puts("\r\n"); */
 
 	while (1);
 
