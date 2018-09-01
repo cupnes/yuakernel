@@ -10,6 +10,7 @@
 #include <hpet.h>
 #include <sched.h>
 #include <common.h>
+#include <iv.h>
 #include <kana_shell.h>
 
 struct __attribute__((packed)) platform_info {
@@ -42,6 +43,14 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 
 	/* ファイルシステムの初期化 */
 	fs_init(_fs_start);
+
+	iv_init();
+
+	view(0);
+	getc();
+
+	view(1);
+	getc();
 
 	sched_init();
 
