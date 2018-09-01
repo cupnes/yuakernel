@@ -46,11 +46,16 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 
 	iv_init();
 
-	view(0);
-	getc();
-
-	view(1);
-	getc();
+	unsigned char img_idx;
+	for (img_idx = 0; img_idx < 2;) {
+		view(img_idx);
+		if (getc() == 'k') {
+			if (img_idx >= 1)
+				img_idx--;
+		} else {
+			img_idx++;
+		}
+	}
 
 	sched_init();
 
