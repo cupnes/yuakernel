@@ -47,7 +47,7 @@ void start_kernel(struct EFI_SYSTEM_TABLE *_st, struct platform_info *pi,
 	iv_init();
 
 	unsigned char img_idx;
-	for (img_idx = 0; img_idx < 2;) {
+	for (img_idx = 0; img_idx < 6;) {
 		view(img_idx);
 		if (getc() == 'k') {
 			if (img_idx >= 1)
