@@ -2,6 +2,7 @@
 #include <intr.h>
 #include <pic.h>
 #include <acpi.h>
+#include <syscall.h>
 #include <fb.h>
 #include <kbc.h>
 #include <fbcon.h>
@@ -38,6 +39,9 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	pic_init();
 	hpet_init();
 	kbc_init();
+
+	/* システムコールの初期化 */
+	syscall_init();
 
 	/* ファイルシステムの初期化 */
 	fs_init(_fs_start);
