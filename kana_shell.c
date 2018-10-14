@@ -3,10 +3,7 @@
 #include <font.h>
 #include <kbc.h>
 #include <sched.h>
-
-#define MAX_COM_LEN	128
-#define KS_NONE		-1
-#define KS_UNDEFINED	-2
+#include <common.h>
 
 #define NU	FONT_hira_nu
 #define FU	FONT_hira_fu
@@ -111,64 +108,81 @@ unsigned char asc2kana[] = {
 	['\n'] = '\n'
 };
 
-enum KS_COMMANDS {
-	KS_DEMO,
-	KS_MAX_CMDS
+enum KS_INPUT_STATE {
+	COMMAND_INPUT_MODE,
+	PARAMETER_INPUT_MODE
 };
 
-static void cmd_undefined(void)
+static void cmd_undefined(unsigned char *param __attribute__((unused)))
 {
 	unsigned char s[] = {WA, KA, RA, N, '\r', '\n', '\0'};
 	vputs(s);
 }
 
-static int select_command(unsigned char c)
+#define CMD_KAKE_IDX	((unsigned char)(KA + KE))
+void cmd_kake(unsigned char *param)
 {
-	switch (c) {
-	case TE:
-		return KS_DEMO;
-	}
-	return KS_UNDEFINED;
+	vputs(param);
+	vputs((unsigned char *)"\r\n");
 }
 
-static void exec_command(int com_id)
-{
-	if (com_id < 0)
-		cmd_undefined();
+#define MAX_CMD_OPS	256
+void (*cmd_ops[MAX_CMD_OPS])(unsigned char *param) = {NULL};
 
-	switch (com_id) {
-	case KS_DEMO:
-		clear_screen();
-		vcursor_reset();
-		break;
-	}
+void cmd_ops_init(void)
+{
+	unsigned short i;
+	for (i = 0; i < MAX_CMD_OPS; i++)
+		cmd_ops[i] = cmd_undefined;
+
+	cmd_ops[CMD_KAKE_IDX] = cmd_kake;
 }
 
+#define PARAMETER_BUF_LEN	32
 static void kbc_handler(char c)
 {
-	static int com_id = KS_NONE;
-	static unsigned char is_first_char = 1;
-	if (c == '\n') {
-		vputs((unsigned char *)"\r\n");
-		if (com_id != KS_NONE)
-			exec_command(com_id);
-		com_id = KS_NONE;
+	vputc(asc2kana[(unsigned char)c]);
+
+	static unsigned char input_state = COMMAND_INPUT_MODE;
+	static unsigned char command_id = 0;
+	static unsigned char param_buf[PARAMETER_BUF_LEN];
+	static unsigned char param_buf_idx = 0;
+
+	switch (c) {
+	case '\n':
+		vputc('\r');
+		param_buf[param_buf_idx] = '\0';
+		cmd_ops[command_id](param_buf);
 		vputc(YEN);
 		vputc(SPC);
-		is_first_char = 1;
-	} else if (is_first_char) {
-		unsigned char _c = asc2kana[(unsigned char)c];
-		vputc(_c);
-		com_id = select_command(_c);
-		is_first_char = 0;
-	} else {
-		unsigned char _c = asc2kana[(unsigned char)c];
-		vputc(_c);
+
+		input_state = COMMAND_INPUT_MODE;
+		command_id = param_buf_idx = 0;
+		break;
+
+	case ' ':
+		if (input_state == COMMAND_INPUT_MODE)
+			input_state = PARAMETER_INPUT_MODE;
+		else
+			param_buf[param_buf_idx++] = SPC;
+		break;
+
+	default:
+		switch (input_state) {
+		case COMMAND_INPUT_MODE:
+			command_id += asc2kana[(unsigned char)c];
+			break;
+
+		case PARAMETER_INPUT_MODE:
+			param_buf[param_buf_idx++] = asc2kana[(unsigned char)c];
+			break;
+		}
 	}
 }
 
 void kana_main(void)
 {
+	cmd_ops_init();
 	kbc_set_handler(kbc_handler);
 	set_fg(0, 0, 0);
 	set_bg(255, 255, 255);
