@@ -3,6 +3,7 @@
 #include <fbcon.h>
 #include <intr.h>
 #include <pic.h>
+#include <common.h>
 
 #define KBC_DATA_ADDR		0x0060
 #define KBC_DATA_BIT_IS_BRAKE	0x80
@@ -30,6 +31,8 @@ const char keymap[] = {
 };
 
 void kbc_handler(void);
+
+static void (*user_handler)(char c) = NULL;
 
 unsigned char get_kbc_data(void)
 {
@@ -66,7 +69,9 @@ void do_kbc_interrupt(void)
 		goto kbc_exit;
 
 	/* KBC割り込み処理を呼び出す */
-	/* 無し */
+	char c = keymap[keycode];
+	if (user_handler)
+		user_handler(c);
 
 kbc_exit:
 	/* PICへ割り込み処理終了を通知(EOI) */
@@ -77,4 +82,9 @@ void kbc_init(void)
 {
 	set_intr_desc(KBC_INTR_NO, kbc_handler);
 	enable_pic_intr(KBC_INTR_NO);
+}
+
+void kbc_set_handler(void *handler)
+{
+	user_handler = handler;
 }

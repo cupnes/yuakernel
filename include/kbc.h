@@ -7,5 +7,6 @@
 
 char getc(void);
 void kbc_init(void);
+void kbc_set_handler(void *handler);
 
 #endif
