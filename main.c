@@ -11,6 +11,7 @@
 #include <sched.h>
 #include <common.h>
 #include <cover.h>
+#include <kana_shell.h>
 
 struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
@@ -52,14 +53,16 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
-	/* /\* スケジューラの開始 *\/ */
-	/* sched_start(); */
+	kana_main();
+
+	/* スケジューラの開始 */
+	sched_start();
 
 	/* /\* タスクAの開始 *\/ */
 	/* do_taskA(); */
 
 	/* 表紙アプリ開始 */
-	cover_main();
+	/* cover_main(); */
 
 	/* haltして待つ */
 	while (1)
