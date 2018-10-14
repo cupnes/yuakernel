@@ -6,8 +6,6 @@
 struct interrupt_descriptor idt[MAX_INTR_NO];
 unsigned long long idtr[2];
 
-void default_handler(void);
-
 void set_intr_desc(unsigned char intr_no, void *handler)
 {
 	idt[intr_no].offset_00_15 = (unsigned long long)handler;
