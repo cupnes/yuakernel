@@ -151,8 +151,10 @@ static void kbc_handler(char c)
 	switch (c) {
 	case '\n':
 		vputc('\r');
-		param_buf[param_buf_idx] = '\0';
-		cmd_ops[command_id](param_buf);
+		if (command_id || input_state != COMMAND_INPUT_MODE) {
+			param_buf[param_buf_idx] = '\0';
+			cmd_ops[command_id](param_buf);
+		}
 		vputc(YEN);
 		vputc(SPC);
 
