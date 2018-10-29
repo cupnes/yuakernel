@@ -43,8 +43,8 @@ kbc_handler:
 
 	.global	syscall_handler
 syscall_handler:
-	push	%rax
 	push	%rcx
+	push	%rax
 	push	%rdx
 	push	%rbx
 	push	%rbp
@@ -57,5 +57,5 @@ syscall_handler:
 	pop	%rbx
 	pop	%rdx
 	pop	%rcx
-	pop	%rax
+	pop	%rcx
 	iretq

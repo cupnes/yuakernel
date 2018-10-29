@@ -53,10 +53,14 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
-	kana_main();
+	unsigned long long ret_val = syscall(0, 1, 2, 3);
+	puth(ret_val, 16);
+	while (1);
+
+	/* kana_main(); */
 
 	/* スケジューラの開始 */
-	sched_start();
+	/* sched_start(); */
 
 	/* /\* タスクAの開始 *\/ */
 	/* do_taskA(); */
