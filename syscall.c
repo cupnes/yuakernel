@@ -6,7 +6,7 @@
 #define SYSCALL_INTR_NO		128
 
 enum SYSCCALL_NO {
-	SYSCALL_PUT_CHAR,
+	SYSCALL_PUTC,
 	MAX_SYSCALL_NUM
 };
 
@@ -19,7 +19,7 @@ unsigned long long do_syscall_interrupt(
 	unsigned long long ret_val = 0;
 
 	switch (syscall_id) {
-	case SYSCALL_PUT_CHAR:
+	case SYSCALL_PUTC:
 		putc((char)arg1);
 		break;
 	}
