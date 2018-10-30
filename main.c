@@ -12,6 +12,7 @@
 #include <common.h>
 #include <cover.h>
 #include <kana_shell.h>
+#include <proc.h>
 
 struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
@@ -53,8 +54,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
-	unsigned long long ret_val = syscall(0, 1, 2, 3);
-	puth(ret_val, 16);
+	exec(open("test"));
 	while (1);
 
 	/* kana_main(); */
