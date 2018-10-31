@@ -2,11 +2,13 @@
 #include <pic.h>
 
 #include <fbcon.h>
+#include <kbc.h>
 
 #define SYSCALL_INTR_NO		128
 
 enum SYSCCALL_NO {
 	SYSCALL_PUTC,
+	SYSCALL_GETC,
 	MAX_SYSCALL_NUM
 };
 
@@ -21,6 +23,10 @@ unsigned long long do_syscall_interrupt(
 	switch (syscall_id) {
 	case SYSCALL_PUTC:
 		putc((char)arg1);
+		break;
+
+	case SYSCALL_GETC:
+		ret_val = getc();
 		break;
 	}
 
