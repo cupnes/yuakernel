@@ -9,6 +9,7 @@
 enum SYSCCALL_NO {
 	SYSCALL_PUTC,
 	SYSCALL_GETC,
+	SYSCALL_VPUTC,
 	MAX_SYSCALL_NUM
 };
 
@@ -27,6 +28,10 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_GETC:
 		ret_val = getc();
+		break;
+
+	case SYSCALL_VPUTC:
+		vputc(arg1);
 		break;
 	}
 
