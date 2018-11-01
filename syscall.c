@@ -10,6 +10,7 @@ enum SYSCCALL_NO {
 	SYSCALL_PUTC,
 	SYSCALL_GETC,
 	SYSCALL_VPUTC,
+	SYSCALL_KBC_HDLR,
 	MAX_SYSCALL_NUM
 };
 
@@ -17,7 +18,8 @@ void syscall_handler(void);
 
 unsigned long long do_syscall_interrupt(
 	unsigned long long syscall_id, unsigned long long arg1,
-	unsigned long long arg2, unsigned long long arg3)
+	unsigned long long arg2 __attribute__((unused)),
+	unsigned long long arg3 __attribute__((unused)))
 {
 	unsigned long long ret_val = 0;
 
@@ -32,6 +34,10 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_VPUTC:
 		vputc(arg1);
+		break;
+
+	case SYSCALL_KBC_HDLR:
+		kbc_set_handler((void *)arg1);
 		break;
 	}
 
