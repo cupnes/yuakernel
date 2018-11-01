@@ -1,6 +1,7 @@
 #include <intr.h>
 #include <pic.h>
 
+#include <fb.h>
 #include <fbcon.h>
 #include <kbc.h>
 
@@ -10,6 +11,10 @@ enum SYSCCALL_NO {
 	SYSCALL_PUTC,
 	SYSCALL_GETC,
 	SYSCALL_VPUTC,
+	SYSCALL_FG,
+	SYSCALL_BG,
+	SYSCALL_CLS,
+	SYSCALL_VCUR_RST,
 	SYSCALL_KBC_HDLR,
 	MAX_SYSCALL_NUM
 };
@@ -18,8 +23,7 @@ void syscall_handler(void);
 
 unsigned long long do_syscall_interrupt(
 	unsigned long long syscall_id, unsigned long long arg1,
-	unsigned long long arg2 __attribute__((unused)),
-	unsigned long long arg3 __attribute__((unused)))
+	unsigned long long arg2, unsigned long long arg3)
 {
 	unsigned long long ret_val = 0;
 
@@ -34,6 +38,22 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_VPUTC:
 		vputc(arg1);
+		break;
+
+	case SYSCALL_FG:
+		set_fg(arg1, arg2, arg3);
+		break;
+
+	case SYSCALL_BG:
+		set_bg(arg1, arg2, arg3);
+		break;
+
+	case SYSCALL_CLS:
+		clear_screen();
+		break;
+
+	case SYSCALL_VCUR_RST:
+		vcursor_reset();
 		break;
 
 	case SYSCALL_KBC_HDLR:
