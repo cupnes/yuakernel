@@ -5,7 +5,7 @@
 #include <fbcon.h>
 #include <kbc.h>
 
-#define SYSCALL_INTR_NO		128
+#define SYSCALL_INTR_NO	0x80
 
 enum SYSCCALL_NO {
 	SYSCALL_PUTC,
@@ -18,8 +18,6 @@ enum SYSCCALL_NO {
 	SYSCALL_KBC_HDLR,
 	MAX_SYSCALL_NUM
 };
-
-void syscall_handler(void);
 
 unsigned long long do_syscall_interrupt(
 	unsigned long long syscall_id, unsigned long long arg1,
@@ -67,6 +65,7 @@ unsigned long long do_syscall_interrupt(
 	return ret_val;
 }
 
+void syscall_handler(void);
 void syscall_init(void)
 {
 	set_intr_desc(SYSCALL_INTR_NO, syscall_handler);
