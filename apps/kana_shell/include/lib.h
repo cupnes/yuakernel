@@ -12,6 +12,8 @@ enum SYSCCALL_NO {
 	SYSCALL_CLS,
 	SYSCALL_VCUR_RST,
 	SYSCALL_KBC_HDLR,
+	SYSCALL_OPEN,
+	SYSCALL_EXEC,
 	MAX_SYSCALL_NUM
 };
 
@@ -190,6 +192,13 @@ enum FONT_IDX {
 	FONT_MAX
 };
 
+#define FILE_NAME_LEN	28
+struct __attribute__((packed)) file {
+	char name[FILE_NAME_LEN];
+	unsigned int size;
+	unsigned char data[0];
+};
+
 unsigned long long syscall(
 	unsigned long long syscall_id __attribute__((unused)),
 	unsigned long long arg1 __attribute__((unused)),
@@ -204,5 +213,7 @@ void set_bg(unsigned char r, unsigned char g, unsigned char b);
 void clear_screen(void);
 void vcursor_reset(void);
 void set_kbc_handler(void *handler);
+struct file *open(char *file_name);
+void exec(struct file *file);
 
 #endif

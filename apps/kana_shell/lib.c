@@ -60,3 +60,14 @@ void set_kbc_handler(void *handler)
 {
 	syscall(SYSCALL_KBC_HDLR, (unsigned long long)handler, 0, 0);
 }
+
+struct file *open(char *file_name)
+{
+	return (struct file *)syscall(
+		SYSCALL_OPEN, (unsigned long long)file_name, 0, 0);
+}
+
+void exec(struct file *file)
+{
+	syscall(SYSCALL_EXEC, (unsigned long long)file, 0, 0);
+}

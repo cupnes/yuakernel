@@ -138,11 +138,22 @@ void cmd_kake(unsigned char *param)
 	vputs((unsigned char *)"\r\n");
 }
 
-void exec(unsigned long long cmd_id, unsigned char *param)
+/* #define CMD_SHIKEN_IDX	((SHI << 16U) + (KE << 8U) + N) */
+#define CMD_SHIKEN_IDX	(TE)
+void cmd_shiken(unsigned char *param __attribute__((unused)))
+{
+	exec(open("test"));
+}
+
+void cmd_exec(unsigned long long cmd_id, unsigned char *param)
 {
 	switch (cmd_id) {
 	case CMD_KAKE_IDX:
 		cmd_kake(param);
+		break;
+
+	case CMD_SHIKEN_IDX:
+		cmd_shiken(param);
 		break;
 
 	default:
@@ -181,7 +192,7 @@ static void kbc_handler(unsigned char c)
 		vputc('\r');
 		if (command_id || input_state != COMMAND_INPUT_MODE) {
 			param_buf[param_buf_idx] = '\0';
-			exec(command_id, param_buf);
+			cmd_exec(command_id, param_buf);
 		}
 		vputc(YEN);
 		vputc(SPC);
