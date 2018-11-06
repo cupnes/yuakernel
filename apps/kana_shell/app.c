@@ -72,6 +72,8 @@ unsigned char asc2kana[] = {
 	['i'] = FONT_hira_ni,
 	['o'] = FONT_hira_ra,
 	['p'] = FONT_hira_se,
+	['@'] = FONT_x_dakuten,
+	['['] = FONT_x_handakuten,
 
 	['a'] = FONT_hira_chi,
 	['s'] = FONT_hira_to,
