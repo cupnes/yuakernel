@@ -19,7 +19,7 @@ struct __attribute__((packed)) platform_info {
 	void *rsdp;
 };
 
-void do_taskA(void);
+#define INIT_APP	"ksh"
 
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  void *_fs_start)
@@ -48,36 +48,19 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* ファイルシステムの初期化 */
 	fs_init(_fs_start);
 
-	/* /\* スケジューラの初期化 *\/ */
-	/* sched_init(); */
+	/* スケジューラの初期化 */
+	sched_init();
 
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 
-	exec(open("test"));
-	while (1);
-
-	/* kana_main(); */
-
 	/* スケジューラの開始 */
-	/* sched_start(); */
+	sched_start();
 
-	/* /\* タスクAの開始 *\/ */
-	/* do_taskA(); */
-
-	/* 表紙アプリ開始 */
-	/* cover_main(); */
+	/* initアプリ起動 */
+	exec(open(INIT_APP));
 
 	/* haltして待つ */
 	while (1)
 		cpu_halt();
-}
-
-void do_taskA(void)
-{
-	while (1) {
-		putc('A');
-		volatile unsigned long long wait = 10000000;
-		while (wait--);
-	}
 }

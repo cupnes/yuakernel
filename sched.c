@@ -3,7 +3,7 @@
 #include <fbcon.h>
 
 #define SCHED_PERIOD	(5 * MS_TO_US)
-#define NUM_TASKS		2
+#define NUM_TASKS		1
 #define TASK_B_STASK_BYTES	4096
 
 unsigned long long task_sp[NUM_TASKS];
@@ -37,11 +37,8 @@ void schedule(unsigned long long current_rsp)
 		"iretq\n");
 }
 
-void sched_init(void)
+void setup_taskB_init(void)
 {
-	/* 5ms周期の周期タイマー設定 */
-	ptimer_setup(SCHED_PERIOD, schedule);
-
 	/* 予めTaskBのスタックを適切に積んでおき、スタックポインタを揃える */
 	unsigned long long *sp =
 		(unsigned long long *)((unsigned char *)taskB_stack
@@ -76,6 +73,12 @@ void sched_init(void)
 	}
 
 	task_sp[1] = (unsigned long long)sp;
+}
+
+void sched_init(void)
+{
+	/* 5ms周期の周期タイマー設定 */
+	ptimer_setup(SCHED_PERIOD, schedule);
 }
 
 void sched_start(void)

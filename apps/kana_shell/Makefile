@@ -1,4 +1,4 @@
-TARGET = test
+TARGET = ksh
 CFLAGS = -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-common -Iinclude -fPIE
 LDFLAGS = -Map app.map -s -x -T apps.ld
 OBJS = app.o lib.o
