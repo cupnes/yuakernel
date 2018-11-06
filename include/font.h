@@ -184,6 +184,8 @@ enum FONT_IDX {
 	FONT_x_toku,
 	FONT_x_yu,
 	FONT_x_yuki,
+	FONT_x_dakuten,
+	FONT_x_handakuten,
 	FONT_MAX
 };
 
