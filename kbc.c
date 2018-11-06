@@ -17,7 +17,7 @@ const char keymap[] = {
 	'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',
 	'o', 'p', '@', '[', '\n', 0x00, 'a', 's',
 	'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
-	':', 0x00, 0x00, ']', 'z', 'x', 'c', 'v',
+	':', KBC_HANKAKU_ZENKAKU, 0x00, ']', 'z', 'x', 'c', 'v',
 	'b', 'n', 'm', ',', '.', '/', 0x00, '*',
 	0x00, ' ', 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, '7',
@@ -32,7 +32,7 @@ const char keymap[] = {
 
 void kbc_handler(void);
 
-static void (*user_handler)(char c) = NULL;
+static void (*user_handler)(unsigned char c) = NULL;
 
 unsigned char get_kbc_data(void)
 {
@@ -69,7 +69,7 @@ void do_kbc_interrupt(void)
 		goto kbc_exit;
 
 	/* KBC割り込み処理を呼び出す */
-	char c = keymap[keycode];
+	unsigned char c = keymap[keycode];
 	if (user_handler)
 		user_handler(c);
 

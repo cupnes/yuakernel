@@ -4,6 +4,7 @@
 #define ASCII_ESC	0x1b
 #define ASCII_BS	0x08
 #define ASCII_HT	0x09
+#define KBC_HANKAKU_ZENKAKU	0xff
 
 char getc(void);
 void kbc_init(void);
