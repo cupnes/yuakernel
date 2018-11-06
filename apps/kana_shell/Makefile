@@ -11,7 +11,7 @@ $(TARGET): $(OBJS)
 %.o: %.s
 	gcc $(CFLAGS) -c -o $@ $<
 
-deploy:
+deploy: $(TARGET)
 	../../tools/create_fs.sh $(TARGET)
 	mv fs.img ../../../fs/
 
