@@ -105,7 +105,7 @@ unsigned char asc2kana[] = {
 	['\n'] = '\n'
 };
 
-static void kbc_handler(char c);
+static void kbc_handler(unsigned char c);
 
 int main(void)
 {
@@ -150,10 +150,25 @@ void exec(unsigned long long cmd_id, unsigned char *param)
 	}
 }
 
-#define PARAMETER_BUF_LEN	32
-static void kbc_handler(char c)
+#define KBC_HANKAKU_ZENKAKU	0xff
+unsigned char is_hira = 1;
+
+unsigned char parse_ch(unsigned char c)
 {
-	vputc(asc2kana[(unsigned char)c]);
+	if (is_hira)
+		c = asc2kana[c];
+	return c;
+}
+
+#define PARAMETER_BUF_LEN	32
+static void kbc_handler(unsigned char c)
+{
+	if (c == KBC_HANKAKU_ZENKAKU) {
+		is_hira = !is_hira;
+		return;
+	}
+
+	vputc(parse_ch(c));
 
 	static unsigned char input_state = COMMAND_INPUT_MODE;
 	static unsigned long long command_id = 0;
@@ -186,13 +201,13 @@ static void kbc_handler(char c)
 		switch (input_state) {
 		case COMMAND_INPUT_MODE:
 			if (cmd_chr_counter < 8) {
-				command_id = (command_id << 8U) + asc2kana[(unsigned char)c];
+				command_id = (command_id << 8U) + parse_ch(c);
 				cmd_chr_counter++;
 			}
 			break;
 
 		case PARAMETER_INPUT_MODE:
-			param_buf[param_buf_idx++] = asc2kana[(unsigned char)c];
+			param_buf[param_buf_idx++] = parse_ch(c);
 			break;
 		}
 	}
