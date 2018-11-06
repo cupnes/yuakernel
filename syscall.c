@@ -4,6 +4,7 @@
 #include <fb.h>
 #include <fbcon.h>
 #include <kbc.h>
+#include <proc.h>
 
 #define SYSCALL_INTR_NO	0x80
 
@@ -16,6 +17,8 @@ enum SYSCCALL_NO {
 	SYSCALL_CLS,
 	SYSCALL_VCUR_RST,
 	SYSCALL_KBC_HDLR,
+	SYSCALL_OPEN,
+	SYSCALL_EXEC,
 	MAX_SYSCALL_NUM
 };
 
@@ -56,6 +59,14 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_KBC_HDLR:
 		kbc_set_handler((void *)arg1);
+		break;
+
+	case SYSCALL_OPEN:
+		ret_val = (unsigned long long)open((char *)arg1);
+		break;
+
+	case SYSCALL_EXEC:
+		exec((struct file *)arg1);
 		break;
 	}
 
