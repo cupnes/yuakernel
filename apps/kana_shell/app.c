@@ -115,8 +115,6 @@ int main(void)
 	vputc(YEN);
 	vputc(SPC);
 
-	while (1);
-
 	return 0;
 }
 
