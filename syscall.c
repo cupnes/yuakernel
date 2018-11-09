@@ -18,6 +18,7 @@ enum SYSCCALL_NO {
 	SYSCALL_VCUR_RST,
 	SYSCALL_KBC_HDLR,
 	SYSCALL_OPEN,
+	SYSCALL_GET_FILES,
 	SYSCALL_EXEC,
 	MAX_SYSCALL_NUM
 };
@@ -63,6 +64,10 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_OPEN:
 		ret_val = (unsigned long long)open((char *)arg1);
+		break;
+
+	case SYSCALL_GET_FILES:
+		ret_val = get_files((struct file **)arg1);
 		break;
 
 	case SYSCALL_EXEC:
