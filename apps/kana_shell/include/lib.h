@@ -13,6 +13,7 @@ enum SYSCCALL_NO {
 	SYSCALL_VCUR_RST,
 	SYSCALL_KBC_HDLR,
 	SYSCALL_OPEN,
+	SYSCALL_GET_FILES,
 	SYSCALL_EXEC,
 	MAX_SYSCALL_NUM
 };
@@ -215,6 +216,7 @@ void clear_screen(void);
 void vcursor_reset(void);
 void set_kbc_handler(void *handler);
 struct file *open(char *file_name);
+unsigned long long get_files(struct file *files[]);
 void exec(struct file *file);
 
 #endif

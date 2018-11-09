@@ -145,6 +145,21 @@ void cmd_shiken(unsigned char *param __attribute__((unused)))
 	exec(open("test"));
 }
 
+#define CMD_ICHIRAN_IDX	(((I << 24U) + (CHI << 16U) + (RA << 8U) + N)	\
+			 & 0x00000000ffffffff)
+#define MAX_FILES	100
+void cmd_ichiran(void)
+{
+	struct file *f[MAX_FILES];
+	unsigned long long num_files = get_files(f);
+	unsigned long long i;
+	for (i = 0; i < num_files; i++) {
+		vputs((unsigned char *)f[i]->name);
+		vputc(' ');
+	}
+	vputs((unsigned char *)"\r\n");
+}
+
 void cmd_exec(unsigned long long cmd_id, unsigned char *param)
 {
 	switch (cmd_id) {
@@ -154,6 +169,10 @@ void cmd_exec(unsigned long long cmd_id, unsigned char *param)
 
 	case CMD_SHIKEN_IDX:
 		cmd_shiken(param);
+		break;
+
+	case CMD_ICHIRAN_IDX:
+		cmd_ichiran();
 		break;
 
 	default:

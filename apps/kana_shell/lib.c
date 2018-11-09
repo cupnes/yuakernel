@@ -89,6 +89,11 @@ struct file *open(char *file_name)
 		SYSCALL_OPEN, (unsigned long long)file_name, 0, 0);
 }
 
+unsigned long long get_files(struct file *files[])
+{
+	return syscall(SYSCALL_GET_FILES, (unsigned long long)files, 0, 0);
+}
+
 void exec(struct file *file)
 {
 	syscall(SYSCALL_EXEC, (unsigned long long)file, 0, 0);
