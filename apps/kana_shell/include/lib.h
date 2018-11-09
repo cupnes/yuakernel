@@ -208,6 +208,7 @@ void putc(char c);
 char getc(void);
 void vputc(unsigned char c);
 void vputs(unsigned char *s);
+void vputh(unsigned long long val, unsigned char num_digits);
 void set_fg(unsigned char r, unsigned char g, unsigned char b);
 void set_bg(unsigned char r, unsigned char g, unsigned char b);
 void clear_screen(void);

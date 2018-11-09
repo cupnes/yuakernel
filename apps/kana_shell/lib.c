@@ -1,5 +1,9 @@
 #include <lib.h>
 
+/* 64bit unsignedの最大値0xffffffffffffffffは
+ * 10進で18446744073709551615(20桁)なので'\0'含め21文字分のバッファで足りる */
+#define MAX_STR_BUF	21
+
 unsigned long long syscall(
 	unsigned long long syscall_id __attribute__((unused)),
 	unsigned long long arg1 __attribute__((unused)),
@@ -34,6 +38,24 @@ void vputs(unsigned char *s)
 {
 	while (*s != '\0')
 		vputc(*s++);
+}
+
+void vputh(unsigned long long val, unsigned char num_digits)
+{
+	char str[MAX_STR_BUF];
+
+	int i;
+	for (i = num_digits - 1; i >= 0; i--) {
+		unsigned char v = (unsigned char)(val & 0x0f);
+		if (v < 0xa)
+			str[i] = '0' + v;
+		else
+			str[i] = 'A' + (v - 0xa);
+		val >>= 4;
+	}
+	str[num_digits] = '\0';
+
+	vputs((unsigned char *)str);
 }
 
 void set_fg(unsigned char r, unsigned char g, unsigned char b)
