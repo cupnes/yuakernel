@@ -47,6 +47,8 @@
 #define RO	FONT_hira_ro
 #define SPC	FONT_ascii_20_spc
 #define YEN	FONT_ascii_5C_yen
+#define DAKU	FONT_x_dakuten
+#define HANDAKU	FONT_x_handakuten
 
 unsigned char asc2kana[] = {
 	['1'] = FONT_hira_nu,
@@ -160,6 +162,43 @@ void cmd_ichiran(void)
 	vputs((unsigned char *)"\r\n");
 }
 
+#define CMD_HIYOUSHI_IDX	(((HI << 24U) + (YO << 16U) + (U << 8U) + SHI)	\
+				 & 0x00000000ffffffff)
+void cmd_hiyoushi(void)
+{
+	unsigned char title[] = {
+		SHI, SU, TE, MU, KO, '|', RU, NO, U, SU, I, HO, N,
+		'\r', '\n', '\0'};
+	vputs(title);
+
+	vputs((unsigned char *)"\r\n");
+
+	unsigned char auther[] = {
+		O, O, DAKU, KA, MI, ' ', YU, U, MA, ' ', CHI, YO,
+		'\r', '\n', '\0'};
+	vputs(auther);
+
+	vputs((unsigned char *)"\r\n");
+
+	/* unsigned char date[] = { */
+	/* 	'2', '0', '1', '8', NE, N, */
+	/* 	'1', '2', DAKU, KA, TSU, */
+	/* 	'3', '0', NI, CHI, '\r', '\n', '\0'}; */
+	unsigned char date[] = {
+		'2', '0', '1', '8', '.',
+		'1', '2', '.',
+		'3', '0', '\r', '\n', '\0'};
+	vputs(date);
+
+	vputs((unsigned char *)"\r\n");
+
+	unsigned char circle[] = {
+		HE, NI, YA, HANDAKU, HE, N, TE, '\r', '\n', '\0'};
+	vputs(circle);
+
+	vputs((unsigned char *)"\r\n");
+}
+
 void cmd_exec(unsigned long long cmd_id, unsigned char *param)
 {
 	switch (cmd_id) {
@@ -173,6 +212,10 @@ void cmd_exec(unsigned long long cmd_id, unsigned char *param)
 
 	case CMD_ICHIRAN_IDX:
 		cmd_ichiran();
+		break;
+
+	case CMD_HIYOUSHI_IDX:
+		cmd_hiyoushi();
 		break;
 
 	default:
