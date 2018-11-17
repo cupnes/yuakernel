@@ -5,6 +5,7 @@
 #include <fbcon.h>
 #include <kbc.h>
 #include <proc.h>
+#include <sched.h>
 
 #define SYSCALL_INTR_NO	0x80
 
@@ -20,6 +21,7 @@ enum SYSCCALL_NO {
 	SYSCALL_OPEN,
 	SYSCALL_GET_FILES,
 	SYSCALL_EXEC,
+	SYSCALL_ENQ_TASK,
 	MAX_SYSCALL_NUM
 };
 
@@ -72,6 +74,10 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_EXEC:
 		exec((struct file *)arg1);
+		break;
+
+	case SYSCALL_ENQ_TASK:
+		enq_task((struct file *)arg1);
 		break;
 	}
 

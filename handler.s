@@ -56,6 +56,6 @@ syscall_handler:
 	pop	%rbp
 	pop	%rbx
 	pop	%rdx
-	pop	%rcx
+	pop	%rcx  /* RAXは戻り値の受け渡しに使うため退避したものは捨てる */
 	pop	%rcx
 	iretq
