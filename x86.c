@@ -32,6 +32,20 @@ inline void io_write(unsigned short addr, unsigned char value)
 		      :: [value]"a"(value), [addr]"d"(addr));
 }
 
+inline unsigned int io_read32(unsigned short addr)
+{
+	unsigned int value;
+	asm volatile ("inl %[addr], %[value]"
+		      : [value]"=a"(value) : [addr]"d"(addr));
+	return value;
+}
+
+inline void io_write32(unsigned short addr, unsigned int value)
+{
+	asm volatile ("outl %[value], %[addr]"
+		      :: [value]"a"(value), [addr]"d"(addr));
+}
+
 void gdt_init(void)
 {
 	/* GDTRの設定 */

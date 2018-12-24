@@ -24,6 +24,8 @@ void enable_cpu_intr(void);
 void cpu_halt(void);
 unsigned char io_read(unsigned short addr);
 void io_write(unsigned short addr, unsigned char value);
+unsigned int io_read32(unsigned short addr);
+void io_write32(unsigned short addr, unsigned int value);
 void gdt_init(void);
 
 #endif
