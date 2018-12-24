@@ -32,6 +32,20 @@ inline void io_write(unsigned short addr, unsigned char value)
 		      :: [value]"a"(value), [addr]"d"(addr));
 }
 
+inline unsigned short io_read16(unsigned short addr)
+{
+	unsigned short value;
+	asm volatile ("inw %[addr], %[value]"
+		      : [value]"=a"(value) : [addr]"d"(addr));
+	return value;
+}
+
+inline void io_write16(unsigned short addr, unsigned short value)
+{
+	asm volatile ("outw %[value], %[addr]"
+		      :: [value]"a"(value), [addr]"d"(addr));
+}
+
 inline unsigned int io_read32(unsigned short addr)
 {
 	unsigned int value;
