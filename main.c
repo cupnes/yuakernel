@@ -20,9 +20,12 @@
 
 #define PCI_VID_INTEL		0x8086
 #define PCI_DID_IWM7265		0x095b
+#define PCI_DID_I218V		0x15a3
 
 #define CSR_HW_IF_CONFIG_REG_NIC_READY	(0x00400000) /* PCI_OWN_SEM */
 #define CSR_HW_IF_CONFIG_REG_PREPARE	(0x08000000) /* WAKE_ME */
+
+#define I218V_DEV_NUM	0x19
 
 union pci_config_address {
 	unsigned int raw;
@@ -81,15 +84,47 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	union pci_config_address addr;
 	addr.raw = 0;
 	addr.enable_bit = 1;
-	addr.dev_num = 0x1b;
+	addr.dev_num = I218V_DEV_NUM;
 
-	/* dump config registers */
 	unsigned char raddr;
 	unsigned int config_data;
 	unsigned int bar0;
 	unsigned long long bar;
 	unsigned short command;
 	unsigned long long tmp;
+
+
+	addr.reg_addr = 0x04;
+	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+
+	puth(addr.raw, 8);
+	puts("\r\n");
+
+	config_data = io_read32(PCI_IO_CONFIG_DATA);
+
+	puth(config_data, 8);
+	puts("\r\n");
+
+	config_data |= 0x00000007;
+	puth(config_data, 8);
+	puts("\r\n");
+
+	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+
+	io_write32(PCI_IO_CONFIG_DATA, config_data);
+
+
+	addr.reg_addr = 0x10;
+	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+
+	config_data = 0xf1300000;
+	io_write32(PCI_IO_CONFIG_DATA, config_data);
+
+	puth(config_data, 8);
+	puts("\r\n");
+
+
+	/* dump config registers */
 	for (raddr = 0x00; raddr < 0x30; raddr += 4) {
 		addr.reg_addr = raddr;
 		io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
@@ -113,27 +148,6 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 			putc(' ');
 	}
 	puts("\r\n");
-
-	addr.reg_addr = 0x04;
-
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-	config_data = io_read32(PCI_IO_CONFIG_DATA);
-	puth(config_data, 8);
-	puts("\r\n");
-
-	config_data |= 0x00000003;
-	puth(config_data, 8);
-	puts("\r\n");
-
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-	io_write32(PCI_IO_CONFIG_DATA, config_data);
-
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-	config_data = io_read32(PCI_IO_CONFIG_DATA);
-	puth(config_data, 8);
-	puts("\r\n");
-
-
 
 	/* haltして待つ */
 	while (1)
