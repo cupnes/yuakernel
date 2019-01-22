@@ -15,6 +15,8 @@
 #include <proc.h>
 
 /* >>> pci.h */
+#define PCI_MAX_DEV_NUM		32
+
 #define PCI_IO_CONFIG_ADDR	0x0cf8
 #define PCI_IO_CONFIG_DATA	0x0cfc
 
@@ -84,74 +86,73 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	union pci_config_address addr;
 	addr.raw = 0;
 	addr.enable_bit = 1;
-	addr.dev_num = I218V_DEV_NUM;
 
-	unsigned char raddr;
-	unsigned int config_data;
-	unsigned int bar0;
-	unsigned long long bar;
-	unsigned short command;
-	unsigned long long tmp;
+	for (; addr.dev_num < PCI_MAX_DEV_NUM; addr.dev_num++) {
+		unsigned int config_data;
 
-
-	addr.reg_addr = 0x04;
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-
-	puth(addr.raw, 8);
-	puts("\r\n");
-
-	config_data = io_read32(PCI_IO_CONFIG_DATA);
-
-	puth(config_data, 8);
-	puts("\r\n");
-
-	config_data |= 0x00000007;
-	puth(config_data, 8);
-	puts("\r\n");
-
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-
-	io_write32(PCI_IO_CONFIG_DATA, config_data);
-
-
-	addr.reg_addr = 0x10;
-	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-
-	config_data = 0xf1300000;
-	io_write32(PCI_IO_CONFIG_DATA, config_data);
-
-	puth(config_data, 8);
-	puts("\r\n");
-
-
-	/* dump config registers */
-	for (raddr = 0x00; raddr < 0x30; raddr += 4) {
-		addr.reg_addr = raddr;
+		addr.reg_addr = 0x0c;
 		io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
 		config_data = io_read32(PCI_IO_CONFIG_DATA);
+		unsigned char tmp = (config_data & 0x00ff0000) >> 16;
+		unsigned char header_type = tmp & 0x7f;
+		if (header_type > 1)
+			continue;
 
-		if (raddr == 0x04)
-			command = config_data;
-		if (raddr == 0x10)
-			bar0 = config_data;
-		if (raddr == 0x14)
-			bar = config_data;
-		if (raddr == 0x18) {
-			tmp = config_data;
-			bar += tmp << 32;
-		}
+		unsigned char has_multi_func = tmp & 0x80;
+		for (addr.func_num = 0;
+		     addr.func_num < (has_multi_func) ? 8 : 1;
+		     addr.func_num++) {
+			addr.reg_addr = 0x00;
+			io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+			config_data = io_read32(PCI_IO_CONFIG_DATA);
+			unsigned short vendor_id = config_data & 0x0000ffff;
+			if (vendor_id == 0xffff)
+				continue;
 
-		puth(config_data, 8);
-		if ((raddr + 4) % 8 == 0)
+			unsigned short device_id =
+				(config_data & 0xffff0000) >> 16;
+
+			puth(addr.bus_num, 2);
+			putc(',');
+			puth(addr.dev_num, 2);
+			putc(',');
+			puth(addr.func_num, 1);
+			putc(':');
+			puth(vendor_id, 4);
+			putc(',');
+			puth(device_id, 4);
 			puts("\r\n");
-		else
-			putc(' ');
-	}
-	puts("\r\n");
 
-	/* haltして待つ */
-	while (1)
-		cpu_halt();
+			/* haltして待つ */
+			while (1)
+				cpu_halt();
+		}
+	}
+
+	/* /\* dump config registers *\/ */
+	/* for (raddr = 0x00; raddr < 0x30; raddr += 4) { */
+	/* 	addr.reg_addr = raddr; */
+	/* 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw); */
+	/* 	config_data = io_read32(PCI_IO_CONFIG_DATA); */
+
+	/* 	if (raddr == 0x04) */
+	/* 		command = config_data; */
+	/* 	if (raddr == 0x10) */
+	/* 		bar0 = config_data; */
+	/* 	if (raddr == 0x14) */
+	/* 		bar = config_data; */
+	/* 	if (raddr == 0x18) { */
+	/* 		tmp = config_data; */
+	/* 		bar += tmp << 32; */
+	/* 	} */
+
+	/* 	puth(config_data, 8); */
+	/* 	if ((raddr + 4) % 8 == 0) */
+	/* 		puts("\r\n"); */
+	/* 	else */
+	/* 		putc(' '); */
+	/* } */
+	/* puts("\r\n"); */
 
 
 
