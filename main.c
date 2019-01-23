@@ -187,7 +187,7 @@ void pci_scan_bus(unsigned char bus)
 
 		unsigned char has_multi_func = tmp & 0x80;
 		unsigned char func;
-		for (func = 0; func < (has_multi_func) ? 8 : 1; func++) {
+		for (func = 0; func < ((has_multi_func) ? 8 : 1); func++) {
 			config_data = pci_read_config_reg(bus, dev, func, 0);
 			unsigned short vendor_id = config_data & 0x0000ffff;
 			if (vendor_id == 0xffff)
@@ -197,10 +197,6 @@ void pci_scan_bus(unsigned char bus)
 				(config_data & 0xffff0000) >> 16;
 
 			pci_put_ids(bus, dev, func, vendor_id, device_id);
-
-			/* haltして待つ */
-			while (1)
-				cpu_halt();
 		}
 	}
 }
