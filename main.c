@@ -92,7 +92,8 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 
 	/* PCI test */
-	pci_scan_bus(0);
+	/* pci_scan_bus(0); */
+	pci_dump_config_reg(0x00, 0x19, 0x00);
 
 	/* haltして待つ */
 	while (1)
