@@ -32,8 +32,7 @@
 union pci_config_address {
 	unsigned int raw;
 	struct __attribute__((packed)) {
-		unsigned int _ro_zero:2;
-		unsigned int reg_addr:6;
+		unsigned int reg_addr:8;
 		unsigned int func_num:3;
 		unsigned int dev_num:5;
 		unsigned int bus_num:8;
@@ -127,6 +126,10 @@ unsigned int pci_read_config_reg(unsigned char bus, unsigned char dev,
 	addr.reg_addr = reg;
 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
 	return io_read32(PCI_IO_CONFIG_DATA);
+	/* unsigned int data = io_read32(PCI_IO_CONFIG_DATA); */
+	/* addr.enable_bit = 0; */
+	/* io_write32(PCI_IO_CONFIG_ADDR, addr.raw); */
+	/* return data; */
 }
 
 void pci_write_config_reg(unsigned char bus, unsigned char dev,
@@ -142,6 +145,8 @@ void pci_write_config_reg(unsigned char bus, unsigned char dev,
 	addr.reg_addr = reg;
 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
 	io_write32(PCI_IO_CONFIG_DATA, val);
+	/* addr.enable_bit = 0; */
+	/* io_write32(PCI_IO_CONFIG_ADDR, addr.raw); */
 }
 
 void pci_put_ids(unsigned char bus, unsigned char dev, unsigned char func,
@@ -186,6 +191,12 @@ void pci_scan_bus(unsigned char bus)
 			continue;
 
 		unsigned char has_multi_func = tmp & 0x80;
+		if ((dev == 0x1c) || (dev == 0x1f)) {
+			puth(tmp, 2);
+			putc(',');
+			puth(has_multi_func, 2);
+			puts("\r\n");
+		}
 		unsigned char func;
 		for (func = 0; func < ((has_multi_func) ? 8 : 1); func++) {
 			config_data = pci_read_config_reg(bus, dev, func, 0);
@@ -196,7 +207,12 @@ void pci_scan_bus(unsigned char bus)
 			unsigned short device_id =
 				(config_data & 0xffff0000) >> 16;
 
-			pci_put_ids(bus, dev, func, vendor_id, device_id);
+			/* pci_put_ids(bus, dev, func, vendor_id, device_id); */
+
+			pci_write_config_reg(bus, dev, func, 0x04, 0x00000007);
+			pci_dump_config_reg(bus, dev, func);
+
+			return;
 		}
 	}
 }
