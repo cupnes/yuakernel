@@ -41,6 +41,16 @@ union pci_config_address {
 		unsigned int enable_bit:1;
 	};
 };
+
+unsigned int pci_read_config_reg(unsigned char bus, unsigned char dev,
+				 unsigned char func, unsigned char reg);
+void pci_write_config_reg(unsigned char bus, unsigned char dev,
+			  unsigned char func, unsigned char reg,
+			  unsigned int val);
+void pci_put_ids(unsigned char bus, unsigned char dev, unsigned char func,
+		 unsigned short vid, unsigned short did);
+void pci_dump_config_reg(unsigned char bus, unsigned char dev, unsigned char func);
+void pci_scan_bus(unsigned char bus);
 /* <<< pci.h */
 
 struct __attribute__((packed)) platform_info {
@@ -83,76 +93,11 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 
 	/* PCI test */
-	union pci_config_address addr;
-	addr.raw = 0;
-	addr.enable_bit = 1;
+	pci_scan_bus(0);
 
-	for (; addr.dev_num < PCI_MAX_DEV_NUM; addr.dev_num++) {
-		unsigned int config_data;
-
-		addr.reg_addr = 0x0c;
-		io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-		config_data = io_read32(PCI_IO_CONFIG_DATA);
-		unsigned char tmp = (config_data & 0x00ff0000) >> 16;
-		unsigned char header_type = tmp & 0x7f;
-		if (header_type > 1)
-			continue;
-
-		unsigned char has_multi_func = tmp & 0x80;
-		for (addr.func_num = 0;
-		     addr.func_num < (has_multi_func) ? 8 : 1;
-		     addr.func_num++) {
-			addr.reg_addr = 0x00;
-			io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
-			config_data = io_read32(PCI_IO_CONFIG_DATA);
-			unsigned short vendor_id = config_data & 0x0000ffff;
-			if (vendor_id == 0xffff)
-				continue;
-
-			unsigned short device_id =
-				(config_data & 0xffff0000) >> 16;
-
-			puth(addr.bus_num, 2);
-			putc(',');
-			puth(addr.dev_num, 2);
-			putc(',');
-			puth(addr.func_num, 1);
-			putc(':');
-			puth(vendor_id, 4);
-			putc(',');
-			puth(device_id, 4);
-			puts("\r\n");
-
-			/* haltして待つ */
-			while (1)
-				cpu_halt();
-		}
-	}
-
-	/* /\* dump config registers *\/ */
-	/* for (raddr = 0x00; raddr < 0x30; raddr += 4) { */
-	/* 	addr.reg_addr = raddr; */
-	/* 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw); */
-	/* 	config_data = io_read32(PCI_IO_CONFIG_DATA); */
-
-	/* 	if (raddr == 0x04) */
-	/* 		command = config_data; */
-	/* 	if (raddr == 0x10) */
-	/* 		bar0 = config_data; */
-	/* 	if (raddr == 0x14) */
-	/* 		bar = config_data; */
-	/* 	if (raddr == 0x18) { */
-	/* 		tmp = config_data; */
-	/* 		bar += tmp << 32; */
-	/* 	} */
-
-	/* 	puth(config_data, 8); */
-	/* 	if ((raddr + 4) % 8 == 0) */
-	/* 		puts("\r\n"); */
-	/* 	else */
-	/* 		putc(' '); */
-	/* } */
-	/* puts("\r\n"); */
+	/* haltして待つ */
+	while (1)
+		cpu_halt();
 
 
 
@@ -168,4 +113,94 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* haltして待つ */
 	while (1)
 		cpu_halt();
+}
+
+unsigned int pci_read_config_reg(unsigned char bus, unsigned char dev,
+				 unsigned char func, unsigned char reg)
+{
+	union pci_config_address addr;
+	addr.raw = 0;
+	addr.enable_bit = 1;
+	addr.bus_num = bus;
+	addr.dev_num = dev;
+	addr.func_num = func;
+	addr.reg_addr = reg;
+	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+	return io_read32(PCI_IO_CONFIG_DATA);
+}
+
+void pci_write_config_reg(unsigned char bus, unsigned char dev,
+			  unsigned char func, unsigned char reg,
+			  unsigned int val)
+{
+	union pci_config_address addr;
+	addr.raw = 0;
+	addr.enable_bit = 1;
+	addr.bus_num = bus;
+	addr.dev_num = dev;
+	addr.func_num = func;
+	addr.reg_addr = reg;
+	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
+	io_write32(PCI_IO_CONFIG_DATA, val);
+}
+
+void pci_put_ids(unsigned char bus, unsigned char dev, unsigned char func,
+                 unsigned short vid, unsigned short did)
+{
+	puth(bus, 2);
+	putc(',');
+	puth(dev, 2);
+	putc(',');
+	puth(func, 1);
+	putc(':');
+	puth(vid, 4);
+	putc(',');
+	puth(did, 4);
+	puts("\r\n");
+}
+
+void pci_dump_config_reg(unsigned char bus, unsigned char dev, unsigned char func)
+{
+	unsigned char reg;
+	for (reg = 0x00; reg < 0x30; reg += 0x04) {
+		unsigned int config_data =
+			pci_read_config_reg(bus, dev, func, reg);
+		puth(config_data, 8);
+		if ((reg + 4) % 8 == 0)
+			puts("\r\n");
+		else
+			putc(' ');
+	}
+	puts("\r\n");
+}
+
+void pci_scan_bus(unsigned char bus)
+{
+	unsigned char dev;
+	for (dev = 0x00; dev < PCI_MAX_DEV_NUM; dev++) {
+		unsigned int config_data =
+			pci_read_config_reg(bus, dev, 0, 0x0c);
+		unsigned char tmp = (config_data & 0x00ff0000) >> 16;
+		unsigned char header_type = tmp & 0x7f;
+		if (header_type > 1)
+			continue;
+
+		unsigned char has_multi_func = tmp & 0x80;
+		unsigned char func;
+		for (func = 0; func < (has_multi_func) ? 8 : 1; func++) {
+			config_data = pci_read_config_reg(bus, dev, func, 0);
+			unsigned short vendor_id = config_data & 0x0000ffff;
+			if (vendor_id == 0xffff)
+				continue;
+
+			unsigned short device_id =
+				(config_data & 0xffff0000) >> 16;
+
+			pci_put_ids(bus, dev, func, vendor_id, device_id);
+
+			/* haltして待つ */
+			while (1)
+				cpu_halt();
+		}
+	}
 }
