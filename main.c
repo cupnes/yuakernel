@@ -52,6 +52,13 @@ void pci_dump_config_reg(unsigned char bus, unsigned char dev, unsigned char fun
 void pci_scan_bus(unsigned char bus);
 /* <<< pci.h */
 
+/* >>> i218v.h */
+void i218v_set_reg(unsigned short ofs, unsigned int val);
+unsigned int i218v_read_reg(unsigned short ofs);
+
+unsigned long long i218v_reg_base;
+/* <<< i218v.h */
+
 struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
 	void *rsdp;
@@ -94,8 +101,23 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* PCI test */
 	/* pci_scan_bus(0); */
 	/* pci_dump_config_reg(0x00, 0x19, 0x00); */
-	unsigned int bar = pci_read_config_reg(0x00, 0x19, 0x00, 0x10);
-	puth(bar, 8);
+	i218v_reg_base = pci_read_config_reg(0x00, 0x19, 0x00, 0x10);
+
+	i218v_set_reg(0x00D8, 0xffffffff);
+	i218v_set_reg(0x0100, 0);
+	i218v_set_reg(0x0400, 0);
+	i218v_set_reg(0x0000, i218v_read_reg(0x0000) | (1 << 26));
+
+	i218v_set_reg(0x0014, 1);
+	puts("search ...");
+	unsigned int eeprom_exists = 0;
+	while (1) {
+		eeprom_exists = i218v_read_reg(0x0014) & 0x10;
+		if (eeprom_exists)
+			break;
+	}
+	puts(" eeprom_exists=");
+	puth(eeprom_exists, 8);
 	puts("\r\n");
 
 	/* haltして待つ */
@@ -219,4 +241,14 @@ void pci_scan_bus(unsigned char bus)
 			return;
 		}
 	}
+}
+
+void i218v_set_reg(unsigned short ofs, unsigned int val)
+{
+	*(volatile unsigned int *)(i218v_reg_base + ofs) = val;
+}
+
+unsigned int i218v_read_reg(unsigned short ofs)
+{
+	return *(volatile unsigned int *)(i218v_reg_base + ofs);
 }
