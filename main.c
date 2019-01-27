@@ -53,8 +53,8 @@ void pci_scan_bus(unsigned char bus);
 /* <<< pci.h */
 
 /* >>> i218v.h */
-void i218v_set_reg(unsigned short ofs, unsigned int val);
 unsigned int i218v_read_reg(unsigned short ofs);
+void i218v_write_reg(unsigned short ofs, unsigned int val);
 
 unsigned long long i218v_reg_base;
 /* <<< i218v.h */
@@ -98,27 +98,48 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 
 
+	/* dump regs */
+	puts("cr0:");
+	puth(read_cr0(), 16);
+	puts("\r\n");
+	puts("cr4:");
+	puth(read_cr4(), 16);
+	puts("\r\n");
+	puts("rflags:");
+	puth(read_rflags(), 16);
+	puts("\r\n");
+	puts("efer:");
+	puth(read_msr(MSR_IA32_EFER), 16);
+	puts("\r\n");
+
+
+
 	/* PCI test */
 	/* pci_scan_bus(0); */
 	/* pci_dump_config_reg(0x00, 0x19, 0x00); */
-	i218v_reg_base = pci_read_config_reg(0x00, 0x19, 0x00, 0x10);
 
-	i218v_set_reg(0x00D8, 0xffffffff);
-	i218v_set_reg(0x0100, 0);
-	i218v_set_reg(0x0400, 0);
-	i218v_set_reg(0x0000, i218v_read_reg(0x0000) | (1 << 26));
+	/* i218v_reg_base = pci_read_config_reg(0x00, 0x19, 0x00, 0x10); */
 
-	i218v_set_reg(0x0014, 1);
-	puts("search ...");
-	unsigned int eeprom_exists = 0;
-	while (1) {
-		eeprom_exists = i218v_read_reg(0x0014) & 0x10;
-		if (eeprom_exists)
-			break;
-	}
-	puts(" eeprom_exists=");
-	puth(eeprom_exists, 8);
-	puts("\r\n");
+	/* i218v_write_reg(0x00D8, 0xffffffff); */
+	/* i218v_write_reg(0x0100, 0); */
+	/* i218v_write_reg(0x0400, 0); */
+	/* i218v_write_reg(0x0000, i218v_read_reg(0x0000) | (1 << 26)); */
+
+	/* i218v_write_reg(0x0014, 1); */
+	/* puts("search ..."); */
+	/* unsigned int eeprom_exists = 0; */
+	/* while (1) { */
+	/* 	unsigned int tmp_reg = i218v_read_reg(0x0014); */
+	/* 	putc('R'); */
+	/* 	puth(tmp_reg, 8); */
+	/* 	puts("\r\n"); */
+	/* 	eeprom_exists = tmp_reg & 0x10; */
+	/* 	if (eeprom_exists) */
+	/* 		break; */
+	/* } */
+	/* puts(" eeprom_exists="); */
+	/* puth(eeprom_exists, 8); */
+	/* puts("\r\n"); */
 
 	/* haltして待つ */
 	while (1)
@@ -243,12 +264,20 @@ void pci_scan_bus(unsigned char bus)
 	}
 }
 
-void i218v_set_reg(unsigned short ofs, unsigned int val)
-{
-	*(volatile unsigned int *)(i218v_reg_base + ofs) = val;
-}
-
 unsigned int i218v_read_reg(unsigned short ofs)
 {
-	return *(volatile unsigned int *)(i218v_reg_base + ofs);
+	unsigned long long addr = i218v_reg_base + ofs;
+	/* putc('R'); */
+	/* puth(addr, 16); */
+	/* puts("\r\n"); */
+	return *(volatile unsigned int *)addr;
+}
+
+void i218v_write_reg(unsigned short ofs, unsigned int val)
+{
+	unsigned long long addr = i218v_reg_base + ofs;
+	putc('W');
+	puth(addr, 16);
+	puts("\r\n");
+	*(volatile unsigned int *)addr = val;
 }

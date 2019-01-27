@@ -6,6 +6,8 @@
 
 #define MAX_INTR_NO	256
 
+#define MSR_IA32_EFER	0xc0000080
+
 struct __attribute__((packed)) interrupt_descriptor {
 	unsigned short offset_00_15;
 	unsigned short segment_selector;
@@ -22,6 +24,10 @@ struct __attribute__((packed)) interrupt_descriptor {
 
 void enable_cpu_intr(void);
 void cpu_halt(void);
+unsigned long long read_cr0(void);
+unsigned long long read_cr4(void);
+unsigned long long read_rflags(void);
+unsigned long long read_msr(unsigned int msr);
 unsigned char io_read(unsigned short addr);
 void io_write(unsigned short addr, unsigned char value);
 unsigned short io_read16(unsigned short addr);

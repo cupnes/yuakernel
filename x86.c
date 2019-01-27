@@ -18,6 +18,35 @@ inline void cpu_halt(void)
 	asm volatile ("hlt");
 }
 
+__inline unsigned long long read_cr0(void)
+{
+	unsigned long long value;
+	asm volatile ("mov %%cr0, %[value]": [value]"=a"(value):);
+	return value;
+}
+
+__inline unsigned long long read_cr4(void)
+{
+	unsigned long long value;
+	asm volatile ("mov %%cr4, %[value]": [value]"=a"(value):);
+	return value;
+}
+
+__inline unsigned long long read_rflags(void)
+{
+	unsigned long long value;
+	asm volatile ("pushfq\n"
+		      "pop %[value]\n": [value]"=a"(value):);
+	return value;
+}
+
+__inline unsigned long long read_msr(unsigned int msr)
+{
+	unsigned int low, high;
+	asm volatile ("rdmsr": "=a"(low), "=d"(high): "c"(msr));
+	return ((unsigned long long)high << 32) | low;
+}
+
 inline unsigned char io_read(unsigned short addr)
 {
 	unsigned char value;
