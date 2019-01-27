@@ -8,6 +8,10 @@
 
 #define MSR_IA32_EFER	0xc0000080
 
+#define CR3_FLAGS_MASK	0x0000000000000fff
+#define PML4E_FLAGS_MASK	0x0000000000000fff
+#define PDPTE_FLAGS_MASK	0x0000000000000fff
+
 struct __attribute__((packed)) interrupt_descriptor {
 	unsigned short offset_00_15;
 	unsigned short segment_selector;
@@ -22,9 +26,21 @@ struct __attribute__((packed)) interrupt_descriptor {
 	unsigned int   _reserved;
 };
 
+union linear_address_4lv_2mpage {
+	unsigned long long raw;
+	struct __attribute__((packed)) {
+		unsigned long long offset:21;
+		unsigned long long directory:9;
+		unsigned long long directory_ptr:9;
+		unsigned long long pml4:9;
+		unsigned long long _ign:16;
+	};
+};
+
 void enable_cpu_intr(void);
 void cpu_halt(void);
 unsigned long long read_cr0(void);
+unsigned long long read_cr3(void);
 unsigned long long read_cr4(void);
 unsigned long long read_rflags(void);
 unsigned long long read_msr(unsigned int msr);

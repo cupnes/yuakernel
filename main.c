@@ -98,22 +98,6 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 
 
-	/* dump regs */
-	puts("cr0:");
-	puth(read_cr0(), 16);
-	puts("\r\n");
-	puts("cr4:");
-	puth(read_cr4(), 16);
-	puts("\r\n");
-	puts("rflags:");
-	puth(read_rflags(), 16);
-	puts("\r\n");
-	puts("efer:");
-	puth(read_msr(MSR_IA32_EFER), 16);
-	puts("\r\n");
-
-
-
 	/* PCI test */
 	/* pci_scan_bus(0); */
 	/* pci_dump_config_reg(0x00, 0x19, 0x00); */
@@ -125,21 +109,48 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* i218v_write_reg(0x0400, 0); */
 	/* i218v_write_reg(0x0000, i218v_read_reg(0x0000) | (1 << 26)); */
 
+	unsigned int status_command = pci_read_config_reg(0x00, 0x19, 0x00, 0x04);
+	pci_write_config_reg(0x00, 0x19, 0x00, 0x04, status_command | 0x00000004);
+
 	/* i218v_write_reg(0x0014, 1); */
-	/* puts("search ..."); */
-	/* unsigned int eeprom_exists = 0; */
-	/* while (1) { */
-	/* 	unsigned int tmp_reg = i218v_read_reg(0x0014); */
-	/* 	putc('R'); */
-	/* 	puth(tmp_reg, 8); */
-	/* 	puts("\r\n"); */
-	/* 	eeprom_exists = tmp_reg & 0x10; */
-	/* 	if (eeprom_exists) */
-	/* 		break; */
-	/* } */
-	/* puts(" eeprom_exists="); */
-	/* puth(eeprom_exists, 8); */
-	/* puts("\r\n"); */
+	unsigned int tmp_reg;
+
+	i218v_write_reg(0x0014, 1);
+	unsigned int eeprom_exists = 0;
+	unsigned int i;
+	for (i = 0; i < 1000; i++) {
+		tmp_reg = i218v_read_reg(0x0014);
+		eeprom_exists = tmp_reg & 0x10;
+		if (eeprom_exists)
+			break;
+	}
+	if (eeprom_exists) {
+		puts("eeprom exists\r\n");
+	} else {
+		puts("eeprom not exists\r\n");
+
+		unsigned long long bar =
+			pci_read_config_reg(0x00, 0x19, 0x00, 0x10)
+			& 0xfffffff0;
+		puts("bar:");
+		puth(bar, 8);
+		puts("\r\n");
+
+		unsigned char *mem_base_mac_8 = (unsigned char *)(bar + 0x5400);
+		unsigned int *mem_base_mac_32 = (unsigned int *)(bar + 0x5400);
+		unsigned char mac[6];
+		if (mem_base_mac_32[0] != 0) {
+			for (i = 0; i < 6; i++) {
+				mac[i] = mem_base_mac_8[i];
+			}
+		}
+
+		for (i = 0; i < 6; i++) {
+			puth(mac[i], 2);
+			putc(' ');
+		}
+		puts("\r\n");
+	}
 
 	/* haltして待つ */
 	while (1)
@@ -276,8 +287,90 @@ unsigned int i218v_read_reg(unsigned short ofs)
 void i218v_write_reg(unsigned short ofs, unsigned int val)
 {
 	unsigned long long addr = i218v_reg_base + ofs;
-	putc('W');
-	puth(addr, 16);
-	puts("\r\n");
+	/* putc('W'); */
+	/* puth(addr, 16); */
+	/* puts("\r\n"); */
 	*(volatile unsigned int *)addr = val;
+}
+
+void debug_dump_regs(void)
+{
+	puts("cr0:");
+	puth(read_cr0(), 16);
+	puts("\r\n");
+	puts("cr4:");
+	puth(read_cr4(), 16);
+	puts("\r\n");
+	puts("rflags:");
+	puth(read_rflags(), 16);
+	puts("\r\n");
+	puts("efer:");
+	puth(read_msr(MSR_IA32_EFER), 16);
+	puts("\r\n");
+}
+
+void debug_dump_address_translation(void)
+{
+	union linear_address_4lv_2mpage la;
+	la.raw = 0x00000000f1300000;
+	/* puth(la.raw, 16); */
+	/* puts("\r\n"); */
+	/* puth(la.pml4, 3); */
+	/* putc(':'); */
+	/* puth(la.directory_ptr, 3); */
+	/* putc(':'); */
+	/* puth(la.directory, 3); */
+	/* putc(':'); */
+	/* puth(la.offset, 6); */
+	/* puts("\r\n"); */
+
+	unsigned long long cr3 = read_cr3();
+	/* puts("cr3:"); */
+	/* puth(cr3, 16); */
+	/* puts("\r\n"); */
+
+	unsigned long long pml4 = cr3 & ~CR3_FLAGS_MASK;
+	puts("pml4:");
+	puth(pml4, 16);
+	puts("\r\n");
+
+	unsigned long long pml4e_addr = pml4 + (la.pml4 * 8);
+	puts("pml4ea:");
+	puth(pml4e_addr, 16);
+	puts("\r\n");
+
+	unsigned long long pml4e = *(volatile unsigned long long *)pml4e_addr;
+	puts("pml4e:");
+	puth(pml4e, 16);
+	puts("\r\n");
+
+	unsigned long long pdpt = pml4e & ~PML4E_FLAGS_MASK;
+	puts("pdpt:");
+	puth(pdpt, 16);
+	puts("\r\n");
+
+	unsigned long long pdpte_addr = pdpt + (la.directory_ptr * 8);
+	puts("pdptea:");
+	puth(pdpte_addr, 16);
+	puts("\r\n");
+
+	unsigned long long pdpte = *(volatile unsigned long long *)pdpte_addr;
+	puts("pdpte:");
+	puth(pdpte, 16);
+	puts("\r\n");
+
+	unsigned long long pd = pdpte & ~PDPTE_FLAGS_MASK;
+	puts("pd:");
+	puth(pd, 16);
+	puts("\r\n");
+
+	unsigned long long pde_addr = pd + (la.directory * 8);
+	puts("pdea:");
+	puth(pde_addr, 16);
+	puts("\r\n");
+
+	unsigned long long pde = *(volatile unsigned long long *)pde_addr;
+	puts("pde:");
+	puth(pde, 16);
+	puts("\r\n");
 }
