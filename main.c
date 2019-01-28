@@ -53,9 +53,24 @@ void pci_scan_bus(unsigned char bus);
 /* <<< pci.h */
 
 /* >>> i218v.h */
+#define I218V_NUM_RX_DESC	32
+
+struct __attribute__((packed)) i218v_rx_desc {
+	unsigned long long addr;
+	unsigned short length;
+	unsigned short checksum;
+	unsigned char status;
+	unsigned char errors;
+	unsigned short special;
+};
+
 unsigned int i218v_read_reg(unsigned short ofs);
 void i218v_write_reg(unsigned short ofs, unsigned int val);
 
+static unsigned char i218v_rx_desc_arr[sizeof(struct i218v_rx_desc) * I218V_NUM_RX_DESC + 16];
+struct i218v_rx_desc *rx_descs[I218V_NUM_RX_DESC];
+static unsigned char i218v_rx_temp[8192+16];
+unsigned short rx_cur;
 unsigned long long i218v_reg_base;
 /* <<< i218v.h */
 
@@ -126,6 +141,10 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	}
 	if (eeprom_exists) {
 		puts("eeprom exists\r\n");
+
+		/* haltして待つ */
+		while (1)
+			cpu_halt();
 	} else {
 		puts("eeprom not exists\r\n");
 
@@ -151,6 +170,28 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		}
 		puts("\r\n");
 	}
+
+	struct i218v_rx_desc *descs;
+
+	descs = (struct i218v_rx_desc *)i218v_rx_desc_arr;
+	for (i = 0; i < I218V_NUM_RX_DESC; i++) {
+		rx_descs[i] = (struct i218v_rx_desc *)((unsigned char *)descs + i*16);
+		rx_descs[i]->addr = (unsigned long long)(unsigned char *)i218v_rx_temp;
+		rx_descs[i]->status = 0;
+	}
+
+	writeCommand(REG_TXDESCLO, (unsigned int)((unsigned long long)i218v_rx_desc_arr >> 32) );
+	writeCommand(REG_TXDESCHI, (unsigned int)((unsigned long long)i218v_rx_desc_arr & 0xFFFFFFFF));
+
+	writeCommand(REG_RXDESCLO, (unsigned long long)i218v_rx_desc_arr);
+	writeCommand(REG_RXDESCHI, 0);
+
+	writeCommand(REG_RXDESCLEN, I218V_NUM_RX_DESC * 16);
+
+	writeCommand(REG_RXDESCHEAD, 0);
+	writeCommand(REG_RXDESCTAIL, I218V_NUM_RX_DESC-1);
+	rx_cur = 0;
+	writeCommand(REG_RCTRL, RCTL_EN| RCTL_SBP| RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE | RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_2048);
 
 	/* haltして待つ */
 	while (1)
