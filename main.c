@@ -289,9 +289,8 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		} else if (status & 0x10) {
 			// good threshold
 		} else if (status & 0x80) {
-			/* handleReceive(); */
-			puts("receive!\r\n");
-			break;
+			/* puts("receive!\r\n"); */
+			handleReceive();
 		}
 	}
 
@@ -520,6 +519,11 @@ void debug_dump_address_translation(void)
 
 void handleReceive(void)
 {
+	/* puts("B:handleReceive()\r\n"); */
+	/* putc('B'); */
+
+	putc('.');
+
 	unsigned short old_cur;
 	/* unsigned int got_packet = 0; */
 
@@ -552,6 +556,9 @@ void handleReceive(void)
 		rx_cur = (rx_cur + 1) % I218V_NUM_RX_DESC;
 		i218v_write_reg(REG_RXDESCTAIL, old_cur);
 	}
+
+	/* puts("E:handleReceive()\r\n"); */
+	/* putc('E'); */
 }
 
 unsigned int switch_endian32(unsigned int nb)
