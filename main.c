@@ -55,6 +55,74 @@ void pci_scan_bus(unsigned char bus);
 /* >>> i218v.h */
 #define I218V_NUM_RX_DESC	32
 
+#define REG_CTRL        0x0000
+#define REG_STATUS      0x0008
+#define REG_EEPROM      0x0014
+#define REG_CTRL_EXT    0x0018
+#define REG_IMASK       0x00D0
+#define REG_RCTRL       0x0100
+#define REG_RXDESCLO    0x2800
+#define REG_RXDESCHI    0x2804
+#define REG_RXDESCLEN   0x2808
+#define REG_RXDESCHEAD  0x2810
+#define REG_RXDESCTAIL  0x2818
+
+#define I218V_REG_CTRL	0x0000
+#define I218V_REG_STATUS	0x0008
+#define I218V_REG_EEPROM	0x0014
+#define I218V_REG_CTRL_EXT	0x0018
+#define I218V_REG_IMASK	0x00D0
+#define I218V_REG_RCTRL	0x0100
+#define I218V_REG_RXDESCLO	0x2800
+#define I218V_REG_RXDESCHI	0x2804
+#define I218V_REG_RXDESCLEN	0x2808
+#define I218V_REG_RXDESCHEAD	0x2810
+#define I218V_REG_RXDESCTAIL	0x2818
+#define I218V_REG_TCTRL	0x0400
+#define I218V_REG_TXDESCLO	0x3800
+#define I218V_REG_TXDESCHI	0x3804
+#define I218V_REG_TXDESCLEN	0x3808
+#define I218V_REG_TXDESCHEAD	0x3810
+#define I218V_REG_TXDESCTAIL	0x3818
+#define I218V_REG_IP	0x5840
+#define I218V_REG_RDTR	0x2820 // RX Delay Timer Register
+#define I218V_REG_RXDCTL	0x3828 // RX Descriptor Control
+#define I218V_REG_RADV	0x282C // RX Int. Absolute Delay Timer
+#define I218V_REG_RSRPD	0x2C00 // RX Small Packet Detect Interrupt
+#define I218V_REG_TIPG	0x0410      // Transmit Inter Packet Gap
+#define I218V_ECTRL_SLU	0x40        //set link up
+
+#define RCTL_EN                         (1 << 1)    // Receiver Enable
+#define RCTL_SBP                        (1 << 2)    // Store Bad Packets
+#define RCTL_UPE                        (1 << 3)    // Unicast Promiscuous Enabled
+#define RCTL_MPE                        (1 << 4)    // Multicast Promiscuous Enabled
+#define RCTL_LPE                        (1 << 5)    // Long Packet Reception Enable
+#define RCTL_LBM_NONE                   (0 << 6)    // No Loopback
+#define RCTL_LBM_PHY                    (3 << 6)    // PHY or external SerDesc loopback
+#define RTCL_RDMTS_HALF                 (0 << 8)    // Free Buffer Threshold is 1/2 of RDLEN
+#define RTCL_RDMTS_QUARTER              (1 << 8)    // Free Buffer Threshold is 1/4 of RDLEN
+#define RTCL_RDMTS_EIGHTH               (2 << 8)    // Free Buffer Threshold is 1/8 of RDLEN
+#define RCTL_MO_36                      (0 << 12)   // Multicast Offset - bits 47:36
+#define RCTL_MO_35                      (1 << 12)   // Multicast Offset - bits 46:35
+#define RCTL_MO_34                      (2 << 12)   // Multicast Offset - bits 45:34
+#define RCTL_MO_32                      (3 << 12)   // Multicast Offset - bits 43:32
+#define RCTL_BAM                        (1 << 15)   // Broadcast Accept Mode
+#define RCTL_VFE                        (1 << 18)   // VLAN Filter Enable
+#define RCTL_CFIEN                      (1 << 19)   // Canonical Form Indicator Enable
+#define RCTL_CFI                        (1 << 20)   // Canonical Form Indicator Bit Value
+#define RCTL_DPF                        (1 << 22)   // Discard Pause Frames
+#define RCTL_PMCF                       (1 << 23)   // Pass MAC Control Frames
+#define RCTL_SECRC                      (1 << 26)   // Strip Ethernet CRC
+
+// Buffer Sizes
+#define RCTL_BSIZE_256                  (3 << 16)
+#define RCTL_BSIZE_512                  (2 << 16)
+#define RCTL_BSIZE_1024                 (1 << 16)
+#define RCTL_BSIZE_2048                 (0 << 16)
+#define RCTL_BSIZE_4096                 ((3 << 16) | (1 << 25))
+#define RCTL_BSIZE_8192                 ((2 << 16) | (1 << 25))
+#define RCTL_BSIZE_16384                ((1 << 16) | (1 << 25))
+
 struct __attribute__((packed)) i218v_rx_desc {
 	unsigned long long addr;
 	unsigned short length;
@@ -64,14 +132,27 @@ struct __attribute__((packed)) i218v_rx_desc {
 	unsigned short special;
 };
 
+struct __attribute__((packed)) dhcp {
+	unsigned int a[85];
+	unsigned short b;
+};
+
 unsigned int i218v_read_reg(unsigned short ofs);
 void i218v_write_reg(unsigned short ofs, unsigned int val);
+void handleReceive(void);
+unsigned int switch_endian32(unsigned int nb);
+void send_dhcp_request(void);
 
 static unsigned char i218v_rx_desc_arr[sizeof(struct i218v_rx_desc) * I218V_NUM_RX_DESC + 16];
 struct i218v_rx_desc *rx_descs[I218V_NUM_RX_DESC];
 static unsigned char i218v_rx_temp[8192+16];
 unsigned short rx_cur;
 unsigned long long i218v_reg_base;
+unsigned char package_buf[1024];
+unsigned int package_len = 0;
+volatile unsigned int SEND_DHCP = 0;
+unsigned int ip[4];
+struct dhcp c;
 /* <<< i218v.h */
 
 struct __attribute__((packed)) platform_info {
@@ -117,7 +198,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* pci_scan_bus(0); */
 	/* pci_dump_config_reg(0x00, 0x19, 0x00); */
 
-	/* i218v_reg_base = pci_read_config_reg(0x00, 0x19, 0x00, 0x10); */
+	i218v_reg_base = pci_read_config_reg(0x00, 0x19, 0x00, 0x10);
 
 	/* i218v_write_reg(0x00D8, 0xffffffff); */
 	/* i218v_write_reg(0x0100, 0); */
@@ -171,6 +252,9 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		puts("\r\n");
 	}
 
+	for (i = 0; i < 0x80; i++)
+		i218v_write_reg(0x5200 + i*4, 0);
+
 	struct i218v_rx_desc *descs;
 
 	descs = (struct i218v_rx_desc *)i218v_rx_desc_arr;
@@ -180,18 +264,36 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		rx_descs[i]->status = 0;
 	}
 
-	writeCommand(REG_TXDESCLO, (unsigned int)((unsigned long long)i218v_rx_desc_arr >> 32) );
-	writeCommand(REG_TXDESCHI, (unsigned int)((unsigned long long)i218v_rx_desc_arr & 0xFFFFFFFF));
+	i218v_write_reg(I218V_REG_TXDESCLO,
+			(unsigned int)((unsigned long long)i218v_rx_desc_arr >> 32));
+	i218v_write_reg(I218V_REG_TXDESCHI,
+			(unsigned int)((unsigned long long)i218v_rx_desc_arr & 0xffffffff));
 
-	writeCommand(REG_RXDESCLO, (unsigned long long)i218v_rx_desc_arr);
-	writeCommand(REG_RXDESCHI, 0);
+	i218v_write_reg(I218V_REG_RXDESCLO, (unsigned long long)i218v_rx_desc_arr);
+	i218v_write_reg(I218V_REG_RXDESCHI, 0);
 
-	writeCommand(REG_RXDESCLEN, I218V_NUM_RX_DESC * 16);
+	i218v_write_reg(I218V_REG_RXDESCLEN, I218V_NUM_RX_DESC * 16);
 
-	writeCommand(REG_RXDESCHEAD, 0);
-	writeCommand(REG_RXDESCTAIL, I218V_NUM_RX_DESC-1);
+	i218v_write_reg(I218V_REG_RXDESCHEAD, 0);
+	i218v_write_reg(I218V_REG_RXDESCTAIL, I218V_NUM_RX_DESC - 1);
 	rx_cur = 0;
-	writeCommand(REG_RCTRL, RCTL_EN| RCTL_SBP| RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE | RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_2048);
+	i218v_write_reg(I218V_REG_RCTRL,
+			RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE
+			| RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_2048);
+
+	puts("receiving interupt\r\n");
+	while (1) {
+		unsigned int status = i218v_read_reg(0xc0);
+		if (status & 0x04) {
+			// startLink(); /////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!start
+		} else if (status & 0x10) {
+			// good threshold
+		} else if (status & 0x80) {
+			/* handleReceive(); */
+			puts("receive!\r\n");
+			break;
+		}
+	}
 
 	/* haltして待つ */
 	while (1)
@@ -303,8 +405,8 @@ void pci_scan_bus(unsigned char bus)
 			if (vendor_id == 0xffff)
 				continue;
 
-			unsigned short device_id =
-				(config_data & 0xffff0000) >> 16;
+			/* unsigned short device_id = */
+			/* 	(config_data & 0xffff0000) >> 16; */
 
 			/* pci_put_ids(bus, dev, func, vendor_id, device_id); */
 
@@ -414,4 +516,79 @@ void debug_dump_address_translation(void)
 	puts("pde:");
 	puth(pde, 16);
 	puts("\r\n");
+}
+
+void handleReceive(void)
+{
+	unsigned short old_cur;
+	/* unsigned int got_packet = 0; */
+
+	while(rx_descs[rx_cur]->status & 0x1) {
+		/* got_packet = 1; */
+		unsigned char *buf = (unsigned char *)rx_descs[rx_cur]->addr;
+		unsigned short len = rx_descs[rx_cur]->length;
+
+		package_len = len;
+		memcpy(package_buf, buf, len);
+		if ((buf[278]==0x63)&&(buf[279]==0x82)&&(SEND_DHCP==0)) {
+			ip[0]=buf[58];
+			ip[1]=buf[59];
+			ip[2]=buf[60];
+			ip[3]=buf[61];
+
+			unsigned char i;
+			for (i = 0; i < 4; i++) {
+				puth(i, 1);
+				putc(' ');
+				puth(ip[i], 8);
+				puts("\r\n");
+			}
+
+			/* send_dhcp_request(); */
+		}
+
+		rx_descs[rx_cur]->status = 0;
+		old_cur = rx_cur;
+		rx_cur = (rx_cur + 1) % I218V_NUM_RX_DESC;
+		i218v_write_reg(REG_RXDESCTAIL, old_cur);
+	}
+}
+
+unsigned int switch_endian32(unsigned int nb)
+{
+	return(((nb>>24)&0xff)|
+	       ((nb<<8)&0xff0000)|
+	       ((nb>>8)&0xff00)|
+	       ((nb<<24)&0xff000000));
+}
+
+/* int sendPacket(const void *p_data, unsigned short p_len) */
+/* { */
+/* 	tx_descs[tx_cur]->addr = (unsigned int)p_data; */
+/* 	tx_descs[tx_cur]->length = p_len; */
+/* 	tx_descs[tx_cur]->cmd = CMD_EOP | CMD_IFCS | CMD_RS | CMD_RPS; */
+/* 	tx_descs[tx_cur]->status = 0; */
+/*     unsigned char old_cur = pointer->tx_cur; */
+/*     pointer->tx_cur = (pointer->tx_cur + 1) % E1000_NUM_TX_DESC; */
+/*     //printf("%x\n",pointer->tx_cur); */
+/*     writeCommand(REG_TXDESCTAIL, pointer->tx_cur); */
+/*    // printf("%x\n",readCommand(REG_TXDESCTAIL)); */
+/*     while(!(pointer->tx_descs[old_cur]->status & 0xff)); */
+/*     return 0; */
+/* } */
+
+void send_dhcp_request(void)
+{
+	c.a[71]=switch_endian32(0x033604c0);
+	c.a[72]=switch_endian32(0x115ab432);
+	c.a[73]=switch_endian32(0x04000000);
+	c.a[74]=switch_endian32(0x00370a01);
+	c.a[75]=switch_endian32(0x1c02030f);
+	c.a[76]=switch_endian32(0x060c2829);
+	c.a[77]=switch_endian32(0x2aff0000);
+	c.a[73]=c.a[73]|switch_endian32((ip[0]<<16)&0x00ff0000)|switch_endian32((ip[1]<<8)&0x0000ff00)|switch_endian32(ip[2]&0x000000ff);
+	c.a[74]=c.a[74]|switch_endian32(ip[3]<<24);
+	c.a[73]=c.a[73]|switch_endian32(0x04000000);
+	/* sendPacket(&c,sizeof(c)); */
+	SEND_DHCP=1;
 }
