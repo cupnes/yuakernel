@@ -159,6 +159,7 @@ void i218v_write_reg(unsigned short ofs, unsigned int val);
 void handleReceive(void);
 unsigned int switch_endian32(unsigned int nb);
 void send_dhcp_request(void);
+void rxinit(void);
 void txinit(void);
 void send_dhcp_discover(void);
 int get_ip(void);
@@ -217,21 +218,12 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 
 
-	/* PCI test */
-	/* pci_scan_bus(0); */
-	/* pci_dump_config_reg(0x00, 0x19, 0x00); */
-
+	/* i218v test */
 	i218v_reg_base = pci_read_config_reg(0x00, 0x19, 0x00, 0x10);
-
-	/* i218v_write_reg(0x00D8, 0xffffffff); */
-	/* i218v_write_reg(0x0100, 0); */
-	/* i218v_write_reg(0x0400, 0); */
-	/* i218v_write_reg(0x0000, i218v_read_reg(0x0000) | (1 << 26)); */
 
 	unsigned int status_command = pci_read_config_reg(0x00, 0x19, 0x00, 0x04);
 	pci_write_config_reg(0x00, 0x19, 0x00, 0x04, status_command | 0x00000004);
 
-	/* i218v_write_reg(0x0014, 1); */
 	unsigned int tmp_reg;
 
 	i218v_write_reg(0x0014, 1);
@@ -246,7 +238,6 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	if (eeprom_exists) {
 		puts("eeprom exists\r\n");
 
-		/* haltして待つ */
 		while (1)
 			cpu_halt();
 	} else {
@@ -255,9 +246,9 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		unsigned long long bar =
 			pci_read_config_reg(0x00, 0x19, 0x00, 0x10)
 			& 0xfffffff0;
-		puts("bar:");
-		puth(bar, 8);
-		puts("\r\n");
+		/* puts("bar:"); */
+		/* puth(bar, 8); */
+		/* puts("\r\n"); */
 
 		unsigned char *mem_base_mac_8 = (unsigned char *)(bar + 0x5400);
 		unsigned int *mem_base_mac_32 = (unsigned int *)(bar + 0x5400);
@@ -278,32 +269,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	for (i = 0; i < 0x80; i++)
 		i218v_write_reg(0x5200 + i*4, 0);
 
-	struct i218v_rx_desc *descs;
-
-	descs = (struct i218v_rx_desc *)i218v_rx_desc_arr;
-	for (i = 0; i < I218V_NUM_RX_DESC; i++) {
-		rx_descs[i] = (struct i218v_rx_desc *)((unsigned char *)descs + i*16);
-		rx_descs[i]->addr = (unsigned long long)(unsigned char *)i218v_rx_temp;
-		rx_descs[i]->status = 0;
-	}
-
-	i218v_write_reg(I218V_REG_TXDESCLO,
-			(unsigned int)((unsigned long long)i218v_rx_desc_arr >> 32));
-	i218v_write_reg(I218V_REG_TXDESCHI,
-			(unsigned int)((unsigned long long)i218v_rx_desc_arr & 0xffffffff));
-
-	i218v_write_reg(I218V_REG_RXDESCLO, (unsigned long long)i218v_rx_desc_arr);
-	i218v_write_reg(I218V_REG_RXDESCHI, 0);
-
-	i218v_write_reg(I218V_REG_RXDESCLEN, I218V_NUM_RX_DESC * 16);
-
-	i218v_write_reg(I218V_REG_RXDESCHEAD, 0);
-	i218v_write_reg(I218V_REG_RXDESCTAIL, I218V_NUM_RX_DESC - 1);
-	rx_cur = 0;
-	i218v_write_reg(I218V_REG_RCTRL,
-			RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE
-			| RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_2048);
-
+    rxinit();
 	txinit();
 
 	volatile unsigned int counter = 100000;
@@ -549,9 +515,6 @@ void debug_dump_address_translation(void)
 
 void handleReceive(void)
 {
-	/* puts("B:handleReceive()\r\n"); */
-	/* putc('B'); */
-
 	putc('.');
 
 	unsigned short old_cur;
@@ -585,9 +548,6 @@ void handleReceive(void)
 		rx_cur = (rx_cur + 1) % I218V_NUM_RX_DESC;
 		i218v_write_reg(REG_RXDESCTAIL, old_cur);
 	}
-
-	/* puts("E:handleReceive()\r\n"); */
-	/* putc('E'); */
 }
 
 unsigned int switch_endian32(unsigned int nb)
@@ -627,6 +587,37 @@ void send_dhcp_request(void)
 	c.a[73]=c.a[73]|switch_endian32(0x04000000);
 	sendPacket(&c,sizeof(c));
 	SEND_DHCP=1;
+}
+
+void rxinit(void)
+{
+	struct i218v_rx_desc *descs;
+
+	descs = (struct i218v_rx_desc *)i218v_rx_desc_arr;
+    int i;
+	for (i = 0; i < I218V_NUM_RX_DESC; i++) {
+		rx_descs[i] = (struct i218v_rx_desc *)((unsigned char *)descs + i*16);
+		rx_descs[i]->addr = (unsigned long long)(unsigned char *)i218v_rx_temp;
+		rx_descs[i]->status = 0;
+	}
+
+	i218v_write_reg(I218V_REG_TXDESCLO,
+			(unsigned int)((unsigned long long)i218v_rx_desc_arr >> 32));
+	i218v_write_reg(I218V_REG_TXDESCHI,
+			(unsigned int)((unsigned long long)i218v_rx_desc_arr & 0xffffffff));
+
+	i218v_write_reg(I218V_REG_RXDESCLO, (unsigned long long)i218v_rx_desc_arr);
+	i218v_write_reg(I218V_REG_RXDESCHI, 0);
+
+	i218v_write_reg(I218V_REG_RXDESCLEN, I218V_NUM_RX_DESC * 16);
+
+	i218v_write_reg(I218V_REG_RXDESCHEAD, 0);
+	i218v_write_reg(I218V_REG_RXDESCTAIL, I218V_NUM_RX_DESC - 1);
+	rx_cur = 0;
+	i218v_write_reg(I218V_REG_RCTRL,
+			RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE
+			| RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_2048);
+
 }
 
 void txinit(void)
