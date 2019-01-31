@@ -15,6 +15,8 @@
 #include <proc.h>
 #include <network.h>
 
+void debug_dump_address_translation(unsigned long long linear_address);
+
 /* >>> pci.h */
 #define PCI_MAX_DEV_NUM		32
 
@@ -130,14 +132,14 @@ void pci_scan_bus(unsigned char bus);
 #define TSTA_LC                         (1 << 2)    // Late Collision
 #define LSTA_TU                         (1 << 3)    // Transmit Underrun
 
-struct __attribute__((packed)) i218v_rx_desc {
-	unsigned long long addr;
-	unsigned short length;
-	unsigned short checksum;
-	unsigned char status;
-	unsigned char errors;
-	unsigned short special;
-};
+	struct __attribute__((packed)) i218v_rx_desc {
+		unsigned long long addr;
+		unsigned short length;
+		unsigned short checksum;
+		unsigned char status;
+		unsigned char errors;
+		unsigned short special;
+	};
 
 struct __attribute__((packed)) i218v_tx_desc {
 	unsigned long long addr;
@@ -269,7 +271,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	for (i = 0; i < 0x80; i++)
 		i218v_write_reg(0x5200 + i*4, 0);
 
-    rxinit();
+	rxinit();
 	txinit();
 
 	volatile unsigned int counter = 100000;
@@ -280,14 +282,16 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	puts("receiving interupt\r\n");
 	while (1) {
 		unsigned int status = i218v_read_reg(0xc0);
-		if (status & 0x04) {
-			// startLink(); /////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!start
-		} else if (status & 0x10) {
-			// good threshold
-		} else if (status & 0x80) {
-			/* puts("receive!\r\n"); */
-			handleReceive();
-		}
+		(void)status;
+		/* if (status & 0x04) { */
+		/* 	// startLink(); /////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!start */
+		/* } else if (status & 0x10) { */
+		/* 	// good threshold */
+		/* } else if (status & 0x80) { */
+		/* 	/\* puts("receive!\r\n"); *\/ */
+		/* 	handleReceive(); */
+		/* } */
+		handleReceive();
 	}
 
 	/* haltして待つ */
@@ -447,25 +451,25 @@ void debug_dump_regs(void)
 	puts("\r\n");
 }
 
-void debug_dump_address_translation(void)
+void debug_dump_address_translation(unsigned long long linear_address)
 {
 	union linear_address_4lv_2mpage la;
-	la.raw = 0x00000000f1300000;
-	/* puth(la.raw, 16); */
-	/* puts("\r\n"); */
-	/* puth(la.pml4, 3); */
-	/* putc(':'); */
-	/* puth(la.directory_ptr, 3); */
-	/* putc(':'); */
-	/* puth(la.directory, 3); */
-	/* putc(':'); */
-	/* puth(la.offset, 6); */
-	/* puts("\r\n"); */
+	la.raw = linear_address;
+	puth(la.raw, 16);
+	puts("\r\n");
+	puth(la.pml4, 3);
+	putc(':');
+	puth(la.directory_ptr, 3);
+	putc(':');
+	puth(la.directory, 3);
+	putc(':');
+	puth(la.offset, 6);
+	puts("\r\n");
 
 	unsigned long long cr3 = read_cr3();
-	/* puts("cr3:"); */
-	/* puth(cr3, 16); */
-	/* puts("\r\n"); */
+	puts("cr3:");
+	puth(cr3, 16);
+	puts("\r\n");
 
 	unsigned long long pml4 = cr3 & ~CR3_FLAGS_MASK;
 	puts("pml4:");
@@ -515,7 +519,7 @@ void debug_dump_address_translation(void)
 
 void handleReceive(void)
 {
-	putc('.');
+	/* putc('.'); */
 
 	unsigned short old_cur;
 	/* unsigned int got_packet = 0; */
@@ -527,21 +531,29 @@ void handleReceive(void)
 
 		package_len = len;
 		memcpy(package_buf, buf, len);
-		if ((buf[278]==0x63)&&(buf[279]==0x82)&&(SEND_DHCP==0)) {
-			ip[0]=buf[58];
-			ip[1]=buf[59];
-			ip[2]=buf[60];
-			ip[3]=buf[61];
 
-			unsigned char i;
-			for (i = 0; i < 4; i++) {
-				puth(ip[i], 2);
-				putc('.');
-			}
-			puts("\r\n");
-
-			send_dhcp_request();
+		move_cursor(0, 0);
+		clear_screen();
+		unsigned char i;
+		for (i = 0; i < 181; i++) {
+			puth(buf[i], 2);
 		}
+
+		/* if ((buf[278]==0x63)&&(buf[279]==0x82)&&(SEND_DHCP==0)) { */
+		/* 	ip[0]=buf[58]; */
+		/* 	ip[1]=buf[59]; */
+		/* 	ip[2]=buf[60]; */
+		/* 	ip[3]=buf[61]; */
+
+		/* 	unsigned char i; */
+		/* 	for (i = 0; i < 4; i++) { */
+		/* 		puth(ip[i], 2); */
+		/* 		putc('.'); */
+		/* 	} */
+		/* 	puts("\r\n"); */
+
+		/* 	send_dhcp_request(); */
+		/* } */
 
 		rx_descs[rx_cur]->status = 0;
 		old_cur = rx_cur;
@@ -594,7 +606,7 @@ void rxinit(void)
 	struct i218v_rx_desc *descs;
 
 	descs = (struct i218v_rx_desc *)i218v_rx_desc_arr;
-    int i;
+	int i;
 	for (i = 0; i < I218V_NUM_RX_DESC; i++) {
 		rx_descs[i] = (struct i218v_rx_desc *)((unsigned char *)descs + i*16);
 		rx_descs[i]->addr = (unsigned long long)(unsigned char *)i218v_rx_temp;
@@ -648,10 +660,10 @@ void txinit(void)
 	i218v_write_reg( REG_TXDESCTAIL, 0);
 	tx_cur = 0;
 	i218v_write_reg(REG_TCTRL,  TCTL_EN
-		     | TCTL_PSP
-		     | (15 << TCTL_CT_SHIFT)
-		     | (64 << TCTL_COLD_SHIFT)
-		     | TCTL_RTLC);
+			| TCTL_PSP
+			| (15 << TCTL_CT_SHIFT)
+			| (64 << TCTL_COLD_SHIFT)
+			| TCTL_RTLC);
 
 	i218v_write_reg(REG_TCTRL, 0x3003F0FA); //0b0110000000000111111000011111010);
 	i218v_write_reg(REG_TIPG,  0x0060200A);
@@ -758,8 +770,8 @@ int get_ip(void)
 	/* sti(); */
 	/* uint32_t ms = system_time.count_ms; */
 	/* while (SEND_DHCP == 0) { */
-		/* if (system_time.count_ms - ms > 1000) */
-		/* 	return -1; */
+	/* if (system_time.count_ms - ms > 1000) */
+	/* 	return -1; */
 	/* } */
 	return 0;
 }
