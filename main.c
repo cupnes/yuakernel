@@ -165,6 +165,7 @@ void rxinit(void);
 void txinit(void);
 void send_dhcp_discover(void);
 int get_ip(void);
+void send_test(void);
 
 unsigned char i218v_rx_desc_arr[sizeof(struct i218v_rx_desc) * I218V_NUM_RX_DESC + 16];
 unsigned char i218v_tx_desc_arr [sizeof(struct i218v_tx_desc)*I218V_NUM_TX_DESC+16];
@@ -276,6 +277,8 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 	volatile unsigned int counter = 100000;
 	while (counter--);
+
+    send_test();
 
 	get_ip();
 
@@ -774,4 +777,15 @@ int get_ip(void)
 	/* 	return -1; */
 	/* } */
 	return 0;
+}
+
+#define SEND_TEST_WAIT	1000000
+void send_test(void)
+{
+    unsigned int data = 0xbeefcafe;
+    volatile unsigned int c;
+    while (1) {
+        sendPacket(&data, sizeof(data));
+        for (c = 0; c < SEND_TEST_WAIT; c++);
+    }
 }
