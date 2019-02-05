@@ -24,7 +24,7 @@ struct __attribute__((packed)) platform_info {
 	void *rsdp;
 };
 
-#define INIT_APP	"ksh"
+#define INIT_APP	"init"
 
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  void *_fs_start)
@@ -46,7 +46,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	pic_init();
 	hpet_init();
 	kbc_init();
-    i218v_init();
+	i218v_init();
 
 	/* システムコールの初期化 */
 	syscall_init();

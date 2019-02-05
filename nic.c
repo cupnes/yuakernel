@@ -63,11 +63,11 @@ void i218v_init(void)
 			}
 		}
 
-		for (i = 0; i < 6; i++) {
-			puth(mac[i], 2);
-			putc(' ');
-		}
-		puts("\r\n");
+		/* for (i = 0; i < 6; i++) { */
+		/* 	puth(mac[i], 2); */
+		/* 	putc(' '); */
+		/* } */
+		/* puts("\r\n"); */
 	}
 
 	for (i = 0; i < 0x80; i++)
