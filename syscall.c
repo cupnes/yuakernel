@@ -6,6 +6,7 @@
 #include <kbc.h>
 #include <proc.h>
 #include <sched.h>
+#include <nic.h>
 
 #define SYSCALL_INTR_NO	0x80
 
@@ -22,6 +23,8 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_FILES,
 	SYSCALL_EXEC,
 	SYSCALL_ENQ_TASK,
+    SYSCALL_RCV_PKT,
+    SYSCALL_SND_PKT,
 	MAX_SYSCALL_NUM
 };
 
@@ -79,6 +82,14 @@ unsigned long long do_syscall_interrupt(
 	case SYSCALL_ENQ_TASK:
 		enq_task((struct file *)arg1);
 		break;
+
+    case SYSCALL_RCV_PKT:
+        receive_packet((void *)arg1, (unsigned short *)arg2);
+        break;
+
+    case SYSCALL_SND_PKT:
+        sendPacket((void *)arg1, arg2);
+        break;
 	}
 
 	/* PICへ割り込み処理終了を通知(EOI) */
