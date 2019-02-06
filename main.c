@@ -57,6 +57,15 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* スケジューラの初期化 */
 	sched_init();
 
+
+	/* while (1) { */
+	/* 	unsigned short beef = 0xbeef; */
+	/* 	sendPacket(&beef, 2); */
+	/* 	volatile unsigned int _cnt = 1000000; */
+	/* 	while (_cnt--); */
+	/* } */
+
+
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
 

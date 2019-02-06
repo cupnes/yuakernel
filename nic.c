@@ -44,37 +44,54 @@ void i218v_init(void)
 
 		while (1)
 			cpu_halt();
-	} else {
-		puts("eeprom not exists\r\n");
-
-		unsigned long long bar =
-			pci_read_config_reg(0x00, 0x19, 0x00, 0x10)
-			& 0xfffffff0;
-		/* puts("bar:"); */
-		/* puth(bar, 8); */
-		/* puts("\r\n"); */
-
-		unsigned char *mem_base_mac_8 = (unsigned char *)(bar + 0x5400);
-		unsigned int *mem_base_mac_32 = (unsigned int *)(bar + 0x5400);
-		unsigned char mac[6];
-		if (mem_base_mac_32[0] != 0) {
-			for (i = 0; i < 6; i++) {
-				mac[i] = mem_base_mac_8[i];
-			}
-		}
-
-		/* for (i = 0; i < 6; i++) { */
-		/* 	puth(mac[i], 2); */
-		/* 	putc(' '); */
-		/* } */
-		/* puts("\r\n"); */
 	}
+	/* else { */
+	/* 	puts("eeprom not exists\r\n"); */
+
+	/* unsigned long long bar = */
+	/* 	pci_read_config_reg(0x00, 0x19, 0x00, 0x10) */
+	/* 	& 0xfffffff0; */
+	/* puts("bar:"); */
+	/* puth(bar, 8); */
+	/* puts("\r\n"); */
+
+	/* unsigned char *mem_base_mac_8 = (unsigned char *)(bar + 0x5400); */
+	/* unsigned int *mem_base_mac_32 = (unsigned int *)(bar + 0x5400); */
+	/* unsigned char mac[6]; */
+	/* if (mem_base_mac_32[0] != 0) { */
+	/* 	for (i = 0; i < 6; i++) { */
+	/* 		mac[i] = mem_base_mac_8[i]; */
+	/* 	} */
+	/* } */
+
+	/* for (i = 0; i < 6; i++) { */
+	/* 	puth(mac[i], 2); */
+	/* 	putc(' '); */
+	/* } */
+	/* puts("\r\n"); */
+	/* } */
 
 	for (i = 0; i < 0x80; i++)
 		i218v_write_reg(0x5200 + i*4, 0);
 
+	/* disable interrupt */
+	unsigned int imask = i218v_read_reg(I218V_REG_IMASK);
+	puts("imask:");
+	puth(imask, 8);
+	puts("\r\n");
+	i218v_write_reg(I218V_REG_IMASK, 0);
+	imask = i218v_read_reg(I218V_REG_IMASK);
+	puts("imask:");
+	puth(imask, 8);
+	puts("\r\n");
+
 	rxinit();
 	txinit();
+
+	/* volatile unsigned int counter = 100000; */
+	/* while (counter--); */
+
+	/* send_test(); */
 }
 
 unsigned int i218v_read_reg(unsigned short ofs)
@@ -246,12 +263,12 @@ void sendPacket(const void *p_data, unsigned short p_len)
 
 void receive_packet(void *p_data, unsigned short *p_len)
 {
-    *p_len = 0;
+	*p_len = 0;
 
 	if (rx_descs[rx_cur]->status & 0x1) {
 		unsigned char *buf = (unsigned char *)rx_descs[rx_cur]->addr;
 		unsigned short len = rx_descs[rx_cur]->length;
-        unsigned short old_cur;
+		unsigned short old_cur;
 
 		*p_len = len;
 		memcpy(p_data, buf, len);
@@ -457,12 +474,12 @@ int get_ip(void)
 #define SEND_TEST_WAIT	1000000
 void send_test(void)
 {
-    unsigned int data = 0xbeefcafe;
-    volatile unsigned int c;
-    while (1) {
-        sendPacket(&data, sizeof(data));
-        for (c = 0; c < SEND_TEST_WAIT; c++);
-    }
+	unsigned int data = 0xbeefcafe;
+	volatile unsigned int c;
+	while (1) {
+		sendPacket(&data, sizeof(data));
+		for (c = 0; c < SEND_TEST_WAIT; c++);
+	}
 }
 
 void i218v_test(void)
@@ -470,7 +487,7 @@ void i218v_test(void)
 	volatile unsigned int counter = 100000;
 	while (counter--);
 
-    send_test();
+	send_test();
 
 	get_ip();
 
