@@ -57,6 +57,14 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* スケジューラの初期化 */
 	sched_init();
 
+	puth((unsigned long long)&fb, 16);
+	puts("\r\n");
+	puth((unsigned long long)fb.base, 16);
+	puts("\r\n");
+	puth(fb.hr, 3);
+	puts(" x ");
+	puth(fb.vr, 3);
+	puts("\r\n");
 
 	/* while (1) { */
 	/* 	unsigned short beef = 0xbeef; */
@@ -64,6 +72,8 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* 	volatile unsigned int _cnt = 1000000; */
 	/* 	while (_cnt--); */
 	/* } */
+
+	puts("enable interrupt\r\n");
 
 
 	/* CPUの割り込み有効化 */

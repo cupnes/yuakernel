@@ -25,6 +25,7 @@ enum SYSCCALL_NO {
 	SYSCALL_ENQ_TASK,
 	SYSCALL_RCV_PKT,
 	SYSCALL_SND_PKT,
+	SYSCALL_GET_FB,
 	MAX_SYSCALL_NUM
 };
 
@@ -89,6 +90,14 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_SND_PKT:
 		sendPacket((void *)arg1, arg2);
+		break;
+
+	case SYSCALL_GET_FB:
+		puts("SYSCALL_GET_FB\r\n");
+		puts("addrB:");
+		ret_val = (unsigned long long)&fb;
+		puth(ret_val, 16);
+		puts("\r\n");
 		break;
 	}
 
