@@ -140,3 +140,8 @@ void draw_bg(struct file *img)
 {
 	syscall(SYSCALL_DRAW_BG, (unsigned long long)img, 0, 0);
 }
+
+void draw_fg(struct file *img)
+{
+	syscall(SYSCALL_DRAW_FG, (unsigned long long)img, 0, 0);
+}

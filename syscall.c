@@ -28,6 +28,7 @@ enum SYSCCALL_NO {
 	SYSCALL_MOV_CUR,
 	SYSCALL_GET_CUR_Y,
 	SYSCALL_DRAW_BG,
+	SYSCALL_DRAW_FG,
 	MAX_SYSCALL_NUM
 };
 
@@ -104,6 +105,10 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_DRAW_BG:
 		draw_bg((struct file *)arg1);
+		break;
+
+	case SYSCALL_DRAW_FG:
+		draw_fg((struct file *)arg1);
 		break;
 	}
 

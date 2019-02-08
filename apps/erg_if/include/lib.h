@@ -21,6 +21,7 @@ enum SYSCCALL_NO {
 	SYSCALL_MOV_CUR,
 	SYSCALL_GET_CUR_Y,
 	SYSCALL_DRAW_BG,
+	SYSCALL_DRAW_FG,
 	MAX_SYSCALL_NUM
 };
 
@@ -243,6 +244,7 @@ unsigned long long get_files(struct file *files[]);
 void exec(struct file *file);
 void send_packet(void *p_data, unsigned short p_len);
 void draw_bg(struct file *img);
+void draw_fg(struct file *img);
 
 extern struct framebuffer *fb;
 

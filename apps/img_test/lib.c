@@ -150,7 +150,7 @@ unsigned int get_cursor_y(void)
 
 unsigned char is_same_color(struct pixelformat *a, struct pixelformat *b)
 {
-    if ((a->b == b->b) && (a->g == b->g) && (a->r && b->r))
+    if ((a->b == b->b) && (a->g == b->g) && (a->r == b->r))
         return 1;
     else
         return 0;
