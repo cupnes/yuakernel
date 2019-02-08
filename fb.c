@@ -1,4 +1,5 @@
 #include <fb.h>
+#include <common.h>
 
 struct framebuffer fb;
 struct pixelformat color_fg;
@@ -40,6 +41,11 @@ inline void draw_px(unsigned int x, unsigned int y,
 inline void draw_px_fg(unsigned int x, unsigned int y)
 {
 	draw_px(x, y, color_fg.r, color_fg.g, color_fg.b);
+}
+
+void draw_bg(struct file *img)
+{
+	memcpy(fb.base, img->data, img->size);
 }
 
 inline void fill_rect(unsigned int x, unsigned int y,

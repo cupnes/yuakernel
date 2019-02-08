@@ -246,6 +246,11 @@ void move_cursor(unsigned int x, unsigned int y)
 	cursor_y = y;
 }
 
+unsigned int get_cursor_y(void)
+{
+    return cursor_y;
+}
+
 void set_font_size(unsigned char _font_size)
 {
 	font_size = _font_size;

@@ -25,7 +25,9 @@ enum SYSCCALL_NO {
 	SYSCALL_ENQ_TASK,
 	SYSCALL_RCV_PKT,
 	SYSCALL_SND_PKT,
-	SYSCALL_GET_FB,
+	SYSCALL_MOV_CUR,
+	SYSCALL_GET_CUR_Y,
+	SYSCALL_DRAW_BG,
 	MAX_SYSCALL_NUM
 };
 
@@ -92,12 +94,16 @@ unsigned long long do_syscall_interrupt(
 		sendPacket((void *)arg1, arg2);
 		break;
 
-	case SYSCALL_GET_FB:
-		puts("SYSCALL_GET_FB\r\n");
-		puts("addrB:");
-		ret_val = (unsigned long long)&fb;
-		puth(ret_val, 16);
-		puts("\r\n");
+	case SYSCALL_MOV_CUR:
+		move_cursor(arg1, arg2);
+		break;
+
+	case SYSCALL_GET_CUR_Y:
+		ret_val = get_cursor_y();
+		break;
+
+	case SYSCALL_DRAW_BG:
+		draw_bg((struct file *)arg1);
 		break;
 	}
 

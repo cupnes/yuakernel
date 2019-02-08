@@ -4,6 +4,8 @@
  * 10進で18446744073709551615(20桁)なので'\0'含め21文字分のバッファで足りる */
 #define MAX_STR_BUF	21
 
+struct framebuffer *fb;
+
 void memcpy(void *dst, void *src, unsigned long long size)
 {
 	unsigned char *d = (unsigned char *)dst;
@@ -136,7 +138,48 @@ void send_packet(void *p_data, unsigned short p_len)
 	syscall(SYSCALL_SND_PKT, (unsigned long long)p_data, p_len, 0);
 }
 
-void draw_bg(struct file *img)
+void move_cursor(unsigned int x, unsigned int y)
 {
-	syscall(SYSCALL_DRAW_BG, (unsigned long long)img, 0, 0);
+    syscall(SYSCALL_MOV_CUR, x, y, 0);
+}
+
+unsigned int get_cursor_y(void)
+{
+    return syscall(SYSCALL_GET_CUR_Y, 0, 0, 0);
+}
+
+unsigned char is_same_color(struct pixelformat *a, struct pixelformat *b)
+{
+    if ((a->b == b->b) && (a->g == b->g) && (a->r && b->r))
+        return 1;
+    else
+        return 0;
+}
+
+void draw_px(unsigned int x, unsigned int y,
+		    unsigned char r, unsigned char g, unsigned char b)
+{
+	struct pixelformat *p = fb->base;
+	p += y * fb->hr + x;
+
+	p->b = b;
+	p->g = g;
+	p->r = r;
+}
+
+void draw_fg(struct file *file)
+{
+    struct pixelformat alpha;
+    memcpy(&alpha, fb->base, sizeof(struct pixelformat));
+
+    struct pixelformat *img_ptr = (struct pixelformat *)file->data;
+    unsigned int x, y;
+    for (y = 0; y < fb->vr; y++) {
+        for (x = 0; x < fb->hr; x++) {
+            if (!is_same_color(img_ptr, &alpha)) {
+                draw_px(x, y, img_ptr->r, img_ptr->g, img_ptr->b);
+            }
+            img_ptr++;
+        }
+    }
 }

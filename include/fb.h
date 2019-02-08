@@ -1,6 +1,8 @@
 #ifndef _FB_H_
 #define _FB_H_
 
+#include <fs.h>
+
 struct __attribute__((packed)) pixelformat {
 	unsigned char b;
 	unsigned char g;
@@ -23,6 +25,7 @@ void set_bg(unsigned char r, unsigned char g, unsigned char b);
 void draw_px(unsigned int x, unsigned int y,
 	     unsigned char r, unsigned char g, unsigned char b);
 void draw_px_fg(unsigned int x, unsigned int y);
+void draw_bg(struct file *img);
 void fill_rect(unsigned int x, unsigned int y, unsigned int w, unsigned int h,
 	       unsigned char r, unsigned char g, unsigned char b);
 void clear_screen(void);

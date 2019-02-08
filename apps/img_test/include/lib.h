@@ -2,6 +2,10 @@
 #define _LIB_H_
 
 #define NULL	(void *)0
+#define MAX_FILES	100
+
+#define FONT_WIDTH	24
+#define FONT_HEIGHT	32
 
 enum SYSCCALL_NO {
 	SYSCALL_PUTC,
@@ -18,9 +22,9 @@ enum SYSCCALL_NO {
 	SYSCALL_ENQ_TASK,
 	SYSCALL_RCV_PKT,
 	SYSCALL_SND_PKT,
-	SYSCALL_MOV_CUR,
-	SYSCALL_GET_CUR_Y,
-	SYSCALL_DRAW_BG,
+	SYSCALL_GET_FB,
+    SYSCALL_MOV_CUR,
+    SYSCALL_GET_CUR_Y,
 	MAX_SYSCALL_NUM
 };
 
@@ -242,7 +246,9 @@ struct file *open(char *file_name);
 unsigned long long get_files(struct file *files[]);
 void exec(struct file *file);
 void send_packet(void *p_data, unsigned short p_len);
-void draw_bg(struct file *img);
+void move_cursor(unsigned int x, unsigned int y);
+unsigned int get_cursor_y(void);
+void draw_fg(struct file *file);
 
 extern struct framebuffer *fb;
 
