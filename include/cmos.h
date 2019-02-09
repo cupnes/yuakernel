@@ -11,4 +11,16 @@
 #define CMOS_STATUS_A	0x0a
 #define CMOS_STATUS_B	0x0b
 
+struct __attribute__((packed)) datetime {
+	unsigned short year;
+	unsigned char mon;
+	unsigned char day;
+	unsigned char week;
+	unsigned char hour;
+	unsigned char min;
+	unsigned char sec;
+};
+
 unsigned char cmos_read_reg(unsigned char reg);
+struct datetime *conv_to_jst(struct datetime *dt);
+struct datetime *get_datetime(struct datetime *dt);

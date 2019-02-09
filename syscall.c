@@ -7,6 +7,7 @@
 #include <proc.h>
 #include <sched.h>
 #include <nic.h>
+#include <cmos.h>
 
 #define SYSCALL_INTR_NO	0x80
 
@@ -29,6 +30,7 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_CUR_Y,
 	SYSCALL_DRAW_BG,
 	SYSCALL_DRAW_FG,
+	SYSCALL_GET_DATETIME,
 	MAX_SYSCALL_NUM
 };
 
@@ -109,6 +111,10 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_DRAW_FG:
 		draw_fg((struct file *)arg1);
+		break;
+
+	case SYSCALL_GET_DATETIME:
+		get_datetime((struct datetime *)arg1);
 		break;
 	}
 

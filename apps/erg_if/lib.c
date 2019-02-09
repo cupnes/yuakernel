@@ -38,6 +38,21 @@ void puts(char *s)
 		putc(*s++);
 }
 
+void putd(unsigned long long val, unsigned char num_digits)
+{
+	char str[MAX_STR_BUF];
+
+	int i;
+	for (i = num_digits - 1; i >= 0; i--) {
+		int digit = val % 10;
+		str[i] = '0' + digit;
+		val /= 10;
+	}
+	str[num_digits] = '\0';
+
+	puts(str);
+}
+
 void puth(unsigned long long val, unsigned char num_digits)
 {
 	char str[MAX_STR_BUF];
@@ -154,4 +169,9 @@ void draw_bg(struct file *img)
 void draw_fg(struct file *img)
 {
 	syscall(SYSCALL_DRAW_FG, (unsigned long long)img, 0, 0);
+}
+
+void get_datetime(struct datetime *dt)
+{
+	syscall(SYSCALL_GET_DATETIME, (unsigned long long)dt, 0, 0);
 }

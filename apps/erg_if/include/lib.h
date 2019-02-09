@@ -26,6 +26,7 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_CUR_Y,
 	SYSCALL_DRAW_BG,
 	SYSCALL_DRAW_FG,
+	SYSCALL_GET_DATETIME,
 	MAX_SYSCALL_NUM
 };
 
@@ -225,6 +226,16 @@ struct __attribute__((packed)) framebuffer {
 	unsigned int vr;
 };
 
+struct __attribute__((packed)) datetime {
+	unsigned short year;
+	unsigned char mon;
+	unsigned char day;
+	unsigned char week;
+	unsigned char hour;
+	unsigned char min;
+	unsigned char sec;
+};
+
 void memcpy(void *dst, void *src, unsigned long long size);
 unsigned long long syscall(
 	unsigned long long syscall_id __attribute__((unused)),
@@ -233,6 +244,7 @@ unsigned long long syscall(
 	unsigned long long arg3 __attribute__((unused)));
 void putc(char c);
 void puts(char *s);
+void putd(unsigned long long val, unsigned char num_digits);
 void puth(unsigned long long val, unsigned char num_digits);
 char getc(void);
 void vputc(unsigned char c);
@@ -251,6 +263,7 @@ void move_cursor(unsigned int x, unsigned int y);
 unsigned int get_cursor_y(void);
 void draw_bg(struct file *img);
 void draw_fg(struct file *img);
+void get_datetime(struct datetime *dt);
 
 extern struct framebuffer *fb;
 
