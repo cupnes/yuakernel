@@ -31,6 +31,7 @@ enum SYSCCALL_NO {
 	SYSCALL_DRAW_BG,
 	SYSCALL_DRAW_FG,
 	SYSCALL_GET_DATETIME,
+	SYSCALL_SLEEP,
 	MAX_SYSCALL_NUM
 };
 
@@ -115,6 +116,10 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_GET_DATETIME:
 		get_datetime((struct datetime *)arg1);
+		break;
+
+	case SYSCALL_SLEEP:
+		sleep_currnet_task(arg1);
 		break;
 	}
 

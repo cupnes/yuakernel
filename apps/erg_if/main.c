@@ -9,27 +9,13 @@ static void ls(void);
 
 int main(void)
 {
-	struct datetime dt;
-	get_datetime(&dt);
-	putd(dt.year, 4);
-	putc('-');
-	putd(dt.mon, 2);
-	putc('-');
-	putd(dt.day, 2);
-	putc(' ');
-	putd(dt.hour, 2);
-	putc(':');
-	putd(dt.min, 2);
-	putc(':');
-	putd(dt.sec, 2);
-	puts("\r\n");
-	return 0;
-
 	struct file *bg = open(BG_FILE_NAME);
 	draw_bg(bg);
 
-	struct file *yua = open(FG_FILE_NAME);
-	draw_fg(yua);
+	exec_bg(open("urclock"));
+
+	/* struct file *yua = open(FG_FILE_NAME); */
+	/* draw_fg(yua); */
 
 	ls();
 

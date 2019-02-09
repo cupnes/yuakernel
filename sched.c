@@ -11,11 +11,28 @@ unsigned long long task_sp[MAX_TASKS];
 volatile unsigned int current_task = 0;
 unsigned char task_stack[MAX_TASKS - 1][TASK_STASK_BYTES];
 unsigned int num_tasks = 1;
+unsigned long long sleep_timer[MAX_TASKS] = { 0 };
 
 void schedule(unsigned long long current_rsp)
 {
 	task_sp[current_task] = current_rsp;
-	current_task = (current_task + 1) % num_tasks;
+
+	unsigned int i;
+	for (i = 0; i < num_tasks; i++) {
+		if (sleep_timer[i] >= SCHED_PERIOD)
+			sleep_timer[i] -= SCHED_PERIOD;
+		else if (sleep_timer[i] > 0)
+			sleep_timer[i] = 0;
+	}
+
+	while (1) {
+		current_task = (current_task + 1) % num_tasks;
+		if (sleep_timer[current_task] == 0)
+			break;
+
+		/* FIXME: At least one task must be awake. */
+	}
+
 	set_pic_eoi(HPET_INTR_NO);
 	asm volatile ("mov %[sp], %%rsp"
 		      :: [sp]"a"(task_sp[current_task]));
@@ -82,4 +99,9 @@ void enq_task(struct file *f)
 	task_sp[num_tasks] = (unsigned long long)sp;
 
 	num_tasks++;
+}
+
+void sleep_currnet_task(unsigned long long us)
+{
+	sleep_timer[current_task] = us;
 }
