@@ -2,7 +2,7 @@
 
 #define BG_FILE_NAME	"bg.bgra"
 #define FG_FILE_NAME	"yua.bgra"
-#define YUA_WIDTH	300
+#define YUA_WIDTH	250
 
 /* static void kbc_handler(unsigned char c); */
 static void ls(void);

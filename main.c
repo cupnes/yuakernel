@@ -16,6 +16,7 @@
 #include <pci.h>
 #include <network.h>
 #include <nic.h>
+#include <cmos.h>
 
 void debug_dump_address_translation(unsigned long long linear_address);
 
@@ -57,24 +58,24 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	/* スケジューラの初期化 */
 	sched_init();
 
-	puth((unsigned long long)&fb, 16);
-	puts("\r\n");
-	puth((unsigned long long)fb.base, 16);
-	puts("\r\n");
-	puth(fb.hr, 3);
-	puts(" x ");
-	puth(fb.vr, 3);
+	/* CMOS RTCの取得 */
+	puth(cmos_read_reg(CMOS_YEAR), 2);
+	putc('-');
+	puth(cmos_read_reg(CMOS_MON), 2);
+	putc('-');
+	puth(cmos_read_reg(CMOS_DAY), 2);
+	putc('(');
+	puth(cmos_read_reg(CMOS_WEEK), 2);
+	puts(") ");
+	puth(cmos_read_reg(CMOS_HOUR), 2);
+	putc(':');
+	puth(cmos_read_reg(CMOS_MIN), 2);
+	putc(':');
+	puth(cmos_read_reg(CMOS_SEC), 2);
 	puts("\r\n");
 
-	/* while (1) { */
-	/* 	unsigned short beef = 0xbeef; */
-	/* 	sendPacket(&beef, 2); */
-	/* 	volatile unsigned int _cnt = 1000000; */
-	/* 	while (_cnt--); */
-	/* } */
-
-	puts("enable interrupt\r\n");
-
+	while (1)
+		cpu_halt();
 
 	/* CPUの割り込み有効化 */
 	enable_cpu_intr();
