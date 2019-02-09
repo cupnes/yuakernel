@@ -136,6 +136,16 @@ void send_packet(void *p_data, unsigned short p_len)
 	syscall(SYSCALL_SND_PKT, (unsigned long long)p_data, p_len, 0);
 }
 
+void move_cursor(unsigned int x, unsigned int y)
+{
+	syscall(SYSCALL_MOV_CUR, x, y, 0);
+}
+
+unsigned int get_cursor_y(void)
+{
+	return syscall(SYSCALL_GET_CUR_Y, 0, 0, 0);
+}
+
 void draw_bg(struct file *img)
 {
 	syscall(SYSCALL_DRAW_BG, (unsigned long long)img, 0, 0);

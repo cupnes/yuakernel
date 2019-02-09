@@ -2,8 +2,10 @@
 
 #define BG_FILE_NAME	"bg.bgra"
 #define FG_FILE_NAME	"yua.bgra"
+#define YUA_WIDTH	300
 
 /* static void kbc_handler(unsigned char c); */
+static void ls(void);
 
 int main(void)
 {
@@ -12,6 +14,8 @@ int main(void)
 
 	struct file *yua = open(FG_FILE_NAME);
 	draw_fg(yua);
+
+	ls();
 
 	return 0;
 }
@@ -24,3 +28,19 @@ int main(void)
 /* 	send_packet(&beef, sizeof(beef)); */
 /* 	putc(']'); */
 /* } */
+
+#define PADDING_Y	100
+static void ls(void)
+{
+	struct file *ls_window = open("lsbg.bgra");
+	draw_fg(ls_window);
+
+	struct file *f[MAX_FILES];
+	unsigned long long num_files = get_files(f);
+	unsigned long long i;
+	move_cursor(YUA_WIDTH, PADDING_Y);
+	for (i = 0; i < num_files; i++) {
+		puts(f[i]->name);
+		move_cursor(YUA_WIDTH, (FONT_HEIGHT * (i + 1)) + PADDING_Y);
+	}
+}
