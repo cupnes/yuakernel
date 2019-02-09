@@ -43,9 +43,33 @@ inline void draw_px_fg(unsigned int x, unsigned int y)
 	draw_px(x, y, color_fg.r, color_fg.g, color_fg.b);
 }
 
+#define SAME_BUF	30
 unsigned char is_same_color(struct pixelformat *a, struct pixelformat *b)
 {
-	if ((a->b == b->b) && (a->g == b->g) && (a->r == b->r))
+	int diff_b = a->b - b->b;
+	if (diff_b < 0)
+		diff_b *= -1;
+	if (diff_b > SAME_BUF)
+		return 0;
+
+	int diff_g = a->g - b->g;
+	if (diff_g < 0)
+		diff_g *= -1;
+	if (diff_g > SAME_BUF)
+		return 0;
+
+	int diff_r = a->r - b->r;
+	if (diff_r < 0)
+		diff_r *= -1;
+	if (diff_r > SAME_BUF)
+		return 0;
+
+	return 1;
+}
+
+unsigned char is_trans_color(struct pixelformat *c)
+{
+	if ((c->b == 0) && (c->g == 0) && (c->r == 0) && (c->_reserved == 0))
 		return 1;
 	else
 		return 0;
@@ -53,16 +77,15 @@ unsigned char is_same_color(struct pixelformat *a, struct pixelformat *b)
 
 void draw_fg(struct file *img)
 {
-	struct pixelformat alpha;
-	memcpy(&alpha, fb.base, sizeof(struct pixelformat));
+	/* struct pixelformat alpha; */
+	/* memcpy(&alpha, fb.base, sizeof(struct pixelformat)); */
 
 	struct pixelformat *img_ptr = (struct pixelformat *)img->data;
 	unsigned int x, y;
 	for (y = 0; y < fb.vr; y++) {
 		for (x = 0; x < fb.hr; x++) {
-			if (!is_same_color(img_ptr, &alpha)) {
+			if (!is_trans_color(img_ptr))
 				draw_px(x, y, img_ptr->r, img_ptr->g, img_ptr->b);
-			}
 			img_ptr++;
 		}
 	}
