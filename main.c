@@ -59,15 +59,13 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	sched_init();
 
 	/* CPUの割り込み有効化 */
-	/* enable_cpu_intr(); */
+	enable_cpu_intr();
 
 	/* スケジューラの開始 */
-	/* sched_start(); */
+	sched_start();
 
 	/* initアプリ起動 */
-	/* exec(open(INIT_APP)); */
-
-	sched_test(1, 2, 3, 4, 5);
+	exec(open(INIT_APP));
 
 	/* haltして待つ */
 	while (1);

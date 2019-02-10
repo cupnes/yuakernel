@@ -8,19 +8,17 @@ static void update(struct datetime *dt);
 
 int main(void)
 {
-	struct datetime dt;
-	get_datetime(&dt);
+	/* struct datetime dt; */
+	/* get_datetime(&dt); */
 
-	draw(&dt);
+	while (1) {
+		/* draw(&dt); */
+		putc('.');
 
-	/* while (1) { */
-	/* 	draw(&dt); */
-	/* 	putc('.'); */
+		sleep(1000000);
 
-	/* 	sleep(1000000); */
-
-	/* 	update(&dt); */
-	/* } */
+		/* update(&dt); */
+	}
 
 	return 0;
 }

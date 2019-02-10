@@ -50,6 +50,7 @@ syscall_handler:
 	push	%rbp
 	push	%rsi
 	push	%rdi
+	mov	%rsp, %r8
 	call	do_syscall_interrupt
 	pop	%rdi
 	pop	%rsi

@@ -37,7 +37,8 @@ enum SYSCCALL_NO {
 
 unsigned long long do_syscall_interrupt(
 	unsigned long long syscall_id, unsigned long long arg1,
-	unsigned long long arg2, unsigned long long arg3)
+	unsigned long long arg2, unsigned long long arg3,
+	unsigned long long current_rsp)
 {
 	unsigned long long ret_val = 0;
 
@@ -120,6 +121,7 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_SLEEP:
 		sleep_currnet_task(arg1);
+		schedule(current_rsp);
 		break;
 	}
 

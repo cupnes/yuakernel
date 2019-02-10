@@ -3,6 +3,7 @@
 
 #include <fs.h>
 
+void schedule(unsigned long long current_rsp);
 void sched_init(void);
 void sched_start(void);
 void enq_task(struct file *f);
