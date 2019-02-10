@@ -105,3 +105,19 @@ void sleep_currnet_task(unsigned long long us)
 {
 	sleep_timer[current_task] = us;
 }
+
+void sched_test(
+	unsigned long long a, unsigned long long b, unsigned long long c,
+	unsigned long long d, unsigned long long e)
+{
+	puth(a, 16);
+	puts("\r\n");
+	puth(b, 16);
+	puts("\r\n");
+	puth(c, 16);
+	puts("\r\n");
+	puth(d, 16);
+	puts("\r\n");
+	puth(e, 16);
+	puts("\r\n");
+}
