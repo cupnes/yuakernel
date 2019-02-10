@@ -1,23 +1,25 @@
 #include <lib.h>
 
-#define BASE_X	400
-#define BASE_Y	10
+#define BASE_X	385
+#define BASE_Y	12
 
 static void draw(struct datetime *dt);
 static void update(struct datetime *dt);
 
 int main(void)
 {
-	/* struct datetime dt; */
-	/* get_datetime(&dt); */
+	struct file *window = open("urclockbg.bgra");
+
+	struct datetime dt;
+	get_datetime(&dt);
 
 	while (1) {
-		/* draw(&dt); */
-		putc('.');
+		draw_fg(window);
+		draw(&dt);
 
 		sleep(1000000);
 
-		/* update(&dt); */
+		update(&dt);
 	}
 
 	return 0;
@@ -36,26 +38,29 @@ static void draw(struct datetime *dt)
 	putd(dt->hour, 2);
 	putc(':');
 	putd(dt->min, 2);
-	/* putc(':'); */
-	/* putd(dt->sec, 2); */
+	putc(':');
+	putd(dt->sec, 2);
 }
 
 static void update(struct datetime *dt)
 {
 	dt->sec++;
-	if (dt->sec >= 60)
+	if (dt->sec >= 60) {
+		dt->sec = 0;
 		dt->min++;
-	else
+	} else
 		return;
 
-	if (dt->min >= 60)
+	if (dt->min >= 60) {
+		dt->min = 0;
 		dt->hour++;
-	else
+	} else
 		return;
 
-	if (dt->hour >= 24)
+	if (dt->hour >= 24) {
+		dt->hour = 0;
 		dt->day++;
-	else
+	} else
 		return;
 
 	/* FIXME: update year and mon */

@@ -31,7 +31,7 @@ int main(void)
 /* 	putc(']'); */
 /* } */
 
-#define PADDING_Y	100
+#define PADDING_Y	170
 static void ls(void)
 {
 	struct file *ls_window = open("lsbg.bgra");
