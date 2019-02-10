@@ -12,12 +12,12 @@ int main(void)
 	struct file *bg = open(BG_FILE_NAME);
 	draw_bg(bg);
 
-	exec_bg(open("urclock"));
-
-	/* struct file *yua = open(FG_FILE_NAME); */
-	/* draw_fg(yua); */
+	struct file *yua = open(FG_FILE_NAME);
+	draw_fg(yua);
 
 	ls();
+
+	exec_bg(open("urclock"));
 
 	return 0;
 }
