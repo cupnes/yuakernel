@@ -96,6 +96,19 @@ void draw_bg(struct file *img)
 	memcpy(fb.base, img->data, img->size);
 }
 
+void draw_image(struct image *img, unsigned int px, unsigned int py)
+{
+	unsigned int x, y;
+	for (y = py; (y < (py + img->height)) && (y < fb.vr); y++) {
+		for (x = px; (x < (px + img->width)) && (x < fb.hr); x++) {
+			struct pixelformat *p =
+				&img->data[(img->width * y) + x];
+			if (!is_trans_color(p))
+				draw_px(x, y, p->r, p->g, p->b);
+		}
+	}
+}
+
 inline void fill_rect(unsigned int x, unsigned int y,
 		      unsigned int w, unsigned int h,
 		      unsigned char r, unsigned char g, unsigned char b)

@@ -17,6 +17,12 @@ struct __attribute__((packed)) framebuffer {
 	unsigned int vr;
 };
 
+struct __attribute__((packed)) image {
+	unsigned int width;
+	unsigned int height;
+	struct pixelformat data[0];
+};
+
 extern struct framebuffer fb;
 
 void fb_init(struct framebuffer *_fb);
