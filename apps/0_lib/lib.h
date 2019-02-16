@@ -7,6 +7,11 @@
 #define FONT_WIDTH	24
 #define FONT_HEIGHT	32
 
+#define KEY_DOWN	0x32
+#define KEY_LEFT	0x34
+#define KEY_RIGHT	0x36
+#define KEY_UP		0x38
+
 enum SYSCCALL_NO {
 	SYSCALL_PUTC,
 	SYSCALL_GETC,
