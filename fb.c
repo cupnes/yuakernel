@@ -69,7 +69,8 @@ unsigned char is_same_color(struct pixelformat *a, struct pixelformat *b)
 
 unsigned char is_trans_color(struct pixelformat *c)
 {
-	if ((c->b == 0) && (c->g == 0) && (c->r == 0) && (c->_reserved == 0))
+	/* if ((c->b == 0) && (c->g == 0) && (c->r == 0) && (c->_reserved == 0)) */
+	if (c->_reserved == 0)
 		return 1;
 	else
 		return 0;
