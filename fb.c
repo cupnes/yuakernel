@@ -99,12 +99,12 @@ void draw_bg(struct file *img)
 void draw_image(struct image *img, unsigned int px, unsigned int py)
 {
 	unsigned int x, y;
+	struct pixelformat *p = img->data;
 	for (y = py; (y < (py + img->height)) && (y < fb.vr); y++) {
 		for (x = px; (x < (px + img->width)) && (x < fb.hr); x++) {
-			struct pixelformat *p =
-				&img->data[(img->width * y) + x];
 			if (!is_trans_color(p))
 				draw_px(x, y, p->r, p->g, p->b);
+			p++;
 		}
 	}
 }

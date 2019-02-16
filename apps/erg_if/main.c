@@ -13,7 +13,7 @@ int main(void)
 	draw_bg(bg);
 
 	struct file *yua = open(FG_FILE_NAME);
-	draw_fg(yua);
+	/* draw_fg(yua); */
 
 	ls();
 
@@ -45,4 +45,8 @@ static void ls(void)
 		puts(f[i]->name);
 		move_cursor(YUA_WIDTH, (FONT_HEIGHT * (i + 1)) + PADDING_Y);
 	}
+
+	struct file *cursor_file = open("i.cursor");
+	draw_image((struct image *)&cursor_file->data,
+		   YUA_WIDTH - 10, PADDING_Y);
 }

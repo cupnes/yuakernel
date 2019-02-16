@@ -68,6 +68,6 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	exec(open(INIT_APP));
 
 	/* haltして待つ */
-	while (1);
-		/* cpu_halt(); */
+	while (1)
+		cpu_halt();
 }

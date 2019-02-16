@@ -26,6 +26,7 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_CUR_Y,
 	SYSCALL_DRAW_BG,
 	SYSCALL_DRAW_FG,
+	SYSCALL_DRAW_IMG,
 	SYSCALL_GET_DATETIME,
 	SYSCALL_SLEEP,
 	MAX_SYSCALL_NUM
@@ -237,6 +238,12 @@ struct __attribute__((packed)) datetime {
 	unsigned char sec;
 };
 
+struct __attribute__((packed)) image {
+	unsigned int width;
+	unsigned int height;
+	struct pixelformat data[0];
+};
+
 void memcpy(void *dst, void *src, unsigned long long size);
 unsigned long long syscall(
 	unsigned long long syscall_id __attribute__((unused)),
@@ -265,6 +272,7 @@ void move_cursor(unsigned int x, unsigned int y);
 unsigned int get_cursor_y(void);
 void draw_bg(struct file *img);
 void draw_fg(struct file *img);
+void draw_image(struct image *img, unsigned int px, unsigned int py);
 void get_datetime(struct datetime *dt);
 void sleep(unsigned long long us);
 

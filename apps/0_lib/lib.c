@@ -176,6 +176,11 @@ void draw_fg(struct file *img)
 	syscall(SYSCALL_DRAW_FG, (unsigned long long)img, 0, 0);
 }
 
+void draw_image(struct image *img, unsigned int px, unsigned int py)
+{
+	syscall(SYSCALL_DRAW_IMG, (unsigned long long)img, px, py);
+}
+
 void get_datetime(struct datetime *dt)
 {
 	syscall(SYSCALL_GET_DATETIME, (unsigned long long)dt, 0, 0);

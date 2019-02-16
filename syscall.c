@@ -30,6 +30,7 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_CUR_Y,
 	SYSCALL_DRAW_BG,
 	SYSCALL_DRAW_FG,
+	SYSCALL_DRAW_IMG,
 	SYSCALL_GET_DATETIME,
 	SYSCALL_SLEEP,
 	MAX_SYSCALL_NUM
@@ -113,6 +114,10 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_DRAW_FG:
 		draw_fg((struct file *)arg1);
+		break;
+
+	case SYSCALL_DRAW_IMG:
+		draw_image((struct image *)arg1, arg2, arg3);
 		break;
 
 	case SYSCALL_GET_DATETIME:
