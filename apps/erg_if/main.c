@@ -3,13 +3,17 @@
 #define BG_FILE_NAME	"bg.bgra"
 #define FG_FILE_NAME	"yua.bgra"
 #define YUA_WIDTH	250
+#define CURSOR_MASK_SIZE	10240
 
 static void kbc_handler(unsigned char c);
+static void make_cursor_mask(void);
 static void ls(void);
 
 unsigned int cursor_x = 0;
 unsigned int cursor_y = 0;
 struct image *cursor_img;
+struct image *cursor_mask;
+unsigned char cursor_mask_data[CURSOR_MASK_SIZE];
 
 int main(void)
 {
@@ -43,6 +47,13 @@ static void kbc_handler(unsigned char c)
 	draw_image(cursor_img, cursor_x, cursor_y);
 }
 
+static void make_cursor_mask(void)
+{
+	cursor_mask = (struct image *)cursor_mask_data;
+	cursor_mask->width = cursor_img->width;
+	cursor_mask->height = cursor_img->height;
+}
+
 #define PADDING_Y	170
 static void ls(void)
 {
@@ -62,5 +73,6 @@ static void ls(void)
 	cursor_y = PADDING_Y;
 	struct file *cursor_file = open("i.cursor");
 	cursor_img = (struct image *)cursor_file->data;
+	make_cursor_mask();
 	draw_image(cursor_img, cursor_x, cursor_y);
 }
