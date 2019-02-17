@@ -28,6 +28,7 @@ extern struct framebuffer fb;
 void fb_init(struct framebuffer *_fb);
 void set_fg(unsigned char r, unsigned char g, unsigned char b);
 void set_bg(unsigned char r, unsigned char g, unsigned char b);
+void get_px(unsigned int x, unsigned int y, struct pixelformat *val);
 void draw_px(unsigned int x, unsigned int y,
 	     unsigned char r, unsigned char g, unsigned char b);
 void draw_px_fg(unsigned int x, unsigned int y);

@@ -33,7 +33,7 @@ enum SYSCCALL_NO {
 	SYSCALL_DRAW_IMG,
 	SYSCALL_GET_DATETIME,
 	SYSCALL_SLEEP,
-	SYSCALL_GET_PIXEL,
+	SYSCALL_GET_PX,
 	MAX_SYSCALL_NUM
 };
 
@@ -128,6 +128,10 @@ unsigned long long do_syscall_interrupt(
 	case SYSCALL_SLEEP:
 		sleep_currnet_task(arg1);
 		schedule(current_rsp);
+		break;
+
+	case SYSCALL_GET_PX:
+		get_px(arg1, arg2, (struct pixelformat *)arg3);
 		break;
 	}
 

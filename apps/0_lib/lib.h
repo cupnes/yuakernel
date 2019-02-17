@@ -34,6 +34,7 @@ enum SYSCCALL_NO {
 	SYSCALL_DRAW_IMG,
 	SYSCALL_GET_DATETIME,
 	SYSCALL_SLEEP,
+	SYSCALL_GET_PX,
 	MAX_SYSCALL_NUM
 };
 
@@ -275,6 +276,7 @@ void exec_bg(struct file *file);
 void send_packet(void *p_data, unsigned short p_len);
 void move_cursor(unsigned int x, unsigned int y);
 unsigned int get_cursor_y(void);
+void get_px(unsigned int x, unsigned int y, struct pixelformat *val);
 void draw_bg(struct file *img);
 void draw_fg(struct file *img);
 void draw_image(struct image *img, unsigned int px, unsigned int py);

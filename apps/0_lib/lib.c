@@ -166,6 +166,11 @@ unsigned int get_cursor_y(void)
 	return syscall(SYSCALL_GET_CUR_Y, 0, 0, 0);
 }
 
+void get_px(unsigned int x, unsigned int y, struct pixelformat *val)
+{
+	syscall(SYSCALL_GET_PX, x, y, (unsigned long long)val);
+}
+
 void draw_bg(struct file *img)
 {
 	syscall(SYSCALL_DRAW_BG, (unsigned long long)img, 0, 0);

@@ -27,6 +27,17 @@ void set_bg(unsigned char r, unsigned char g, unsigned char b)
 	color_bg.r = r;
 }
 
+void get_px(unsigned int x, unsigned int y, struct pixelformat *val)
+{
+	struct pixelformat *p = fb.base;
+	p += y * fb.hr + x;
+
+	val->b = p->b;
+	val->g = p->g;
+	val->r = p->r;
+	val->_reserved = p->_reserved;
+}
+
 inline void draw_px(unsigned int x, unsigned int y,
 		    unsigned char r, unsigned char g, unsigned char b)
 {
