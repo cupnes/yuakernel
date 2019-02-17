@@ -16,7 +16,7 @@ enum TASK_STATUS {
 unsigned long long task_sp[MAX_TASKS];
 volatile unsigned int current_task;
 unsigned char task_stack[MAX_TASKS - 1][TASK_STASK_BYTES];
-unsigned int num_tasks;
+unsigned int used_tasks;
 unsigned long long sleep_timer[MAX_TASKS] = { 0 };
 unsigned long long task_status[MAX_TASKS] = { TS_FREE };
 
@@ -25,7 +25,7 @@ void schedule(unsigned long long current_rsp)
 	task_sp[current_task] = current_rsp;
 
 	unsigned int i;
-	for (i = 0; i < num_tasks; i++) {
+	for (i = 0; i < used_tasks; i++) {
 		if (sleep_timer[i] >= SCHED_PERIOD) {
 			sleep_timer[i] -= SCHED_PERIOD;
 			if (sleep_timer[i] == 0)
@@ -37,7 +37,7 @@ void schedule(unsigned long long current_rsp)
 	}
 
 	while (1) {
-		current_task = (current_task + 1) % num_tasks;
+		current_task = (current_task + 1) % used_tasks;
 		if (task_status[current_task] == TS_RUNNING)
 			break;
 
@@ -62,7 +62,7 @@ void sched_init(void)
 {
 	/* 最初に起動させるアプリ向け設定 */
 	current_task = 0;
-	num_tasks = 1;
+	used_tasks = 1;
 	task_status[current_task] = TS_RUNNING;
 
 	/* 5ms周期の周期タイマー設定 */
@@ -77,11 +77,20 @@ void sched_start(void)
 
 void enq_task(struct file *f)
 {
+	/* 使用可能なタスク番号を先頭の方から取得 */
+	unsigned int task_id;
+	for (task_id = 0; task_id < MAX_TASKS; task_id++) {
+		if (task_status[task_id] == TS_FREE)
+			break;
+
+		/* FIXME: TS_FREEが無かった場合の処理 */
+	}
+
 	unsigned long long start_addr = (unsigned long long)f->data;
 
 	/* 予めタスクのスタックを適切に積んでおき、スタックポインタを揃える */
 	unsigned long long *sp =
-		(unsigned long long *)((unsigned char *)task_stack[num_tasks]
+		(unsigned long long *)((unsigned char *)task_stack[task_id]
 				       + TASK_STASK_BYTES);
 	unsigned long long old_sp = (unsigned long long)sp;
 
@@ -112,10 +121,11 @@ void enq_task(struct file *f)
 		*sp = 0;
 	}
 
-	task_sp[num_tasks] = (unsigned long long)sp;
-	task_status[num_tasks] = TS_RUNNING;
+	task_sp[task_id] = (unsigned long long)sp;
+	task_status[task_id] = TS_RUNNING;
 
-	num_tasks++;
+	if (task_id >= used_tasks)
+		used_tasks = task_id + 1;
 }
 
 void sleep_currnet_task(unsigned long long us)
