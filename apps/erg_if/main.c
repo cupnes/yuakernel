@@ -3,9 +3,17 @@
 /* sysfile definition */
 #define SFN_BG_IMG	"bg.bgra"
 #define SFN_YUA_IMG	"yua.bgra"
+#define SFN_URC_EXE	"urclock"
+#define SFN_URC_WIN	"urclockbg.bgra"
+#define SFN_LS_WIN	"lsbg.bgra"
+#define SFN_LS_CUR	"i.cursor"
 enum SYSFILE_ID {
 	SFID_BG_IMG,
 	SFID_YUA_IMG,
+	SFID_URC_EXE,
+	SFID_URC_WIN,
+	SFID_LS_WIN,
+	SFID_LS_CUR,
 	SFID_MAX
 };
 
@@ -50,6 +58,10 @@ static void open_sysfiles(void)
 {
 	sysfile_list[SFID_BG_IMG] = open(SFN_BG_IMG);
 	sysfile_list[SFID_YUA_IMG] = open(SFN_YUA_IMG);
+	sysfile_list[SFID_URC_EXE] = open(SFN_URC_EXE);
+	sysfile_list[SFID_URC_WIN] = open(SFN_URC_WIN);
+	sysfile_list[SFID_LS_WIN] = open(SFN_LS_WIN);
+	sysfile_list[SFID_LS_CUR] = open(SFN_LS_CUR);
 }
 
 static void init(void)
@@ -64,7 +76,7 @@ static void init(void)
 
 	ls();
 
-	urclock_tid = exec_bg(open("urclock"));
+	urclock_tid = exec_bg(sysfile_list[SFID_URC_EXE]);
 }
 
 static void view_image(struct file *img_file)
@@ -163,8 +175,7 @@ static unsigned char is_sysfile(struct file *f __attribute__((unused)))
 
 static void ls(void)
 {
-	struct file *ls_window = open("lsbg.bgra");
-	draw_fg(ls_window);
+	draw_fg(sysfile_list[SFID_LS_WIN]);
 
 	struct file *f[MAX_FILES];
 	unsigned long long num_files = get_files(f);
@@ -182,7 +193,7 @@ static void ls(void)
 		filelist_num++;
 	}
 
-	struct file *cursor_file = open("i.cursor");
+	struct file *cursor_file = sysfile_list[SFID_LS_CUR];
 	cursor_img = (struct image *)cursor_file->data;
 	cursor_mask = (struct image *)cursor_mask_data;
 	make_mask(FILELIST_BASE_X, FILELIST_BASE_Y, cursor_img, cursor_mask);
