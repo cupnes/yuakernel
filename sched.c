@@ -7,11 +7,18 @@
 #define MAX_TASKS		100
 #define TASK_STASK_BYTES	4096
 
+enum TASK_STATUS {
+	TS_FREE,
+	TS_RUNNING,
+	TS_SLEEP
+};
+
 unsigned long long task_sp[MAX_TASKS];
-volatile unsigned int current_task = 0;
+volatile unsigned int current_task;
 unsigned char task_stack[MAX_TASKS - 1][TASK_STASK_BYTES];
-unsigned int num_tasks = 1;
+unsigned int num_tasks;
 unsigned long long sleep_timer[MAX_TASKS] = { 0 };
+unsigned long long task_status[MAX_TASKS] = { TS_FREE };
 
 void schedule(unsigned long long current_rsp)
 {
@@ -19,18 +26,22 @@ void schedule(unsigned long long current_rsp)
 
 	unsigned int i;
 	for (i = 0; i < num_tasks; i++) {
-		if (sleep_timer[i] >= SCHED_PERIOD)
+		if (sleep_timer[i] >= SCHED_PERIOD) {
 			sleep_timer[i] -= SCHED_PERIOD;
-		else if (sleep_timer[i] > 0)
+			if (sleep_timer[i] == 0)
+				task_status[i] = TS_RUNNING;
+		} else if (sleep_timer[i] > 0) {
 			sleep_timer[i] = 0;
+			task_status[i] = TS_RUNNING;
+		}
 	}
 
 	while (1) {
 		current_task = (current_task + 1) % num_tasks;
-		if (sleep_timer[current_task] == 0)
+		if (task_status[current_task] == TS_RUNNING)
 			break;
 
-		/* FIXME: At least one task must be awake. */
+		/* FIXME: At least one task must be running. */
 	}
 
 	set_pic_eoi(HPET_INTR_NO);
@@ -49,6 +60,11 @@ void schedule(unsigned long long current_rsp)
 
 void sched_init(void)
 {
+	/* 最初に起動させるアプリ向け設定 */
+	current_task = 0;
+	num_tasks = 1;
+	task_status[current_task] = TS_RUNNING;
+
 	/* 5ms周期の周期タイマー設定 */
 	ptimer_setup(SCHED_PERIOD, schedule);
 }
@@ -97,6 +113,7 @@ void enq_task(struct file *f)
 	}
 
 	task_sp[num_tasks] = (unsigned long long)sp;
+	task_status[num_tasks] = TS_RUNNING;
 
 	num_tasks++;
 }
@@ -104,6 +121,12 @@ void enq_task(struct file *f)
 void sleep_currnet_task(unsigned long long us)
 {
 	sleep_timer[current_task] = us;
+	task_status[current_task] = TS_SLEEP;
+}
+
+void finish_task(unsigned int task_id)
+{
+	task_status[task_id] = TS_FREE;
 }
 
 void sched_test(
