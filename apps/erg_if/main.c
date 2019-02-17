@@ -81,9 +81,9 @@ static void kbc_handler(unsigned char c)
 		break;
 
 	case KEY_ENTER:
-		is_running_task = 1;
 		switch (filelist[current_file_idx]->name[0]) {
 		case 'i':
+			is_running_task = 1;
 			finish_task(urclock_tid);
 			view_image(filelist[current_file_idx]);
 			break;
