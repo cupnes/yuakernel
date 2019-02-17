@@ -10,15 +10,15 @@
 #define FILELIST_MAX_NUM	9
 
 static void kbc_handler(unsigned char c);
-static void make_cursor_mask(void);
+static void make_mask(unsigned int base_x, unsigned int base_y,
+		      struct image *img, struct image *mask);
 static void ls(void);
 
-unsigned int cursor_x = 0;
-unsigned int cursor_y = 0;
 struct image *cursor_img;
 struct image *cursor_mask;
 unsigned char cursor_mask_data[CURSOR_MASK_SIZE];
 unsigned char filelist_num = 0;
+unsigned char current_file_idx;
 
 int main(void)
 {
@@ -39,7 +39,6 @@ int main(void)
 
 static void kbc_handler(unsigned char c)
 {
-	static unsigned char current_file_idx = 0;
 	unsigned char next_file_idx;
 
 	next_file_idx = current_file_idx;
@@ -72,33 +71,33 @@ static unsigned char is_trans_color(struct pixelformat *c)
 		return 0;
 }
 
-static void make_cursor_mask(void)
+static void make_mask(unsigned int base_x, unsigned int base_y,
+		      struct image *img, struct image *mask)
 {
-	struct pixelformat bg_px;
-	get_px(cursor_x, cursor_y, &bg_px);
+	mask->width = img->width;
+	mask->height = img->height;
 
-	cursor_mask = (struct image *)cursor_mask_data;
-	cursor_mask->width = cursor_img->width;
-	cursor_mask->height = cursor_img->height;
+	struct pixelformat *img_p = img->data;
+	struct pixelformat *mask_p = mask->data;
 
 	unsigned int x, y;
-	struct pixelformat *img = cursor_img->data;
-	struct pixelformat *mask = cursor_mask->data;
-	for (y = 0; y < cursor_img->height; y++) {
-		for (x = 0; x < cursor_img->width; x++) {
-			if (!is_trans_color(img)) {
-				mask->b = bg_px.b;
-				mask->g = bg_px.g;
-				mask->r = bg_px.r;
-				mask->_reserved = bg_px._reserved;
+	for (y = base_y; y < (base_y + img->height); y++) {
+		for (x = base_x; x < (base_x + img->width); x++) {
+			if (!is_trans_color(img_p)) {
+				struct pixelformat tmp_p;
+				get_px(x, y, &tmp_p);
+				mask_p->b = tmp_p.b;
+				mask_p->g = tmp_p.g;
+				mask_p->r = tmp_p.r;
+				mask_p->_reserved = tmp_p._reserved;
 			} else {
-				mask->b = 0;
-				mask->g = 0;
-				mask->r = 0;
-				mask->_reserved = 0;
+				mask_p->b = 0;
+				mask_p->g = 0;
+				mask_p->r = 0;
+				mask_p->_reserved = 0;
 			}
-			img++;
-			mask++;
+			img_p++;
+			mask_p++;
 		}
 	}
 }
@@ -127,10 +126,12 @@ static void ls(void)
 		filelist_num++;
 	}
 
-	cursor_x = FILELIST_BASE_X;
-	cursor_y = FILELIST_BASE_Y;
 	struct file *cursor_file = open("i.cursor");
 	cursor_img = (struct image *)cursor_file->data;
-	make_cursor_mask();
-	draw_image(cursor_img, cursor_x, cursor_y);
+	cursor_mask = (struct image *)cursor_mask_data;
+	make_mask(FILELIST_BASE_X, FILELIST_BASE_Y, cursor_img, cursor_mask);
+
+	current_file_idx = 0;
+	draw_image(cursor_img, FILELIST_BASE_X,
+		   FILELIST_BASE_Y + (FONT_HEIGHT * current_file_idx));
 }
