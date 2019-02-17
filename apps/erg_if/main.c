@@ -9,6 +9,7 @@
 #define FILELIST_NAME_X	(FILELIST_BASE_X + 10)
 #define FILELIST_MAX_NUM	9
 
+static void init(void);
 static void kbc_handler(unsigned char c);
 static void make_mask(unsigned int base_x, unsigned int base_y,
 		      struct image *img, struct image *mask);
@@ -24,6 +25,13 @@ int urclock_tid;
 
 int main(void)
 {
+	init();
+
+	return 0;
+}
+
+static void init(void)
+{
 	set_kbc_handler(kbc_handler);
 
 	struct file *bg = open(BG_FILE_NAME);
@@ -35,14 +43,19 @@ int main(void)
 	ls();
 
 	urclock_tid = exec_bg(open("urclock"));
-
-	return 0;
 }
 
 static void kbc_handler(unsigned char c)
 {
-	unsigned char next_file_idx;
+	static unsigned char is_running_task = 0;
 
+	if (is_running_task) {
+		is_running_task = 0;
+		init();
+		return;
+	}
+
+	unsigned char next_file_idx;
 	next_file_idx = current_file_idx;
 	switch (c) {
 	case KEY_UP:
@@ -56,8 +69,9 @@ static void kbc_handler(unsigned char c)
 		break;
 
 	case KEY_ENTER:
-		draw_bg(filelist[current_file_idx]);
+		is_running_task = 1;
 		finish_task(urclock_tid);
+		draw_bg(filelist[current_file_idx]);
 		break;
 	}
 
