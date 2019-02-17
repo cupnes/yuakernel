@@ -1,6 +1,7 @@
 #include <lib.h>
 
 /* sysfile definition */
+#define SFN_INIT_EXE	"init"
 #define SFN_BG_IMG	"bg.bgra"
 #define SFN_YUA_IMG	"yua.bgra"
 #define SFN_URC_EXE	"urclock"
@@ -8,6 +9,7 @@
 #define SFN_LS_WIN	"lsbg.bgra"
 #define SFN_LS_CUR	"i.cursor"
 enum SYSFILE_ID {
+	SFID_INIT_EXE,
 	SFID_BG_IMG,
 	SFID_YUA_IMG,
 	SFID_URC_EXE,
@@ -56,6 +58,7 @@ int main(void)
 
 static void open_sysfiles(void)
 {
+	sysfile_list[SFID_INIT_EXE] = open(SFN_INIT_EXE);
 	sysfile_list[SFID_BG_IMG] = open(SFN_BG_IMG);
 	sysfile_list[SFID_YUA_IMG] = open(SFN_YUA_IMG);
 	sysfile_list[SFID_URC_EXE] = open(SFN_URC_EXE);
@@ -168,8 +171,13 @@ static void make_mask(unsigned int base_x, unsigned int base_y,
 	}
 }
 
-static unsigned char is_sysfile(struct file *f __attribute__((unused)))
+static unsigned char is_sysfile(struct file *f)
 {
+	int i;
+	for (i = 0; i < SFID_MAX; i++) {
+		if (f == sysfile_list[i])
+			return 1;
+	}
 	return 0;
 }
 
@@ -188,7 +196,8 @@ static void ls(void)
 
 		puts(f[i]->name);
 		move_cursor(FILELIST_NAME_X,
-			    (FONT_HEIGHT * (i + 1)) + FILELIST_BASE_Y);
+			    (FONT_HEIGHT * (filelist_num + 1))
+			    + FILELIST_BASE_Y);
 		filelist[filelist_num] = f[i];
 		filelist_num++;
 	}
