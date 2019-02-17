@@ -252,6 +252,8 @@ struct __attribute__((packed)) image {
 	struct pixelformat data[0];
 };
 
+int strcmp(char *s1, char *s2);
+int strncmp(char *s1, char *s2, unsigned long long n);
 void memcpy(void *dst, void *src, unsigned long long size);
 unsigned long long syscall(
 	unsigned long long syscall_id __attribute__((unused)),
