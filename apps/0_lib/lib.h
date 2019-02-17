@@ -7,6 +7,7 @@
 #define FONT_WIDTH	24
 #define FONT_HEIGHT	32
 
+#define KEY_ENTER	0x0a
 #define KEY_DOWN	0x32
 #define KEY_LEFT	0x34
 #define KEY_RIGHT	0x36

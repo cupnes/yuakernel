@@ -17,7 +17,8 @@ static void ls(void);
 struct image *cursor_img;
 struct image *cursor_mask;
 unsigned char cursor_mask_data[CURSOR_MASK_SIZE];
-unsigned char filelist_num = 0;
+struct file *filelist[MAX_FILES];
+unsigned char filelist_num;
 unsigned char current_file_idx;
 
 int main(void)
@@ -51,6 +52,10 @@ static void kbc_handler(unsigned char c)
 	case KEY_DOWN:
 		if (current_file_idx < (filelist_num - 1))
 			next_file_idx = current_file_idx + 1;
+		break;
+
+	case KEY_ENTER:
+		draw_bg(filelist[current_file_idx]);
 		break;
 	}
 
@@ -116,6 +121,7 @@ static void ls(void)
 	unsigned long long num_files = get_files(f);
 	unsigned long long i;
 	move_cursor(FILELIST_NAME_X, FILELIST_BASE_Y);
+	filelist_num = 0;
 	for (i = 0; i < num_files; i++) {
 		if (is_sysfile(f[i]))
 			continue;
@@ -123,6 +129,7 @@ static void ls(void)
 		puts(f[i]->name);
 		move_cursor(FILELIST_NAME_X,
 			    (FONT_HEIGHT * (i + 1)) + FILELIST_BASE_Y);
+		filelist[filelist_num] = f[i];
 		filelist_num++;
 	}
 
