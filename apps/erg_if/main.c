@@ -8,6 +8,9 @@
 #define FILELIST_BASE_X	240
 #define FILELIST_NAME_X	(FILELIST_BASE_X + 10)
 #define FILELIST_MAX_NUM	9
+#define BG_R	0
+#define BG_G	0
+#define BG_B	0
 
 static void init(void);
 static void kbc_handler(unsigned char c);
@@ -34,6 +37,8 @@ static void init(void)
 {
 	set_kbc_handler(kbc_handler);
 
+	set_bg(BG_R, BG_G, BG_B);
+
 	struct file *bg = open(BG_FILE_NAME);
 	draw_bg(bg);
 
@@ -43,6 +48,13 @@ static void init(void)
 	ls();
 
 	urclock_tid = exec_bg(open("urclock"));
+}
+
+static void view_image(struct file *img_file)
+{
+	set_bg(BG_R, BG_G, BG_B);
+	clear_screen();
+	draw_image((struct image *)img_file->data, 0, 0);
 }
 
 static void kbc_handler(unsigned char c)
@@ -70,8 +82,12 @@ static void kbc_handler(unsigned char c)
 
 	case KEY_ENTER:
 		is_running_task = 1;
-		finish_task(urclock_tid);
-		draw_bg(filelist[current_file_idx]);
+		switch (filelist[current_file_idx]->name[0]) {
+		case 'i':
+			finish_task(urclock_tid);
+			view_image(filelist[current_file_idx]);
+			break;
+		}
 		break;
 	}
 
