@@ -34,6 +34,7 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_DATETIME,
 	SYSCALL_SLEEP,
 	SYSCALL_GET_PX,
+	SYSCALL_FINISH_TASK,
 	MAX_SYSCALL_NUM
 };
 
@@ -132,6 +133,11 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_GET_PX:
 		get_px(arg1, arg2, (struct pixelformat *)arg3);
+		break;
+
+	case SYSCALL_FINISH_TASK:
+		finish_task(arg1);
+		schedule(current_rsp);
 		break;
 	}
 

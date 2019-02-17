@@ -57,6 +57,7 @@ static void kbc_handler(unsigned char c)
 
 	case KEY_ENTER:
 		draw_bg(filelist[current_file_idx]);
+		finish_task(urclock_tid);
 		break;
 	}
 

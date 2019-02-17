@@ -8,6 +8,7 @@ void sched_init(void);
 void sched_start(void);
 int enq_task(struct file *f);
 void sleep_currnet_task(unsigned long long us);
+void finish_task(int task_id);
 void sched_test(
 	unsigned long long a, unsigned long long b, unsigned long long c,
 	unsigned long long d, unsigned long long e);

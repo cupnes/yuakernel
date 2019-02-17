@@ -195,3 +195,8 @@ void sleep(unsigned long long us)
 {
 	syscall(SYSCALL_SLEEP, us, 0, 0);
 }
+
+void finish_task(int task_id)
+{
+	syscall(SYSCALL_FINISH_TASK, task_id, 0, 0);
+}

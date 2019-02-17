@@ -26,13 +26,15 @@ void schedule(unsigned long long current_rsp)
 
 	int i;
 	for (i = 0; i < used_tasks; i++) {
-		if (sleep_timer[i] >= SCHED_PERIOD) {
-			sleep_timer[i] -= SCHED_PERIOD;
-			if (sleep_timer[i] == 0)
+		if (task_status[i] == TS_SLEEP) {
+			if (sleep_timer[i] >= SCHED_PERIOD) {
+				sleep_timer[i] -= SCHED_PERIOD;
+				if (sleep_timer[i] == 0)
+					task_status[i] = TS_RUNNING;
+			} else if (sleep_timer[i] > 0) {
+				sleep_timer[i] = 0;
 				task_status[i] = TS_RUNNING;
-		} else if (sleep_timer[i] > 0) {
-			sleep_timer[i] = 0;
-			task_status[i] = TS_RUNNING;
+			}
 		}
 	}
 
@@ -136,7 +138,7 @@ void sleep_currnet_task(unsigned long long us)
 	task_status[current_task] = TS_SLEEP;
 }
 
-void finish_task(unsigned int task_id)
+void finish_task(int task_id)
 {
 	task_status[task_id] = TS_FREE;
 }

@@ -36,6 +36,7 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_DATETIME,
 	SYSCALL_SLEEP,
 	SYSCALL_GET_PX,
+	SYSCALL_FINISH_TASK,
 	MAX_SYSCALL_NUM
 };
 
@@ -283,6 +284,7 @@ void draw_fg(struct file *img);
 void draw_image(struct image *img, unsigned int px, unsigned int py);
 void get_datetime(struct datetime *dt);
 void sleep(unsigned long long us);
+void finish_task(int task_id);
 
 extern struct framebuffer *fb;
 
