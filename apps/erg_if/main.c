@@ -4,6 +4,10 @@
 #define FG_FILE_NAME	"yua.bgra"
 #define YUA_WIDTH	250
 #define CURSOR_MASK_SIZE	10240
+#define FILELIST_BASE_Y	160
+#define FILELIST_BASE_X	240
+#define FILELIST_NAME_X	(FILELIST_BASE_X + 10)
+#define FILELIST_MAX_NUM	9
 
 static void kbc_handler(unsigned char c);
 static void make_cursor_mask(void);
@@ -14,6 +18,7 @@ unsigned int cursor_y = 0;
 struct image *cursor_img;
 struct image *cursor_mask;
 unsigned char cursor_mask_data[CURSOR_MASK_SIZE];
+unsigned char filelist_num = 0;
 
 int main(void)
 {
@@ -34,21 +39,28 @@ int main(void)
 
 static void kbc_handler(unsigned char c)
 {
-	unsigned int next_y = cursor_y;
+	static unsigned char current_file_idx = 0;
+	unsigned char next_file_idx;
+
+	next_file_idx = current_file_idx;
 	switch (c) {
 	case KEY_UP:
-		next_y = cursor_y - FONT_HEIGHT;
+		if (current_file_idx > 0)
+			next_file_idx = current_file_idx - 1;
 		break;
 
 	case KEY_DOWN:
-		next_y = cursor_y + FONT_HEIGHT;
+		if (current_file_idx < (filelist_num - 1))
+			next_file_idx = current_file_idx + 1;
 		break;
 	}
 
-	if (next_y != cursor_y) {
-		draw_image(cursor_img, cursor_x, next_y);
-		draw_image(cursor_mask, cursor_x, cursor_y);
-		cursor_y = next_y;
+	if (next_file_idx != current_file_idx) {
+		draw_image(cursor_img, FILELIST_BASE_X,
+			   FILELIST_BASE_Y + (FONT_HEIGHT * next_file_idx));
+		draw_image(cursor_mask, FILELIST_BASE_X,
+			   FILELIST_BASE_Y + (FONT_HEIGHT * current_file_idx));
+		current_file_idx = next_file_idx;
 	}
 }
 
@@ -91,7 +103,11 @@ static void make_cursor_mask(void)
 	}
 }
 
-#define PADDING_Y	170
+static unsigned char is_sysfile(struct file *f)
+{
+	return 0;
+}
+
 static void ls(void)
 {
 	struct file *ls_window = open("lsbg.bgra");
@@ -100,14 +116,19 @@ static void ls(void)
 	struct file *f[MAX_FILES];
 	unsigned long long num_files = get_files(f);
 	unsigned long long i;
-	move_cursor(YUA_WIDTH, PADDING_Y);
+	move_cursor(FILELIST_NAME_X, FILELIST_BASE_Y);
 	for (i = 0; i < num_files; i++) {
+		if (is_sysfile(f[i]))
+			continue;
+
 		puts(f[i]->name);
-		move_cursor(YUA_WIDTH, (FONT_HEIGHT * (i + 1)) + PADDING_Y);
+		move_cursor(FILELIST_NAME_X,
+			    (FONT_HEIGHT * (i + 1)) + FILELIST_BASE_Y);
+		filelist_num++;
 	}
 
-	cursor_x = YUA_WIDTH - 10;
-	cursor_y = PADDING_Y;
+	cursor_x = FILELIST_BASE_X;
+	cursor_y = FILELIST_BASE_Y;
 	struct file *cursor_file = open("i.cursor");
 	cursor_img = (struct image *)cursor_file->data;
 	make_cursor_mask();
