@@ -90,7 +90,7 @@ unsigned long long do_syscall_interrupt(
 		break;
 
 	case SYSCALL_ENQ_TASK:
-		enq_task((struct file *)arg1);
+		ret_val = (unsigned long long)enq_task((struct file *)arg1);
 		break;
 
 	case SYSCALL_RCV_PKT:

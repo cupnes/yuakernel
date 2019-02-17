@@ -6,7 +6,7 @@
 void schedule(unsigned long long current_rsp);
 void sched_init(void);
 void sched_start(void);
-void enq_task(struct file *f);
+int enq_task(struct file *f);
 void sleep_currnet_task(unsigned long long us);
 void sched_test(
 	unsigned long long a, unsigned long long b, unsigned long long c,

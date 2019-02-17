@@ -20,6 +20,7 @@ unsigned char cursor_mask_data[CURSOR_MASK_SIZE];
 struct file *filelist[MAX_FILES];
 unsigned char filelist_num;
 unsigned char current_file_idx;
+int urclock_tid;
 
 int main(void)
 {
@@ -33,7 +34,7 @@ int main(void)
 
 	ls();
 
-	exec_bg(open("urclock"));
+	urclock_tid = exec_bg(open("urclock"));
 
 	return 0;
 }
@@ -107,7 +108,7 @@ static void make_mask(unsigned int base_x, unsigned int base_y,
 	}
 }
 
-static unsigned char is_sysfile(struct file *f)
+static unsigned char is_sysfile(struct file *f __attribute__((unused)))
 {
 	return 0;
 }

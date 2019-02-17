@@ -146,9 +146,9 @@ void exec(struct file *file)
 	syscall(SYSCALL_EXEC, (unsigned long long)file, 0, 0);
 }
 
-void exec_bg(struct file *file)
+int exec_bg(struct file *file)
 {
-	syscall(SYSCALL_ENQ_TASK, (unsigned long long)file, 0, 0);
+	return (int)syscall(SYSCALL_ENQ_TASK, (unsigned long long)file, 0, 0);
 }
 
 void send_packet(void *p_data, unsigned short p_len)

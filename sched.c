@@ -14,9 +14,9 @@ enum TASK_STATUS {
 };
 
 unsigned long long task_sp[MAX_TASKS];
-volatile unsigned int current_task;
+volatile int current_task;
 unsigned char task_stack[MAX_TASKS - 1][TASK_STASK_BYTES];
-unsigned int used_tasks;
+int used_tasks;
 unsigned long long sleep_timer[MAX_TASKS] = { 0 };
 unsigned long long task_status[MAX_TASKS] = { TS_FREE };
 
@@ -24,7 +24,7 @@ void schedule(unsigned long long current_rsp)
 {
 	task_sp[current_task] = current_rsp;
 
-	unsigned int i;
+	int i;
 	for (i = 0; i < used_tasks; i++) {
 		if (sleep_timer[i] >= SCHED_PERIOD) {
 			sleep_timer[i] -= SCHED_PERIOD;
@@ -75,16 +75,16 @@ void sched_start(void)
 	ptimer_start();
 }
 
-void enq_task(struct file *f)
+int enq_task(struct file *f)
 {
 	/* 使用可能なタスク番号を先頭の方から取得 */
-	unsigned int task_id;
+	int task_id;
 	for (task_id = 0; task_id < MAX_TASKS; task_id++) {
 		if (task_status[task_id] == TS_FREE)
 			break;
-
-		/* FIXME: TS_FREEが無かった場合の処理 */
 	}
+	if (task_id >= MAX_TASKS)
+		return -1;
 
 	unsigned long long start_addr = (unsigned long long)f->data;
 
@@ -126,6 +126,8 @@ void enq_task(struct file *f)
 
 	if (task_id >= used_tasks)
 		used_tasks = task_id + 1;
+
+	return task_id;
 }
 
 void sleep_currnet_task(unsigned long long us)
