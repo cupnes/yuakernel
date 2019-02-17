@@ -1,7 +1,15 @@
 #include <lib.h>
 
-#define BG_FILE_NAME	"bg.bgra"
-#define FG_FILE_NAME	"yua.bgra"
+/* sysfile definition */
+#define SFN_BG_IMG	"bg.bgra"
+#define SFN_YUA_IMG	"yua.bgra"
+enum SYSFILE_ID {
+	SFID_BG_IMG,
+	SFID_YUA_IMG,
+	SFID_MAX
+};
+
+/* other definition */
 #define YUA_WIDTH	250
 #define CURSOR_MASK_SIZE	10240
 #define FILELIST_BASE_Y	160
@@ -11,12 +19,16 @@
 #define BG_R	0
 #define BG_G	0
 #define BG_B	0
+#define MAX_SYSFILES	20
 
+static void open_sysfiles(void);
 static void init(void);
 static void kbc_handler(unsigned char c);
 static void make_mask(unsigned int base_x, unsigned int base_y,
 		      struct image *img, struct image *mask);
 static void ls(void);
+
+struct file *sysfile_list[MAX_SYSFILES] = { 0 };
 
 struct image *cursor_img;
 struct image *cursor_mask;
@@ -28,9 +40,16 @@ int urclock_tid;
 
 int main(void)
 {
+	open_sysfiles();
 	init();
 
 	return 0;
+}
+
+static void open_sysfiles(void)
+{
+	sysfile_list[SFID_BG_IMG] = open(SFN_BG_IMG);
+	sysfile_list[SFID_YUA_IMG] = open(SFN_YUA_IMG);
 }
 
 static void init(void)
@@ -39,11 +58,9 @@ static void init(void)
 
 	set_bg(BG_R, BG_G, BG_B);
 
-	struct file *bg = open(BG_FILE_NAME);
-	draw_bg(bg);
+	draw_bg(sysfile_list[SFID_BG_IMG]);
 
-	/* struct file *yua = open(FG_FILE_NAME); */
-	/* draw_fg(yua); */
+	/* draw_fg(sysfile_list[SFID_YUA_IMG]); */
 
 	ls();
 
