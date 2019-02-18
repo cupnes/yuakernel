@@ -119,6 +119,11 @@ static void kbc_handler(unsigned char c)
 			finish_task(urclock_tid);
 			view_image(filelist[current_file_idx]);
 			break;
+
+		case 'e':
+			exec(filelist[current_file_idx]);
+			init();
+			break;
 		}
 		break;
 	}

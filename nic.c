@@ -261,6 +261,7 @@ void sendPacket(const void *p_data, unsigned short p_len)
 	while(!(tx_descs[old_cur]->status & 0xff));
 }
 
+/* FIXME: p_lenは戻り値として返すようにする */
 void receive_packet(void *p_data, unsigned short *p_len)
 {
 	*p_len = 0;
