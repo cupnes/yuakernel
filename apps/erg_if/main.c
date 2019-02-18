@@ -45,7 +45,7 @@ struct image *cursor_mask;
 unsigned char cursor_mask_data[CURSOR_MASK_SIZE];
 struct file *filelist[MAX_FILES];
 unsigned char filelist_num;
-unsigned char current_file_idx;
+unsigned char current_file_idx = 0;
 int urclock_tid;
 
 int main(void)
@@ -213,7 +213,6 @@ static void ls(void)
 	cursor_mask = (struct image *)cursor_mask_data;
 	make_mask(FILELIST_BASE_X, FILELIST_BASE_Y, cursor_img, cursor_mask);
 
-	current_file_idx = 0;
 	draw_image(cursor_img, FILELIST_BASE_X,
 		   FILELIST_BASE_Y + (FONT_HEIGHT * current_file_idx));
 }
