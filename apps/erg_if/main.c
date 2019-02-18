@@ -75,7 +75,7 @@ static void init(void)
 
 	draw_bg(sysfile_list[SFID_BG_IMG]);
 
-	/* draw_fg(sysfile_list[SFID_YUA_IMG]); */
+	draw_fg(sysfile_list[SFID_YUA_IMG]);
 
 	ls();
 
@@ -121,6 +121,7 @@ static void kbc_handler(unsigned char c)
 			break;
 
 		case 'e':
+			finish_task(urclock_tid);
 			exec(filelist[current_file_idx]);
 			init();
 			break;
