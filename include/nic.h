@@ -82,14 +82,14 @@
 #define TSTA_LC                         (1 << 2)    // Late Collision
 #define LSTA_TU                         (1 << 3)    // Transmit Underrun
 
-	struct __attribute__((packed)) i218v_rx_desc {
-		unsigned long long addr;
-		unsigned short length;
-		unsigned short checksum;
-		unsigned char status;
-		unsigned char errors;
-		unsigned short special;
-	};
+struct __attribute__((packed)) i218v_rx_desc {
+	unsigned long long addr;
+	unsigned short length;
+	unsigned short checksum;
+	unsigned char status;
+	unsigned char errors;
+	unsigned short special;
+};
 
 struct __attribute__((packed)) i218v_tx_desc {
 	unsigned long long addr;
