@@ -4,7 +4,9 @@
 #define SFN_INIT_EXE	"init"
 #define SFN_BG_IMG	"bg.bgra"
 #define SFN_YUA_IMG	"yua.bgra"
+#define SFN_YUAM_IMG	"i.yuam"
 #define SFN_YUA43_IMG	"i.yua0143"
+#define SFN_YUAM43_IMG	"i.yuam43"
 #define SFN_URC_EXE	"urclock"
 #define SFN_URC_WIN	"urclockbg.bgra"
 #define SFN_LS_WIN	"lsbg.bgra"
@@ -13,7 +15,9 @@ enum SYSFILE_ID {
 	SFID_INIT_EXE,
 	SFID_BG_IMG,
 	SFID_YUA_IMG,
+	SFID_YUAM_IMG,
 	SFID_YUA43_IMG,
+	SFID_YUAM43_IMG,
 	SFID_URC_EXE,
 	SFID_URC_WIN,
 	SFID_LS_WIN,
@@ -33,6 +37,8 @@ enum SYSFILE_ID {
 #define BG_B	0
 #define MAX_SYSFILES	20
 
+#define GENIUS_TH	10
+
 static void open_sysfiles(void);
 static void redraw(void);
 static void kbc_handler(unsigned char c);
@@ -50,10 +56,14 @@ unsigned char filelist_num;
 unsigned char current_file_idx = 0;
 int urclock_tid;
 unsigned char is_43 = 0;
+unsigned char is_megane = 0;
+
+/* TODO: current_yua */
 
 int main(void)
 {
 	open_sysfiles();
+	/* current_yua = sysfile_list[SFID_YUA_IMG]; */
 	redraw();
 
 	return 0;
@@ -64,7 +74,9 @@ static void open_sysfiles(void)
 	sysfile_list[SFID_INIT_EXE] = open(SFN_INIT_EXE);
 	sysfile_list[SFID_BG_IMG] = open(SFN_BG_IMG);
 	sysfile_list[SFID_YUA_IMG] = open(SFN_YUA_IMG);
+	sysfile_list[SFID_YUAM_IMG] = open(SFN_YUAM_IMG);
 	sysfile_list[SFID_YUA43_IMG] = open(SFN_YUA43_IMG);
+	sysfile_list[SFID_YUAM43_IMG] = open(SFN_YUAM43_IMG);
 	sysfile_list[SFID_URC_EXE] = open(SFN_URC_EXE);
 	sysfile_list[SFID_URC_WIN] = open(SFN_URC_WIN);
 	sysfile_list[SFID_LS_WIN] = open(SFN_LS_WIN);
@@ -79,10 +91,20 @@ static void redraw(void)
 
 	draw_bg(sysfile_list[SFID_BG_IMG]);
 
+	struct file *f;
 	if (!is_43) {
-		draw_fg(sysfile_list[SFID_YUA_IMG]);
+		if (!is_megane) {
+			draw_fg(sysfile_list[SFID_YUA_IMG]);
+		} else {
+			f = sysfile_list[SFID_YUAM_IMG];
+			draw_image((struct image *)f->data, 30, 0);
+		}
 	} else {
-		struct file *f = sysfile_list[SFID_YUA43_IMG];
+		if (!is_megane) {
+			f = sysfile_list[SFID_YUA43_IMG];
+		} else {
+			f = sysfile_list[SFID_YUAM43_IMG];
+		}
 		draw_image((struct image *)f->data, 30, 0);
 	}
 
@@ -101,6 +123,7 @@ static void view_image(struct file *img_file)
 static void kbc_handler(unsigned char c)
 {
 	static unsigned char is_running_task = 0;
+	static unsigned int exec_counter = 0;
 
 	if (is_running_task) {
 		is_running_task = 0;
@@ -127,12 +150,14 @@ static void kbc_handler(unsigned char c)
 			is_running_task = 1;
 			finish_task(urclock_tid);
 			view_image(filelist[current_file_idx]);
+			exec_counter++;
 			break;
 
 		case 'e':
 			finish_task(urclock_tid);
 			exec(filelist[current_file_idx]);
 			redraw();
+			exec_counter++;
 			break;
 		}
 		break;
@@ -143,6 +168,9 @@ static void kbc_handler(unsigned char c)
 		redraw();
 		break;
 	}
+
+	if (exec_counter > GENIUS_TH)
+		is_megane = 1;
 
 	if (next_file_idx != current_file_idx) {
 		draw_image(cursor_img, FILELIST_BASE_X,
