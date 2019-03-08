@@ -57,6 +57,7 @@ unsigned char current_file_idx = 0;
 int urclock_tid;
 unsigned char is_43 = 0;
 unsigned char is_megane = 0;
+unsigned int exec_counter = 0;
 
 /* TODO: current_yua */
 
@@ -91,6 +92,9 @@ static void redraw(void)
 
 	draw_bg(sysfile_list[SFID_BG_IMG]);
 
+	if (exec_counter >= GENIUS_TH)
+		is_megane = 1;
+
 	struct file *f;
 	if (!is_43) {
 		if (!is_megane) {
@@ -123,7 +127,6 @@ static void view_image(struct file *img_file)
 static void kbc_handler(unsigned char c)
 {
 	static unsigned char is_running_task = 0;
-	static unsigned int exec_counter = 0;
 
 	if (is_running_task) {
 		is_running_task = 0;
@@ -147,17 +150,17 @@ static void kbc_handler(unsigned char c)
 	case KEY_ENTER:
 		switch (filelist[current_file_idx]->name[0]) {
 		case 'i':
+			exec_counter++;
 			is_running_task = 1;
 			finish_task(urclock_tid);
 			view_image(filelist[current_file_idx]);
-			exec_counter++;
 			break;
 
 		case 'e':
+			exec_counter++;
 			finish_task(urclock_tid);
 			exec(filelist[current_file_idx]);
 			redraw();
-			exec_counter++;
 			break;
 		}
 		break;
@@ -168,9 +171,6 @@ static void kbc_handler(unsigned char c)
 		redraw();
 		break;
 	}
-
-	if (exec_counter > GENIUS_TH)
-		is_megane = 1;
 
 	if (next_file_idx != current_file_idx) {
 		draw_image(cursor_img, FILELIST_BASE_X,
