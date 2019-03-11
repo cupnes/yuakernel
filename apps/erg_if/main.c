@@ -3,7 +3,7 @@
 /* sysfile definition */
 #define SFN_INIT_EXE	"init"
 #define SFN_BG_IMG	"bg.bgra"
-#define SFN_YUA_IMG	"yua.bgra"
+#define SFN_YUA_IMG	"i.yua"
 #define SFN_YUAM_IMG	"i.yuam"
 #define SFN_YUA43_IMG	"i.yua0143"
 #define SFN_YUAM43_IMG	"i.yuam43"
@@ -98,11 +98,11 @@ static void redraw(void)
 	struct file *f;
 	if (!is_43) {
 		if (!is_megane) {
-			draw_fg(sysfile_list[SFID_YUA_IMG]);
+			f = sysfile_list[SFID_YUA_IMG];
 		} else {
 			f = sysfile_list[SFID_YUAM_IMG];
-			draw_image((struct image *)f->data, 30, 0);
 		}
+		draw_image((struct image *)f->data, 30, 0);
 	} else {
 		if (!is_megane) {
 			f = sysfile_list[SFID_YUA43_IMG];
