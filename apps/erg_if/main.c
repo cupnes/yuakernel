@@ -97,20 +97,17 @@ static void redraw(void)
 
 	struct file *f;
 	if (!is_43) {
-		if (!is_megane) {
+		if (!is_megane)
 			f = sysfile_list[SFID_YUA_IMG];
-		} else {
+		else
 			f = sysfile_list[SFID_YUAM_IMG];
-		}
-		draw_image((struct image *)f->data, 30, 0);
 	} else {
-		if (!is_megane) {
+		if (!is_megane)
 			f = sysfile_list[SFID_YUA43_IMG];
-		} else {
+		else
 			f = sysfile_list[SFID_YUAM43_IMG];
-		}
-		draw_image((struct image *)f->data, 30, 0);
 	}
+	draw_image((struct image *)f->data, 30, 0);
 
 	ls();
 
