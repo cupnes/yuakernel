@@ -9,6 +9,8 @@
 #include <nic.h>
 #include <cmos.h>
 
+#include <common.h>
+
 #define SYSCALL_INTR_NO	0x80
 
 enum SYSCCALL_NO {
@@ -35,6 +37,7 @@ enum SYSCCALL_NO {
 	SYSCALL_SLEEP,
 	SYSCALL_GET_PX,
 	SYSCALL_FINISH_TASK,
+	SYSCALL_GET_MAC,
 	MAX_SYSCALL_NUM
 };
 
@@ -139,6 +142,10 @@ unsigned long long do_syscall_interrupt(
 	case SYSCALL_FINISH_TASK:
 		finish_task(arg1);
 		schedule(current_rsp);
+		break;
+
+	case SYSCALL_GET_MAC:
+		memcpy((void *)arg1, nic_mac, 6);
 		break;
 	}
 

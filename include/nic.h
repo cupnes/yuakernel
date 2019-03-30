@@ -106,6 +106,8 @@ struct __attribute__((packed)) dhcp {
 	unsigned short b;
 };
 
+extern unsigned char nic_mac[6];
+
 void i218v_init(void);
 unsigned int i218v_read_reg(unsigned short ofs);
 void i218v_write_reg(unsigned short ofs, unsigned int val);
