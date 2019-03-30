@@ -1,9 +1,14 @@
 #include <lib.h>
 
+#ifdef RUN_LOCAL
+#include <stdio.h>
+#endif
+
 /* 64bit unsignedの最大値0xffffffffffffffffは
  * 10進で18446744073709551615(20桁)なので'\0'含め21文字分のバッファで足りる */
 #define MAX_STR_BUF	21
 
+#ifndef RUN_LOCAL
 int strcmp(char *s1, char *s2)
 {
 	char is_equal = 1;
@@ -59,6 +64,7 @@ void memcpy(void *dst, void *src, unsigned long long size)
 	for (; size > 0; size--)
 		*d++ = *s++;
 }
+#endif
 
 unsigned long long syscall(
 	unsigned long long syscall_id __attribute__((unused)),
@@ -66,6 +72,7 @@ unsigned long long syscall(
 	unsigned long long arg2 __attribute__((unused)),
 	unsigned long long arg3 __attribute__((unused)))
 {
+#ifndef RUN_LOCAL
 	unsigned long long ret_val;
 
 	asm volatile ("int $0x80\n"
@@ -73,17 +80,24 @@ unsigned long long syscall(
 		      : [ret_val]"=r"(ret_val) :);
 
 	return ret_val;
+#else
+	return 0;
+#endif
 }
 
-void putc(char c)
+void putchar(char c)
 {
+#ifndef RUN_LOCAL
 	syscall(SYSCALL_PUTC, c, 0, 0);
+#else
+	putchar(c);
+#endif
 }
 
 void puts(char *s)
 {
 	while (*s != '\0')
-		putc(*s++);
+		putchar(*s++);
 }
 
 void putd(unsigned long long val, unsigned char num_digits)
@@ -121,7 +135,11 @@ void puth(unsigned long long val, unsigned char num_digits)
 
 char getc(void)
 {
+#ifndef RUN_LOCAL
 	return syscall(SYSCALL_GETC, 0, 0, 0);
+#else
+	getchar();
+#endif
 }
 
 void vputc(unsigned char c)

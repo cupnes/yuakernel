@@ -1,12 +1,20 @@
 TARGET = e.http_test
-CFLAGS = -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-common -Iinclude -fPIE
-LDFLAGS = -Map app.map -s -x -T apps.ld -pie
+CFLAGS = -Wall -Wextra -Iinclude -fPIE
+ifeq ($(RUN_LOCAL),y)
+CFLAGS += -DRUN_LOCAL
+else
+CFLAGS += -nostdinc -nostdlib -fno-builtin -fno-common
+endif
+LDFLAGS = -Map app.map -pie
+ifneq ($(RUN_LOCAL),y)
+LDFLAGS += -s -x -T apps.ld
+endif
 OBJS = main.o lib.o
 
 $(TARGET): $(OBJS)
 	ld $(LDFLAGS) -o $@ $+
 
-.o: %.c
+%.o: %.c
 	gcc $(CFLAGS) -c -o $@ $<
 %.o: %.s
 	gcc $(CFLAGS) -c -o $@ $<

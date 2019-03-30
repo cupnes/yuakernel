@@ -253,15 +253,19 @@ struct __attribute__((packed)) image {
 	struct pixelformat data[0];
 };
 
+#ifndef RUN_LOCAL
 int strcmp(char *s1, char *s2);
 int strncmp(char *s1, char *s2, unsigned long long n);
 void memcpy(void *dst, void *src, unsigned long long size);
+#endif
 unsigned long long syscall(
 	unsigned long long syscall_id __attribute__((unused)),
 	unsigned long long arg1 __attribute__((unused)),
 	unsigned long long arg2 __attribute__((unused)),
 	unsigned long long arg3 __attribute__((unused)));
-void putc(char c);
+#ifndef RUN_LOCAL
+void putchar(char c);
+#endif
 void puts(char *s);
 void putd(unsigned long long val, unsigned char num_digits);
 void puth(unsigned long long val, unsigned char num_digits);
