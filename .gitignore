@@ -7,6 +7,7 @@
 *.img
 *.bin
 *.map
+local_conf.h
 GPATH
 GRTAGS
 GSYMS
