@@ -254,3 +254,8 @@ void finish_task(int task_id)
 {
 	syscall(SYSCALL_FINISH_TASK, task_id, 0, 0);
 }
+
+void get_mac(unsigned char *mac)
+{
+	syscall(SYSCALL_GET_MAC, (unsigned long long)mac, 0, 0);
+}
