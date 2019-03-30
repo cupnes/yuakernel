@@ -68,6 +68,7 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_CLS:
 		clear_screen();
+		move_cursor(0, 0);
 		break;
 
 	case SYSCALL_VCUR_RST:
