@@ -1,5 +1,4 @@
-#ifndef _ACPI_H_
-#define _ACPI_H_
+#pragma once
 
 struct __attribute__((packed)) SDTH {
 	char Signature[4];
@@ -25,5 +24,3 @@ void acpi_init(void *rsdp);
 void dump_sdth_sig(struct SDTH *h);
 void dump_xsdt(void);
 struct SDTH *get_sdt(char *sig);
-
-#endif

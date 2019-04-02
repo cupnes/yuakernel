@@ -1,6 +1,3 @@
-#ifndef _COVER_H_
-#define _COVER_H_
+#pragma once
 
 void cover_main(void);
-
-#endif

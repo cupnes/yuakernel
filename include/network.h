@@ -1,5 +1,4 @@
-#ifndef NETWORK_H_
-#define NETWORK_H_
+#pragma once
 
 #define INTEL_VEND     0x8086  // Vendor ID for Intel
 #define E1000_DEV      0x100E  // Device ID for the e1000 Qemu, Bochs, and VirtualBox emmulated NICs
@@ -104,5 +103,3 @@
 #define NET_WORK_PIN					11
 #define E1000_NUM_RX_DESC 				32
 #define E1000_NUM_TX_DESC 				8
-
-#endif /* NETWORK_H_ */

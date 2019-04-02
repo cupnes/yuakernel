@@ -17,9 +17,7 @@ unsigned short rx_cur;
 unsigned short tx_cur;
 unsigned char package_buf[1024];
 unsigned int package_len = 0;
-volatile unsigned int SEND_DHCP = 0;
 unsigned int ip[4] = {0};
-struct dhcp c;
 
 unsigned char nic_mac[6];
 
@@ -47,15 +45,10 @@ void i218v_init(void)
 		while (1)
 			cpu_halt();
 	}
-	/* else { */
-	/* 	puts("eeprom not exists\r\n"); */
 
 	unsigned long long bar =
 		pci_read_config_reg(0x00, 0x19, 0x00, 0x10)
 		& 0xfffffff0;
-	/* puts("bar:"); */
-	/* puth(bar, 8); */
-	/* puts("\r\n"); */
 
 	unsigned char *mem_base_mac_8 = (unsigned char *)(bar + 0x5400);
 	unsigned int *mem_base_mac_32 = (unsigned int *)(bar + 0x5400);
@@ -64,13 +57,6 @@ void i218v_init(void)
 			nic_mac[i] = mem_base_mac_8[i];
 		}
 	}
-
-	/* for (i = 0; i < 6; i++) { */
-	/* 	puth(mac[i], 2); */
-	/* 	putc(' '); */
-	/* } */
-	/* puts("\r\n"); */
-	/* } */
 
 	for (i = 0; i < 0x80; i++)
 		i218v_write_reg(0x5200 + i*4, 0);
@@ -88,28 +74,17 @@ void i218v_init(void)
 
 	rxinit();
 	txinit();
-
-	/* volatile unsigned int counter = 100000; */
-	/* while (counter--); */
-
-	/* send_test(); */
 }
 
 unsigned int i218v_read_reg(unsigned short ofs)
 {
 	unsigned long long addr = i218v_reg_base + ofs;
-	/* putc('R'); */
-	/* puth(addr, 16); */
-	/* puts("\r\n"); */
 	return *(volatile unsigned int *)addr;
 }
 
 void i218v_write_reg(unsigned short ofs, unsigned int val)
 {
 	unsigned long long addr = i218v_reg_base + ofs;
-	/* putc('W'); */
-	/* puth(addr, 16); */
-	/* puts("\r\n"); */
 	*(volatile unsigned int *)addr = val;
 }
 
@@ -197,13 +172,9 @@ void debug_dump_address_translation(unsigned long long linear_address)
 
 void handleReceive(void)
 {
-	/* putc('.'); */
-
 	unsigned short old_cur;
-	/* unsigned int got_packet = 0; */
 
 	while (rx_descs[rx_cur]->status & 0x1) {
-		/* got_packet = 1; */
 		unsigned char *buf = (unsigned char *)rx_descs[rx_cur]->addr;
 		unsigned short len = rx_descs[rx_cur]->length;
 
@@ -216,22 +187,6 @@ void handleReceive(void)
 		for (i = 0; i < 181; i++) {
 			puth(buf[i], 2);
 		}
-
-		/* if ((buf[278]==0x63)&&(buf[279]==0x82)&&(SEND_DHCP==0)) { */
-		/* 	ip[0]=buf[58]; */
-		/* 	ip[1]=buf[59]; */
-		/* 	ip[2]=buf[60]; */
-		/* 	ip[3]=buf[61]; */
-
-		/* 	unsigned char i; */
-		/* 	for (i = 0; i < 4; i++) { */
-		/* 		puth(ip[i], 2); */
-		/* 		putc('.'); */
-		/* 	} */
-		/* 	puts("\r\n"); */
-
-		/* 	send_dhcp_request(); */
-		/* } */
 
 		rx_descs[rx_cur]->status = 0;
 		old_cur = rx_cur;
@@ -256,9 +211,7 @@ void sendPacket(const void *p_data, unsigned short p_len)
 	tx_descs[tx_cur]->status = 0;
 	unsigned char old_cur = tx_cur;
 	tx_cur = (tx_cur + 1) % E1000_NUM_TX_DESC;
-	//printf("%x\n",tx_cur);
 	i218v_write_reg(REG_TXDESCTAIL, tx_cur);
-	// printf("%x\n",readCommand(REG_TXDESCTAIL));
 	while(!(tx_descs[old_cur]->status & 0xff));
 }
 
@@ -280,22 +233,6 @@ void receive_packet(void *p_data, unsigned short *p_len)
 		rx_cur = (rx_cur + 1) % I218V_NUM_RX_DESC;
 		i218v_write_reg(REG_RXDESCTAIL, old_cur);
 	}
-}
-
-void send_dhcp_request(void)
-{
-	c.a[71]=switch_endian32(0x033604c0);
-	c.a[72]=switch_endian32(0x115ab432);
-	c.a[73]=switch_endian32(0x04000000);
-	c.a[74]=switch_endian32(0x00370a01);
-	c.a[75]=switch_endian32(0x1c02030f);
-	c.a[76]=switch_endian32(0x060c2829);
-	c.a[77]=switch_endian32(0x2aff0000);
-	c.a[73]=c.a[73]|switch_endian32((ip[0]<<16)&0x00ff0000)|switch_endian32((ip[1]<<8)&0x0000ff00)|switch_endian32(ip[2]&0x000000ff);
-	c.a[74]=c.a[74]|switch_endian32(ip[3]<<24);
-	c.a[73]=c.a[73]|switch_endian32(0x04000000);
-	sendPacket(&c,sizeof(c));
-	SEND_DHCP=1;
 }
 
 void rxinit(void)
@@ -333,8 +270,6 @@ void txinit(void)
 {
 	int i ;
 	struct i218v_tx_desc *descs;
-	// Allocate buffer for receive descriptors. For simplicity, in my case khmalloc returns a virtual address that is identical to it physical mapped address.
-	// In your case you should handle virtual and physical addresses as the addresses passed to the NIC should be physical ones
 
 	descs = (struct i218v_tx_desc *)i218v_tx_desc_arr;
 	for (i = 0; i < I218V_NUM_TX_DESC; i++) {
@@ -347,12 +282,8 @@ void txinit(void)
 	i218v_write_reg(REG_TXDESCHI, (unsigned int)((unsigned long long)i218v_tx_desc_arr >> 32));
 	i218v_write_reg(REG_TXDESCLO, (unsigned int)((unsigned long long)i218v_tx_desc_arr & 0xFFFFFFFF));
 
-
-	//now setup total length of descriptors
 	i218v_write_reg(REG_TXDESCLEN, I218V_NUM_TX_DESC * 16);
 
-
-	//setup numbers
 	i218v_write_reg( REG_TXDESCHEAD, 0);
 	i218v_write_reg( REG_TXDESCTAIL, 0);
 	tx_cur = 0;
@@ -362,116 +293,10 @@ void txinit(void)
 			| (64 << TCTL_COLD_SHIFT)
 			| TCTL_RTLC);
 
-	i218v_write_reg(REG_TCTRL, 0x3003F0FA); //0b0110000000000111111000011111010);
+	i218v_write_reg(REG_TCTRL, 0x3003F0FA);
 	i218v_write_reg(REG_TIPG,  0x0060200A);
 }
 
-void send_dhcp_discover(void)
-{
-	//printf("something went wrong");
-	c.a[0]=switch_endian32(0xffffffff);
-	c.a[1]=switch_endian32(0xffff5254);
-	c.a[2]=switch_endian32(0x00123456);
-	c.a[3]=switch_endian32(0x08004510);
-	c.a[4]=switch_endian32(0x01480000);
-	c.a[5]=switch_endian32(0x00001011);
-	c.a[6]=switch_endian32(0xa9960000);
-	c.a[7]=switch_endian32(0x0000ffff);
-	c.a[8]=switch_endian32(0xffff0044);
-	c.a[9]=switch_endian32(0x00430134);
-	c.a[10]=switch_endian32(0x1c6d0101);
-	c.a[11]=switch_endian32(0x0600fa5f);
-	c.a[12]=switch_endian32(0xc0130008);
-	c.a[13]=switch_endian32(0x00000000);
-	c.a[14]=switch_endian32(0x00000000);
-	c.a[15]=switch_endian32(0x00000000);
-	c.a[16]=switch_endian32(0x00000000);
-	c.a[17]=switch_endian32(0x00005254);
-	c.a[18]=switch_endian32(0x00123456);
-	c.a[19]=switch_endian32(0x00000000);
-	c.a[20]=switch_endian32(0x00000000);
-	c.a[21]=switch_endian32(0x00000000);
-	c.a[22]=switch_endian32(0x00000000);
-	c.a[23]=switch_endian32(0x00000000);
-	c.a[24]=switch_endian32(0x00000000);
-	c.a[25]=switch_endian32(0x00000000);
-	c.a[26]=switch_endian32(0x00000000);
-	c.a[27]=switch_endian32(0x00000000);
-	c.a[28]=switch_endian32(0x00000000);
-	c.a[29]=switch_endian32(0x00000000);
-	c.a[30]=switch_endian32(0x00000000);
-	c.a[31]=switch_endian32(0x00000000);
-	c.a[32]=switch_endian32(0x00000000);
-	c.a[33]=switch_endian32(0x00000000);
-	c.a[34]=switch_endian32(0x00000000);
-	c.a[35]=switch_endian32(0x00000000);
-	c.a[36]=switch_endian32(0x00000000);
-	c.a[37]=switch_endian32(0x00000000);
-	c.a[38]=switch_endian32(0x00000000);
-	c.a[39]=switch_endian32(0x00000000);
-	c.a[40]=switch_endian32(0x00000000);
-	c.a[41]=switch_endian32(0x00000000);
-	c.a[42]=switch_endian32(0x00000000);
-	c.a[43]=switch_endian32(0x00000000);
-	c.a[44]=switch_endian32(0x00000000);
-	c.a[45]=switch_endian32(0x00000000);
-	c.a[46]=switch_endian32(0x00000000);
-	c.a[47]=switch_endian32(0x00000000);
-	c.a[48]=switch_endian32(0x00000000);
-	c.a[49]=switch_endian32(0x00000000);
-	c.a[50]=switch_endian32(0x00000000);
-	c.a[51]=switch_endian32(0x00000000);
-	c.a[52]=switch_endian32(0x00000000);
-	c.a[53]=switch_endian32(0x00000000);
-	c.a[54]=switch_endian32(0x00000000);
-	c.a[55]=switch_endian32(0x00000000);
-	c.a[56]=switch_endian32(0x00000000);
-	c.a[57]=switch_endian32(0x00000000);
-	c.a[58]=switch_endian32(0x00000000);
-	c.a[59]=switch_endian32(0x00000000);
-	c.a[60]=switch_endian32(0x00000000);
-	c.a[61]=switch_endian32(0x00000000);
-	c.a[62]=switch_endian32(0x00000000);
-	c.a[63]=switch_endian32(0x00000000);
-	c.a[64]=switch_endian32(0x00000000);
-	c.a[65]=switch_endian32(0x00000000);
-	c.a[66]=switch_endian32(0x00000000);
-	c.a[67]=switch_endian32(0x00000000);
-	c.a[68]=switch_endian32(0x00000000);
-	c.a[69]=switch_endian32(0x00006382);
-	c.a[70]=switch_endian32(0x53633501);
-	c.a[71]=switch_endian32(0x0132040a);
-	c.a[72]=switch_endian32(0xc1b76337);
-	c.a[73]=switch_endian32(0x0a011c02);
-	c.a[74]=switch_endian32(0x030f060c);
-	c.a[75]=switch_endian32(0x28292aff);
-	c.a[76]=switch_endian32(0x00000000);
-	c.a[77]=switch_endian32(0x00000000);
-	c.a[78]=switch_endian32(0x00000000);
-	c.a[79]=switch_endian32(0x00000000);
-	c.a[80]=switch_endian32(0x00000000);
-	c.a[81]=switch_endian32(0x00000000);
-	c.a[82]=switch_endian32(0x00000000);
-	c.a[83]=switch_endian32(0x00000000);
-	c.a[84]=switch_endian32(0x00000000);
-	c.b=0;
-	//a[85]=switch_endian32(0x0000);
-	sendPacket(&c,sizeof(c));
-	//printf("dhcp package send complete\n");
-}
-
-int get_ip(void)
-{
-	SEND_DHCP=0;
-	send_dhcp_discover();
-	/* sti(); */
-	/* uint32_t ms = system_time.count_ms; */
-	/* while (SEND_DHCP == 0) { */
-	/* if (system_time.count_ms - ms > 1000) */
-	/* 	return -1; */
-	/* } */
-	return 0;
-}
 
 #define SEND_TEST_WAIT	1000000
 void send_test(void)
@@ -491,20 +316,10 @@ void i218v_test(void)
 
 	send_test();
 
-	get_ip();
-
 	puts("receiving interupt\r\n");
 	while (1) {
 		unsigned int status = i218v_read_reg(0xc0);
 		(void)status;
-		/* if (status & 0x04) { */
-		/* 	// startLink(); /////////!!!!!!!!!!!!!!!!!!!!!!!!!!!!!start */
-		/* } else if (status & 0x10) { */
-		/* 	// good threshold */
-		/* } else if (status & 0x80) { */
-		/* 	/\* puts("receive!\r\n"); *\/ */
-		/* 	handleReceive(); */
-		/* } */
 		handleReceive();
 	}
 }
