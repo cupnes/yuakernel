@@ -85,13 +85,10 @@ unsigned long long syscall(
 #endif
 }
 
+#ifndef RUN_LOCAL
 void putchar(char c)
 {
-#ifndef RUN_LOCAL
 	syscall(SYSCALL_PUTC, c, 0, 0);
-#else
-	putchar(c);
-#endif
 }
 
 void puts(char *s)
@@ -99,6 +96,7 @@ void puts(char *s)
 	while (*s != '\0')
 		putchar(*s++);
 }
+#endif
 
 void putd(unsigned long long val, unsigned char num_digits)
 {
@@ -133,14 +131,12 @@ void puth(unsigned long long val, unsigned char num_digits)
 	puts(str);
 }
 
-char getc(void)
-{
 #ifndef RUN_LOCAL
+char getchar(void)
+{
 	return syscall(SYSCALL_GETC, 0, 0, 0);
-#else
-	getchar();
-#endif
 }
+#endif
 
 void vputc(unsigned char c)
 {

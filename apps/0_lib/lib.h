@@ -1,7 +1,15 @@
 #ifndef _LIB_H_
 #define _LIB_H_
 
+#ifdef RUN_LOCAL
+#include <stdio.h>
+#include <string.h>
+#endif
+
+#ifndef RUN_LOCAL
 #define NULL	(void *)0
+#endif
+
 #define MAX_FILES	100
 
 #define FONT_WIDTH	24
@@ -265,11 +273,13 @@ unsigned long long syscall(
 	unsigned long long arg3 __attribute__((unused)));
 #ifndef RUN_LOCAL
 void putchar(char c);
-#endif
 void puts(char *s);
+#endif
 void putd(unsigned long long val, unsigned char num_digits);
 void puth(unsigned long long val, unsigned char num_digits);
-char getc(void);
+#ifndef RUN_LOCAL
+char getchar(void);
+#endif
 void vputc(unsigned char c);
 void vputs(unsigned char *s);
 void vputh(unsigned long long val, unsigned char num_digits);
