@@ -37,6 +37,8 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_PX,
 	SYSCALL_FINISH_TASK,
 	SYSCALL_GET_MAC,
+	SYSCALL_DRAW_PX_FG,
+	SYSCALL_DRAW_PX_BG,
 	MAX_SYSCALL_NUM
 };
 
@@ -145,6 +147,14 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_GET_MAC:
 		memcpy((void *)arg1, nic_mac, 6);
+		break;
+
+	case SYSCALL_DRAW_PX_FG:
+		draw_px_fg(arg1, arg2);
+		break;
+
+	case SYSCALL_DRAW_PX_BG:
+		draw_px_bg(arg1, arg2);
 		break;
 	}
 

@@ -247,6 +247,16 @@ void get_px(unsigned int x, unsigned int y, struct pixelformat *val)
 	syscall(SYSCALL_GET_PX, x, y, (unsigned long long)val);
 }
 
+void draw_px_fg(unsigned int x, unsigned int y)
+{
+	syscall(SYSCALL_DRAW_PX_FG, x, y, 0);
+}
+
+void draw_px_bg(unsigned int x, unsigned int y)
+{
+	syscall(SYSCALL_DRAW_PX_BG, x, y, 0);
+}
+
 void draw_bg(struct file *img)
 {
 	syscall(SYSCALL_DRAW_BG, (unsigned long long)img, 0, 0);

@@ -31,6 +31,7 @@ void get_px(unsigned int x, unsigned int y, struct pixelformat *val);
 void draw_px(unsigned int x, unsigned int y,
 	     unsigned char r, unsigned char g, unsigned char b);
 void draw_px_fg(unsigned int x, unsigned int y);
+void draw_px_bg(unsigned int x, unsigned int y);
 void draw_fg(struct file *img);
 void draw_bg(struct file *img);
 void draw_image(struct image *img, unsigned int px, unsigned int py);

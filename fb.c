@@ -49,9 +49,14 @@ inline void draw_px(unsigned int x, unsigned int y,
 	p->r = r;
 }
 
-inline void draw_px_fg(unsigned int x, unsigned int y)
+void draw_px_fg(unsigned int x, unsigned int y)
 {
 	draw_px(x, y, color_fg.r, color_fg.g, color_fg.b);
+}
+
+void draw_px_bg(unsigned int x, unsigned int y)
+{
+	draw_px(x, y, color_bg.r, color_bg.g, color_bg.b);
 }
 
 #define SAME_BUF	30
