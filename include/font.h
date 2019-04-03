@@ -1,5 +1,4 @@
-#ifndef _FONT_H_
-#define _FONT_H_
+#pragma once
 
 #define FONT_WIDTH	24
 #define FONT_HEIGHT	32
@@ -219,5 +218,3 @@ extern const unsigned char font_bitmap[][FONT_HEIGHT][FONT_WIDTH];
 extern const unsigned char font_bitmap_13x18[][FONT_13x18_HEIGHT][FONT_13x18_WIDTH];
 extern const unsigned char font_idx_to_68x73[FONT_MAX];
 extern const unsigned char font_bitmap_68x73[][FONT_68x73_HEIGHT][FONT_68x73_WIDTH];
-
-#endif

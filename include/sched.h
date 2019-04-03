@@ -1,5 +1,4 @@
-#ifndef _SCHED_H_
-#define _SCHED_H_
+#pragma once
 
 #include <fs.h>
 
@@ -12,5 +11,4 @@ void finish_task(int task_id);
 void sched_test(
 	unsigned long long a, unsigned long long b, unsigned long long c,
 	unsigned long long d, unsigned long long e);
-
-#endif
+void exec(struct file *f);

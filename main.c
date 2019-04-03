@@ -10,9 +10,6 @@
 #include <hpet.h>
 #include <sched.h>
 #include <common.h>
-#include <cover.h>
-#include <kana_shell.h>
-#include <proc.h>
 #include <pci.h>
 #include <network.h>
 #include <nic.h>

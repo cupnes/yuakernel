@@ -158,3 +158,9 @@ void sched_test(
 	puth(e, 16);
 	puts("\r\n");
 }
+
+void exec(struct file *f)
+{
+	void *start_addr = (void *)f->data;
+	asm volatile ("call *%[start_addr]" :: [start_addr]"r"(start_addr));
+}

@@ -1,5 +1,4 @@
-#ifndef _KBC_H_
-#define _KBC_H_
+#pragma once
 
 #define ASCII_ESC	0x1b
 #define ASCII_BS	0x08
@@ -9,5 +8,3 @@
 char getc(void);
 void kbc_init(void);
 void kbc_set_handler(void *handler);
-
-#endif

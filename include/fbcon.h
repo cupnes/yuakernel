@@ -1,5 +1,4 @@
-#ifndef _FBCON_H_
-#define _FBCON_H_
+#pragma once
 
 void putc(char c);
 void puts(char *s);
@@ -11,5 +10,3 @@ void vputs(unsigned char *s);
 void move_cursor(unsigned int x, unsigned int y);
 unsigned int get_cursor_y(void);
 void set_font_size(unsigned char _font_size);
-
-#endif

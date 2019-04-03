@@ -1,5 +1,4 @@
-#ifndef _X86_H_
-#define _X86_H_
+#pragma once
 
 #define SS_KERNEL_CODE	0x0008
 #define SS_KERNEL_DATA	0x0010
@@ -51,5 +50,3 @@ void io_write16(unsigned short addr, unsigned short value);
 unsigned int io_read32(unsigned short addr);
 void io_write32(unsigned short addr, unsigned int value);
 void gdt_init(void);
-
-#endif

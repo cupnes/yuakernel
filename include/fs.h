@@ -1,5 +1,4 @@
-#ifndef _FS_H_
-#define _FS_H_
+#pragma once
 
 #define FILE_NAME_LEN	28
 
@@ -12,5 +11,3 @@ struct __attribute__((packed)) file {
 void fs_init(void *_fs_start);
 struct file *open(char *name);
 unsigned long long get_files(struct file *files[]);
-
-#endif

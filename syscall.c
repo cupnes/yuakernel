@@ -4,7 +4,6 @@
 #include <fb.h>
 #include <fbcon.h>
 #include <kbc.h>
-#include <proc.h>
 #include <sched.h>
 #include <nic.h>
 #include <cmos.h>

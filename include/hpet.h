@@ -1,5 +1,4 @@
-#ifndef _HPET_H_
-#define _HPET_H_
+#pragma once
 
 #define MS_TO_US	1000
 #define SEC_TO_US	1000000
@@ -14,5 +13,3 @@ void alert(unsigned long long us, void *handler);
 void ptimer_setup(unsigned long long us, void *handler);
 void ptimer_start(void);
 void ptimer_stop(void);
-
-#endif

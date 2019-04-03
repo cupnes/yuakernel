@@ -1,5 +1,4 @@
-#ifndef _FB_H_
-#define _FB_H_
+#pragma once
 
 #include <fs.h>
 
@@ -38,5 +37,3 @@ void draw_image(struct image *img, unsigned int px, unsigned int py);
 void fill_rect(unsigned int x, unsigned int y, unsigned int w, unsigned int h,
 	       unsigned char r, unsigned char g, unsigned char b);
 void clear_screen(void);
-
-#endif
