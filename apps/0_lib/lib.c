@@ -110,7 +110,11 @@ void putd(unsigned long long val, unsigned char num_digits)
 	}
 	str[num_digits] = '\0';
 
+#ifndef RUN_LOCAL
 	puts(str);
+#else
+	printf("%s", str);
+#endif
 }
 
 void puth(unsigned long long val, unsigned char num_digits)
@@ -128,7 +132,11 @@ void puth(unsigned long long val, unsigned char num_digits)
 	}
 	str[num_digits] = '\0';
 
+#ifndef RUN_LOCAL
 	puts(str);
+#else
+	printf("%s", str);
+#endif
 }
 
 #ifndef RUN_LOCAL
