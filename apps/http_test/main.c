@@ -81,11 +81,20 @@ struct tcp_session *connect(unsigned char dst_ip[] __attribute__((unused)),
 	struct ethrenet_header *eth_h;
 	struct ip_header *ip_h;
 
+	unsigned int i;
+	unsigned char *p;
+
 	/* SYN */
 	eth_h = (struct ethrenet_header *)buf_base;
 	memcpy(eth_h->dst_mac, default_gw_mac, 6);
 	memcpy(eth_h->src_mac, own_mac, 6);
 	eth_h->type = FRAME_TYPE_IP;
+
+	p = (unsigned char *)eth_h;
+	for (i = 0; i < sizeof(struct ethrenet_header); i++) {
+		puth(*p++, 2);
+		putchar(' ');
+	}
 
 	ip_h = (struct ip_header *)(packet_buf + sizeof(struct ethrenet_header));
 	ip_h->version = 4;
