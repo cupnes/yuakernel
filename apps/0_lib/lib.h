@@ -12,6 +12,9 @@
 
 #define MAX_FILES	100
 
+#define SCREEN_WIDTH	640
+#define SCREEN_HEIGHT	480
+
 #define FONT_WIDTH	24
 #define FONT_HEIGHT	32
 
@@ -46,6 +49,8 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_PX,
 	SYSCALL_FINISH_TASK,
 	SYSCALL_GET_MAC,
+	SYSCALL_DRAW_PX_FG,
+	SYSCALL_DRAW_PX_BG,
 	MAX_SYSCALL_NUM
 };
 
@@ -297,6 +302,8 @@ void send_packet(void *p_data, unsigned short p_len);
 void move_cursor(unsigned int x, unsigned int y);
 unsigned int get_cursor_y(void);
 void get_px(unsigned int x, unsigned int y, struct pixelformat *val);
+void draw_px_fg(unsigned int x, unsigned int y);
+void draw_px_bg(unsigned int x, unsigned int y);
 void draw_bg(struct file *img);
 void draw_fg(struct file *img);
 void draw_image(struct image *img, unsigned int px, unsigned int py);
