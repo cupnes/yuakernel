@@ -252,6 +252,8 @@ void connect_syn(struct tcp_session *session)
 	puts("\r\n");
 
 	send_packet(send_buf, len);
+
+	session->id++;
 }
 
 void connect_synack(struct tcp_session *session)
