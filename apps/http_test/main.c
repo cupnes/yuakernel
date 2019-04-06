@@ -254,6 +254,7 @@ void connect_syn(struct tcp_session *session)
 	send_packet(send_buf, len);
 
 	session->id++;
+	session->seq_num++;
 }
 
 void connect_synack(struct tcp_session *session)
@@ -275,11 +276,10 @@ void connect_synack(struct tcp_session *session)
 		if (!(tcp_h->header_length_flags & TCP_FLAGS_ACK))
 			continue;
 
-		if (tcp_h->ack_num != (session->seq_num + 1))
+		if (tcp_h->ack_num != session->seq_num)
 			continue;
 
-		session->seq_num++;
-		session->ack_num = tcp_h->ack_num;
+		session->ack_num = tcp_h->ack_num + 1;
 		break;
 	}
 }
