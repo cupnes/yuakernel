@@ -47,29 +47,30 @@ struct __attribute__((packed)) tcp_header {
 	unsigned short window_size;
 	unsigned short check_sum;
 	unsigned short urgent_pointer;
+};
+
+struct __attribute__((packed)) tcp_header_options_a {
 	struct __attribute__((packed)) {
-		struct __attribute__((packed)) {
-			unsigned char kind;
-			unsigned char length;
-			unsigned short mss_value;
-		} max_seg_size;
-		struct __attribute__((packed)) {
-			unsigned char kind;
-			unsigned char length;
-		} tcp_sack_permit;
-		struct __attribute__((packed)) {
-			unsigned char kind;
-			unsigned char length;
-			unsigned int timestamp_value;
-			unsigned int timestamp_echo_replay;
-		} timestamp;
-		unsigned char nop;
-		struct __attribute__((packed)) {
-			unsigned char kind;
-			unsigned char length;
-			unsigned char shift_count;
-		} window_scale;
-	} options;
+		unsigned char kind;
+		unsigned char length;
+		unsigned short mss_value;
+	} max_seg_size;
+	struct __attribute__((packed)) {
+		unsigned char kind;
+		unsigned char length;
+	} tcp_sack_permit;
+	struct __attribute__((packed)) {
+		unsigned char kind;
+		unsigned char length;
+		unsigned int timestamp_value;
+		unsigned int timestamp_echo_replay;
+	} timestamp;
+	unsigned char nop;
+	struct __attribute__((packed)) {
+		unsigned char kind;
+		unsigned char length;
+		unsigned char shift_count;
+	} window_scale;
 };
 
 struct tcp_session {
@@ -156,6 +157,7 @@ void connect_syn(struct tcp_session *session)
 	struct ethernet_header *eth_h;
 	struct ip_header *ip_h;
 	struct tcp_header *tcp_h;
+	struct tcp_header_options_a *tcp_opt_h;
 
 	unsigned int i;
 	unsigned char *p;
@@ -208,19 +210,23 @@ void connect_syn(struct tcp_session *session)
 	tcp_h->window_size = swap_byte_2(29200);
 	tcp_h->check_sum = swap_byte_2(0xc221);
 	tcp_h->urgent_pointer = 0;
-	tcp_h->options.max_seg_size.kind = 2;
-	tcp_h->options.max_seg_size.length = 4;
-	tcp_h->options.max_seg_size.mss_value = swap_byte_2(1460);
-	tcp_h->options.tcp_sack_permit.kind = 4;
-	tcp_h->options.tcp_sack_permit.length = 2;
-	tcp_h->options.timestamp.kind = 8;
-	tcp_h->options.timestamp.length = 10;
-	tcp_h->options.timestamp.timestamp_value = swap_byte_4(145763);
-	tcp_h->options.timestamp.timestamp_echo_replay = 0;
-	tcp_h->options.nop = 1;
-	tcp_h->options.window_scale.kind = 3;
-	tcp_h->options.window_scale.length = 3;
-	tcp_h->options.window_scale.shift_count = 7;
+
+	/* tcp (options) */
+	base_addr += sizeof(struct tcp_header);
+	tcp_opt_h = (struct tcp_header_options_a *)base_addr;
+	tcp_opt_h->max_seg_size.kind = 2;
+	tcp_opt_h->max_seg_size.length = 4;
+	tcp_opt_h->max_seg_size.mss_value = swap_byte_2(1460);
+	tcp_opt_h->tcp_sack_permit.kind = 4;
+	tcp_opt_h->tcp_sack_permit.length = 2;
+	tcp_opt_h->timestamp.kind = 8;
+	tcp_opt_h->timestamp.length = 10;
+	tcp_opt_h->timestamp.timestamp_value = swap_byte_4(145763);
+	tcp_opt_h->timestamp.timestamp_echo_replay = 0;
+	tcp_opt_h->nop = 1;
+	tcp_opt_h->window_scale.kind = 3;
+	tcp_opt_h->window_scale.length = 3;
+	tcp_opt_h->window_scale.shift_count = 7;
 
 	/* p = (unsigned char *)tcp_h; */
 	/* for (i = 0; i < sizeof(struct tcp_header); i++) { */
@@ -232,7 +238,8 @@ void connect_syn(struct tcp_session *session)
 	p = (unsigned char *)send_buf;
 	for (i = 0;
 	     i < (sizeof(struct ethernet_header) + sizeof(struct ip_header)
-		  + sizeof(struct tcp_header)); i++) {
+		  + sizeof(struct tcp_header)
+		  + sizeof(struct tcp_header_options_a)); i++) {
 		puth(*p++, 2);
 		putchar(' ');
 	}
