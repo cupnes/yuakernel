@@ -239,15 +239,19 @@ void connect_syn(struct tcp_session *session)
 	/* } */
 	/* puts("\r\n"); */
 
+	unsigned short len =
+		sizeof(struct ethernet_header) + sizeof(struct ip_header)
+		+ sizeof(struct tcp_header)
+		+ sizeof(struct tcp_header_options_a);
+
 	p = (unsigned char *)send_buf;
-	for (i = 0;
-	     i < (sizeof(struct ethernet_header) + sizeof(struct ip_header)
-		  + sizeof(struct tcp_header)
-		  + sizeof(struct tcp_header_options_a)); i++) {
+	for (i = 0; i < len; i++) {
 		puth(*p++, 2);
 		putchar(' ');
 	}
 	puts("\r\n");
+
+	send_packet(send_buf, len);
 }
 
 void connect_synack(struct tcp_session *session)
