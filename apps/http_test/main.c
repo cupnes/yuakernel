@@ -238,7 +238,7 @@ void connect_syn(struct tcp_session *session)
 	puts("\r\n");
 }
 
-void connect_ack(struct tcp_session *session)
+void connect_synack(struct tcp_session *session)
 {
 	while (1) {
 		unsigned short len;
@@ -250,6 +250,9 @@ void connect_ack(struct tcp_session *session)
 		struct tcp_header *tcp_h = (struct tcp_header *)(
 			packet_buf + sizeof(struct ethernet_header)
 			+ sizeof(struct ip_header));
+
+		if (!(tcp_h->header_length_flags & TCP_FLAGS_SYN))
+			continue;
 
 		if (!(tcp_h->header_length_flags & TCP_FLAGS_ACK))
 			continue;
@@ -270,7 +273,7 @@ struct tcp_session *connect(
 	struct tcp_session *session =
 		connect_init(dst_mac, dst_ip, src_port, dst_port);
 	connect_syn(session);
-	connect_ack(session);
+	connect_synack(session);
 
 	return session;
 }
