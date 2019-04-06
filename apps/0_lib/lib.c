@@ -2,6 +2,7 @@
 
 #ifdef RUN_LOCAL
 #include <stdio.h>
+#include <local_conf.h>
 #endif
 
 /* 64bit unsignedの最大値0xffffffffffffffffは
@@ -289,5 +290,14 @@ void finish_task(int task_id)
 
 void get_mac(unsigned char *mac)
 {
+#ifndef RUN_LOCAL
 	syscall(SYSCALL_GET_MAC, (unsigned long long)mac, 0, 0);
+#else
+	mac[0] = LOCAL_MAC_0;
+	mac[1] = LOCAL_MAC_1;
+	mac[2] = LOCAL_MAC_2;
+	mac[3] = LOCAL_MAC_3;
+	mac[4] = LOCAL_MAC_4;
+	mac[5] = LOCAL_MAC_5;
+#endif
 }

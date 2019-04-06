@@ -5,6 +5,7 @@ unsigned char buf_idx;
 unsigned char screen_buf[BUF_NUM][SCREEN_HEIGHT][SCREEN_WIDTH];
 
 static void init(void);
+static void init2(void);
 static void draw(void);
 static void gen_next(void);
 static void sleep_next(void);
@@ -18,6 +19,12 @@ int main(void)
 	init();
 	draw();
 	sleep_next();
+
+	init2();
+	draw();
+	sleep_next();
+
+	while (1);
 
 	while (1) {
 		gen_next();
@@ -38,10 +45,25 @@ static void init(void)
 		for (x = 0; x < SCREEN_WIDTH; x++) {
 			screen_buf[next_idx][y][x] = 0;
 
-			if ((x * y) % 2)
+			if (x == y)
 				screen_buf[buf_idx][y][x] = 1;
 		}
 	}
+}
+
+static void init2(void)
+{
+	buf_idx = (buf_idx + 1) % 2;
+
+	unsigned int x, y;
+	for (y = 0; y < SCREEN_HEIGHT; y++) {
+		for (x = 0; x < SCREEN_WIDTH; x++) {
+			screen_buf[buf_idx][y][x] = 0;
+		}
+	}
+
+	for (x = 0; x < SCREEN_WIDTH; x++)
+		screen_buf[buf_idx][x * x][x] = 1;
 }
 
 static void draw(void)
