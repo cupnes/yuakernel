@@ -336,7 +336,7 @@ void connect_ack(struct tcp_session *session)
 	unsigned short len =
 		sizeof(struct ethernet_header) + sizeof(struct ip_header)
 		+ sizeof(struct tcp_header)
-		+ sizeof(struct tcp_header_options_a);
+		+ sizeof(struct tcp_header_options_b);
 
 	send_packet(send_buf, len);
 
