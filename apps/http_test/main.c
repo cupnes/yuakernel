@@ -117,6 +117,7 @@ struct tcp_session *connect(
 	unsigned char dst_mac[], unsigned char dst_ip[],
 	unsigned short src_port, unsigned short dst_port);
 void http_get(struct tcp_session *session);
+void http_rcv(struct tcp_session *session);
 void disconnect(struct tcp_session *session);
 
 int main(void)
@@ -132,6 +133,7 @@ int main(void)
 	session = connect(default_gw_mac, cupnes_com_ip, SRC_PORT, HTTP_PORT);
 
 	http_get(session);
+	http_rcv(session);
 
 	/* disconnect(session); */
 
@@ -407,6 +409,47 @@ void http_get(struct tcp_session *session)
 
 	session->id++;
 	session->seq_num++;
+}
+
+void http_rcv(struct tcp_session *session)
+{
+	while (1) {
+		unsigned short len;
+		receive_packet(recv_buf, &len);
+
+		if (len == 0)
+			continue;
+
+		unsigned long long base_addr =
+			(unsigned long long)recv_buf
+			+ sizeof(struct ethernet_header)
+			+ sizeof(struct ip_header);
+		struct tcp_header *tcp_h = (struct tcp_header *)base_addr;
+
+		if (!(tcp_h->header_length_flags & TCP_FLAGS_PSH))
+			continue;
+
+		if (!(tcp_h->header_length_flags & TCP_FLAGS_ACK))
+			continue;
+
+		base_addr += sizeof(struct tcp_header)
+			+ sizeof(struct tcp_header_options_b);
+
+		len -= sizeof(struct ethernet_header) + sizeof(struct ip_header)
+			+ sizeof(struct tcp_header)
+			+ sizeof(struct tcp_header_options_b);
+
+		unsigned char *http_rcv = (unsigned char *)base_addr;
+		unsigned int i;
+		for (i = 0; i < len; i++) {
+			puth(*http_rcv++, 2);
+			putchar(' ');
+		}
+		puts("\r\n");
+
+		session->ack_num = tcp_h->ack_num + 1;
+		break;
+	}
 }
 
 void disconnect(struct tcp_session *session __attribute__((unused)))
