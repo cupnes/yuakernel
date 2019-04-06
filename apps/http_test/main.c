@@ -16,6 +16,7 @@
 
 #define TCP_HEADER_LEN_SHIFT	12
 #define TCP_FLAGS_SYN	0x0002
+#define TCP_FLAGS_ACK	0x0010
 
 struct __attribute__((packed)) ethernet_header {
 	unsigned char dst_mac[6];
@@ -237,6 +238,31 @@ void connect_syn(struct tcp_session *session)
 	puts("\r\n");
 }
 
+void connect_ack(struct tcp_session *session)
+{
+	while (1) {
+		unsigned short len;
+		receive_packet(packet_buf, &len);
+
+		if (len == 0)
+			continue;
+
+		struct tcp_header *tcp_h = (struct tcp_header *)(
+			packet_buf + sizeof(struct ethernet_header)
+			+ sizeof(struct ip_header));
+
+		if (!(tcp_h->header_length_flags & TCP_FLAGS_ACK))
+			continue;
+
+		if (tcp_h->ack_num != (session->seq_num + 1))
+			continue;
+
+		session->seq_num++;
+		session->ack_num = tcp_h->ack_num;
+		break;
+	}
+}
+
 struct tcp_session *connect(
 	unsigned char dst_mac[], unsigned char dst_ip[],
 	unsigned short src_port, unsigned short dst_port)
@@ -244,6 +270,7 @@ struct tcp_session *connect(
 	struct tcp_session *session =
 		connect_init(dst_mac, dst_ip, src_port, dst_port);
 	connect_syn(session);
+	connect_ack(session);
 
 	return session;
 }
