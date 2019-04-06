@@ -6,6 +6,8 @@
 #define SRC_PORT	51268
 #define HTTP_PORT	80
 
+#define DEFAULT_ID_NUM	0xb761
+
 #define DEFAULT_SEQ_NUM	0x5e1a8e02
 
 #define FRAME_TYPE_IP	0x0800
@@ -76,6 +78,7 @@ struct __attribute__((packed)) tcp_header_options_a {
 struct tcp_session {
 	unsigned char dst_mac[6];
 	unsigned char dst_ip[4];
+	unsigned short id;
 	unsigned short src_port;
 	unsigned short dst_port;
 	unsigned int seq_num;
@@ -143,6 +146,7 @@ struct tcp_session *connect_init(
 		session_buf.dst_mac[i] = dst_mac[i];
 	for (i = 0; i < 4; i++)
 		session_buf.dst_ip[i] = dst_ip[i];
+	session_buf.id = DEFAULT_ID_NUM;
 	session_buf.src_port = src_port;
 	session_buf.dst_port = dst_port;
 	session_buf.seq_num = DEFAULT_SEQ_NUM;
@@ -183,7 +187,7 @@ void connect_syn(struct tcp_session *session)
 	ip_h->ihl = 5;
 	ip_h->service_type = 0x00;
 	ip_h->total_length = swap_byte_2(60);
-	ip_h->identification = swap_byte_2(0xb761);
+	ip_h->identification = swap_byte_2(session->id);
 	ip_h->fragment_offset = swap_byte_2(IP_HEADER_FLAGS_DF);
 	ip_h->ttl = 64;
 	ip_h->protocol = IP_HEADER_PROTOCOL_TCP;
