@@ -89,7 +89,8 @@ unsigned char cupnes_com_ip[4] = {49, 212, 139, 172};
 /* 0x31, 0xd4, 0x8b, 0xac */
 
 unsigned char own_mac[6];
-unsigned char packet_buf[PACKET_BUF_SIZE];
+unsigned char send_buf[PACKET_BUF_SIZE];
+unsigned char recv_buf[PACKET_BUF_SIZE];
 struct tcp_session session_buf;
 
 unsigned short swap_byte_2(unsigned short data);
@@ -160,7 +161,7 @@ void connect_syn(struct tcp_session *session)
 	unsigned char *p;
 
 	/* frame */
-	base_addr = (unsigned long long)packet_buf;
+	base_addr = (unsigned long long)send_buf;
 	eth_h = (struct ethernet_header *)base_addr;
 	memcpy(eth_h->dst_mac, session->dst_mac, 6);
 	memcpy(eth_h->src_mac, own_mac, 6);
@@ -228,7 +229,7 @@ void connect_syn(struct tcp_session *session)
 	/* } */
 	/* puts("\r\n"); */
 
-	p = (unsigned char *)packet_buf;
+	p = (unsigned char *)send_buf;
 	for (i = 0;
 	     i < (sizeof(struct ethernet_header) + sizeof(struct ip_header)
 		  + sizeof(struct tcp_header)); i++) {
@@ -242,13 +243,13 @@ void connect_synack(struct tcp_session *session)
 {
 	while (1) {
 		unsigned short len;
-		receive_packet(packet_buf, &len);
+		receive_packet(recv_buf, &len);
 
 		if (len == 0)
 			continue;
 
 		struct tcp_header *tcp_h = (struct tcp_header *)(
-			packet_buf + sizeof(struct ethernet_header)
+			recv_buf + sizeof(struct ethernet_header)
 			+ sizeof(struct ip_header));
 
 		if (!(tcp_h->header_length_flags & TCP_FLAGS_SYN))
