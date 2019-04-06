@@ -75,6 +75,17 @@ struct __attribute__((packed)) tcp_header_options_a {
 	} window_scale;
 };
 
+struct __attribute__((packed)) tcp_header_options_b {
+	unsigned char nop_1;
+	unsigned char nop_2;
+	struct __attribute__((packed)) {
+		unsigned char kind;
+		unsigned char length;
+		unsigned int timestamp_value;
+		unsigned int timestamp_echo_replay;
+	} timestamp;
+};
+
 struct tcp_session {
 	unsigned char dst_mac[6];
 	unsigned char dst_ip[4];
@@ -284,6 +295,55 @@ void connect_synack(struct tcp_session *session)
 	}
 }
 
+void connect_ack(struct tcp_session *session)
+{
+	unsigned long long base_addr;
+	struct ip_header *ip_h;
+	struct tcp_header *tcp_h;
+	struct tcp_header_options_b *tcp_opt_h;
+
+	unsigned int i;
+	unsigned char *p;
+
+	/* frame */
+	base_addr = (unsigned long long)send_buf;
+
+	/* ip */
+	base_addr += sizeof(struct ethernet_header);
+	ip_h = (struct ip_header *)base_addr;
+	ip_h->total_length = swap_byte_2(52);
+	ip_h->identification = swap_byte_2(session->id);
+
+	/* tcp */
+	base_addr += sizeof(struct ip_header);
+	tcp_h = (struct tcp_header *)base_addr;
+	tcp_h->seq_num = swap_byte_4(session->seq_num);
+	tcp_h->ack_num = swap_byte_4(session->ack_num);
+	tcp_h->header_length_flags =
+		swap_byte_2((8U << TCP_HEADER_LEN_SHIFT) | TCP_FLAGS_ACK);
+	tcp_h->window_size = swap_byte_2(229);
+
+	/* tcp (options) */
+	base_addr += sizeof(struct tcp_header);
+	tcp_opt_h = (struct tcp_header_options_b *)base_addr;
+	tcp_opt_h->nop_1 = 1;
+	tcp_opt_h->nop_2 = 1;
+	tcp_opt_h->timestamp.kind = 8;
+	tcp_opt_h->timestamp.length = 10;
+	tcp_opt_h->timestamp.timestamp_value = swap_byte_4(145770);
+	tcp_opt_h->timestamp.timestamp_echo_replay = swap_byte_4(2512521363);
+
+	unsigned short len =
+		sizeof(struct ethernet_header) + sizeof(struct ip_header)
+		+ sizeof(struct tcp_header)
+		+ sizeof(struct tcp_header_options_a);
+
+	send_packet(send_buf, len);
+
+	session->id++;
+	session->seq_num++;
+}
+
 struct tcp_session *connect(
 	unsigned char dst_mac[], unsigned char dst_ip[],
 	unsigned short src_port, unsigned short dst_port)
@@ -292,6 +352,7 @@ struct tcp_session *connect(
 		connect_init(dst_mac, dst_ip, src_port, dst_port);
 	connect_syn(session);
 	connect_synack(session);
+	connect_ack(session);
 
 	return session;
 }
