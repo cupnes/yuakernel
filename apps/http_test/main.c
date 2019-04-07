@@ -113,6 +113,8 @@ struct tcp_session session_buf;
 unsigned short swap_byte_2(unsigned short data);
 unsigned int swap_byte_4(unsigned int data);
 
+unsigned short get_ip_checksum(struct ip_header *ip_h);
+
 struct tcp_session *connect(
 	unsigned char dst_mac[], unsigned char dst_ip[],
 	unsigned short src_port, unsigned short dst_port);
@@ -149,6 +151,24 @@ unsigned int swap_byte_4(unsigned int data)
 {
 	return (data << 24) | ((data << 8) & 0x00ff0000)
 		| ((data >> 8) & 0x0000ff00) | (data >> 24);
+}
+
+unsigned short get_ip_checksum(struct ip_header *ip_h)
+{
+	unsigned short *p = (unsigned short *)ip_h;
+	unsigned int i;
+	unsigned int sum = 0;
+
+	for (i = 0; i < (sizeof(struct ip_header) / 2); i++)
+		sum += swap_byte_2(*p++);
+
+	unsigned int carry = sum >> 16;
+	sum &= 0x0000ffff;
+
+	sum += carry;
+
+	unsigned short t = sum;
+	return ~t;
 }
 
 struct tcp_session *connect_init(
@@ -206,9 +226,10 @@ void connect_syn(struct tcp_session *session)
 	ip_h->fragment_offset = swap_byte_2(IP_HEADER_FLAGS_DF);
 	ip_h->ttl = 64;
 	ip_h->protocol = IP_HEADER_PROTOCOL_TCP;
-	ip_h->header_checksum = swap_byte_2(0x5da3);
+	ip_h->header_checksum = 0;
 	memcpy(ip_h->src_ip, own_ip, 4);
 	memcpy(ip_h->dst_ip, session->dst_ip, 4);
+	ip_h->header_checksum = swap_byte_2(get_ip_checksum(ip_h));
 
 	/* p = (unsigned char *)ip_h; */
 	/* for (i = 0; i < sizeof(struct ip_header); i++) { */
