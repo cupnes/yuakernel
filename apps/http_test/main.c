@@ -6,11 +6,6 @@
 #define SRC_PORT	51268
 #define HTTP_PORT	80
 
-#define DEFAULT_ID_NUM	0xb761
-
-/* #define DEFAULT_SEQ_NUM	0x5e1a8e02 */
-#define DEFAULT_SEQ_NUM	0
-
 #define FRAME_TYPE_IP	0x0800
 
 #define IP_HEADER_PROTOCOL_TCP	0x06
@@ -220,16 +215,21 @@ struct tcp_session *connect_init(
 	unsigned char dst_mac[], unsigned char dst_ip[],
 	unsigned short src_port, unsigned short dst_port)
 {
+	struct datetime dt;
+	get_datetime(&dt);
+
 	unsigned char i;
 
 	for (i = 0; i < 6; i++)
 		session_buf.dst_mac[i] = dst_mac[i];
 	for (i = 0; i < 4; i++)
 		session_buf.dst_ip[i] = dst_ip[i];
-	session_buf.id = DEFAULT_ID_NUM;
+	session_buf.id = (unsigned short)dt.min << 8 | dt.sec;
 	session_buf.src_port = src_port;
 	session_buf.dst_port = dst_port;
-	session_buf.seq_num = DEFAULT_SEQ_NUM;
+	session_buf.seq_num =
+		(unsigned int)dt.week << 24 | (unsigned int)dt.hour << 16
+		| (unsigned int)dt.min << 8 | dt.sec;
 	session_buf.ack_num = 0;
 
 	return &session_buf;
