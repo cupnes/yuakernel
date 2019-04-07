@@ -351,6 +351,8 @@ void connect_syn(struct tcp_session *session)
 
 void connect_synack(struct tcp_session *session)
 {
+	nic_rx_enable();
+
 	while (1) {
 		unsigned short len;
 		receive_packet(recv_buf, &len);

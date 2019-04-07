@@ -301,3 +301,8 @@ void get_mac(unsigned char *mac)
 	mac[5] = LOCAL_MAC_5;
 #endif
 }
+
+void nic_rx_enable(void)
+{
+	syscall(SYSCALL_NIC_RX_EN, 0, 0, 0);
+}

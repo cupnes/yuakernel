@@ -51,6 +51,7 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_MAC,
 	SYSCALL_DRAW_PX_FG,
 	SYSCALL_DRAW_PX_BG,
+	SYSCALL_NIC_RX_EN,
 	MAX_SYSCALL_NUM
 };
 
@@ -311,6 +312,7 @@ void get_datetime(struct datetime *dt);
 void sleep(unsigned long long us);
 void finish_task(int task_id);
 void get_mac(unsigned char *mac);
+void nic_rx_enable(void);
 
 extern struct framebuffer *fb;
 
