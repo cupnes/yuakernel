@@ -261,9 +261,15 @@ void rxinit(void)
 	i218v_write_reg(I218V_REG_RXDESCTAIL, I218V_NUM_RX_DESC - 1);
 	rx_cur = 0;
 	i218v_write_reg(I218V_REG_RCTRL,
-			RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE
+			RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE
 			| RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_2048);
 
+}
+
+void nic_rx_enable(void)
+{
+	unsigned int rctrl = i218v_read_reg(I218V_REG_RCTRL);
+	i218v_write_reg(I218V_REG_RCTRL, rctrl | RCTL_EN);
 }
 
 void txinit(void)

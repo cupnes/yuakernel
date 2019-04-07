@@ -114,6 +114,7 @@ void i218v_write_reg(unsigned short ofs, unsigned int val);
 void handleReceive(void);
 unsigned int switch_endian32(unsigned int nb);
 void rxinit(void);
+void nic_rx_enable(void);
 void txinit(void);
 void sendPacket(const void *p_data, unsigned short p_len);
 void receive_packet(void *p_data, unsigned short *p_len);

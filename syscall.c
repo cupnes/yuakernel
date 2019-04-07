@@ -39,6 +39,7 @@ enum SYSCCALL_NO {
 	SYSCALL_GET_MAC,
 	SYSCALL_DRAW_PX_FG,
 	SYSCALL_DRAW_PX_BG,
+	SYSCALL_NIC_RX_EN,
 	MAX_SYSCALL_NUM
 };
 
@@ -155,6 +156,10 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_DRAW_PX_BG:
 		draw_px_bg(arg1, arg2);
+		break;
+
+	case SYSCALL_NIC_RX_EN:
+		nic_rx_enable();
 		break;
 	}
 
