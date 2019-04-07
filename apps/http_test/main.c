@@ -359,20 +359,35 @@ void connect_synack(struct tcp_session *session)
 
 		if (len == 0)
 			continue;
+		puts("len=0x");
+		puth(len, 4);
+		puts("\r\n");
 
 		struct tcp_header *tcp_h = (struct tcp_header *)(
 			recv_buf + sizeof(struct ethernet_header)
 			+ sizeof(struct ip_header));
 
+		puts("header_length_flags=0x");
+		puth(tcp_h->header_length_flags, 4);
+		puts("\r\n");
+
 		if (!(tcp_h->header_length_flags & TCP_FLAGS_SYN))
 			continue;
+		puts("SYN=1\r\n");
 
 		if (!(tcp_h->header_length_flags & TCP_FLAGS_ACK))
 			continue;
+		puts("ACK=1\r\n");
 
 		unsigned int ack_num_le = swap_byte_4(tcp_h->ack_num);
+		puts("ack_num_le=0x");
+		puth(ack_num_le, 8);
+		puts("\r\n");
 		if (ack_num_le != session->seq_num)
 			continue;
+		puts("ack_num_le!=seq_num(0x");
+		puth(session->seq_num, 8);
+		puts(")\r\n");
 
 		session->ack_num = ack_num_le + 1;
 		break;
