@@ -1,6 +1,8 @@
 #include <lib.h>
 #include <local_conf.h>
 
+#define EPHEMERAL_PORT_MIN	49152
+
 #define PACKET_BUF_SIZE	1024
 
 #define SRC_PORT	51268
@@ -115,7 +117,7 @@ unsigned short get_tcp_checksum(struct tcp_header *tcp_h, struct tcp_session *se
 
 struct tcp_session *connect(
 	unsigned char dst_mac[], unsigned char dst_ip[],
-	unsigned short src_port, unsigned short dst_port);
+	unsigned short dst_port);
 void http_get(struct tcp_session *session);
 void http_rcv(struct tcp_session *session);
 void disconnect(struct tcp_session *session);
@@ -130,7 +132,7 @@ int main(void)
 
 	struct tcp_session *session;
 
-	session = connect(default_gw_mac, cupnes_com_ip, SRC_PORT, HTTP_PORT);
+	session = connect(default_gw_mac, cupnes_com_ip, HTTP_PORT);
 
 	http_get(session);
 	http_rcv(session);
@@ -213,7 +215,7 @@ unsigned short get_tcp_checksum(struct tcp_header *tcp_h,
 
 struct tcp_session *connect_init(
 	unsigned char dst_mac[], unsigned char dst_ip[],
-	unsigned short src_port, unsigned short dst_port)
+	unsigned short dst_port)
 {
 	struct datetime dt;
 	get_datetime(&dt);
@@ -225,7 +227,7 @@ struct tcp_session *connect_init(
 	for (i = 0; i < 4; i++)
 		session_buf.dst_ip[i] = dst_ip[i];
 	session_buf.id = (unsigned short)dt.min << 8 | dt.sec;
-	session_buf.src_port = src_port;
+	session_buf.src_port = EPHEMERAL_PORT_MIN + dt.sec;
 	session_buf.dst_port = dst_port;
 	session_buf.seq_num =
 		(unsigned int)dt.week << 24 | (unsigned int)dt.hour << 16
@@ -366,10 +368,11 @@ void connect_synack(struct tcp_session *session)
 		if (!(tcp_h->header_length_flags & TCP_FLAGS_ACK))
 			continue;
 
-		if (tcp_h->ack_num != session->seq_num)
+		unsigned int ack_num_le = swap_byte_4(tcp_h->ack_num);
+		if (ack_num_le != session->seq_num)
 			continue;
 
-		session->ack_num = tcp_h->ack_num + 1;
+		session->ack_num = ack_num_le + 1;
 		break;
 	}
 }
@@ -422,10 +425,10 @@ void connect_ack(struct tcp_session *session)
 
 struct tcp_session *connect(
 	unsigned char dst_mac[], unsigned char dst_ip[],
-	unsigned short src_port, unsigned short dst_port)
+	unsigned short dst_port)
 {
 	struct tcp_session *session =
-		connect_init(dst_mac, dst_ip, src_port, dst_port);
+		connect_init(dst_mac, dst_ip, dst_port);
 	connect_syn(session);
 	connect_synack(session);
 	connect_ack(session);
