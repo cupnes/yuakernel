@@ -38,7 +38,10 @@ static void init(void)
 		for (x = 0; x < SCREEN_WIDTH; x++) {
 			screen_buf[next_idx][y][x] = 0;
 
-			if ((x == y) || (y == x + 1) || (y == x + 2))
+			if ((x == y) || (y == x + 1) || (y == x + 2) || (y == SCREEN_HEIGHT - x) || (y == SCREEN_HEIGHT - x - 1))
+				screen_buf[buf_idx][y][x] = 1;
+
+			if (((x + y) % 2) && ((x + y) % 3))
 				screen_buf[buf_idx][y][x] = 1;
 		}
 	}
