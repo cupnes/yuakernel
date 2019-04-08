@@ -12,8 +12,13 @@
 
 #define MAX_FILES	100
 
+#ifndef RUN_LOCAL
 #define SCREEN_WIDTH	640
 #define SCREEN_HEIGHT	480
+#else
+#define SCREEN_WIDTH	100
+#define SCREEN_HEIGHT	35
+#endif
 
 #define FONT_WIDTH	24
 #define FONT_HEIGHT	32

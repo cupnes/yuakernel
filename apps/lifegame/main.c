@@ -5,7 +5,6 @@ unsigned char buf_idx;
 unsigned char screen_buf[BUF_NUM][SCREEN_HEIGHT][SCREEN_WIDTH];
 
 static void init(void);
-static void init2(void);
 static void draw(void);
 static void gen_next(void);
 static void sleep_next(void);
@@ -19,12 +18,6 @@ int main(void)
 	init();
 	draw();
 	sleep_next();
-
-	init2();
-	draw();
-	sleep_next();
-
-	while (1);
 
 	while (1) {
 		gen_next();
@@ -45,27 +38,13 @@ static void init(void)
 		for (x = 0; x < SCREEN_WIDTH; x++) {
 			screen_buf[next_idx][y][x] = 0;
 
-			if (x == y)
+			if ((x == y) || (y == x + 1) || (y == x + 2))
 				screen_buf[buf_idx][y][x] = 1;
 		}
 	}
 }
 
-static void init2(void)
-{
-	buf_idx = (buf_idx + 1) % 2;
-
-	unsigned int x, y;
-	for (y = 0; y < SCREEN_HEIGHT; y++) {
-		for (x = 0; x < SCREEN_WIDTH; x++) {
-			screen_buf[buf_idx][y][x] = 0;
-		}
-	}
-
-	for (x = 0; x < SCREEN_WIDTH; x++)
-		screen_buf[buf_idx][x * x][x] = 1;
-}
-
+#ifndef RUN_LOCAL
 static void draw(void)
 {
 	unsigned char old_idx = (buf_idx + 1) % 2;
@@ -82,36 +61,80 @@ static void draw(void)
 		}
 	}
 }
+#else
+static void draw(void)
+{
+/* #ifdef RUN_LOCAL */
+/* 	printf("## begin: %s\n", __func__); */
+/* #endif */
+
+	unsigned int x, y;
+	for (y = 0; y < SCREEN_HEIGHT; y++) {
+		for (x = 0; x < SCREEN_WIDTH; x++) {
+			if (screen_buf[buf_idx][y][x])
+				putchar('*');
+			else
+				putchar(' ');
+		}
+		putchar('\n');
+	}
+	printf("--\n");
+
+/* #ifdef RUN_LOCAL */
+/* 	printf("## end: %s\n", __func__); */
+/* #endif */
+}
+#endif
 
 static unsigned char is_life(int x, int y)
 {
+/* #ifdef RUN_LOCAL */
+/* 	printf("## is_life: x=%d, y=%d\n", x, y); */
+/* #endif */
+
 	if (x < 0)
 		x = SCREEN_WIDTH + x;
 	if (y < 0)
 		y = SCREEN_HEIGHT + y;
+
+/* #ifdef RUN_LOCAL */
+/* 	printf("## is_life: end: x=%d, y=%d\n", x, y); */
+/* #endif */
 
 	return screen_buf[buf_idx][y][x];
 }
 
 static unsigned char get_neighbours_lives(int x, int y)
 {
+/* #ifdef RUN_LOCAL */
+/* 	printf("## %s: begin: x=%d, y=%d\n", __func__, x, y); */
+/* #endif */
+
 	unsigned char lives_num = 0;
 
 	int nx, ny;
-	for (ny = y - 1; ny <= y + 1; y++) {
+	for (ny = y - 1; ny <= y + 1; ny++) {
 		for (nx = x - 1; nx <= x + 1; nx++) {
 			if ((ny == y) && (nx == x))
 				continue;
 
-			lives_num += is_life(x, y);
+			lives_num += is_life(nx, ny);
 		}
 	}
+
+/* #ifdef RUN_LOCAL */
+/* 	printf("## %s: end: x=%d, y=%d, lives_num=%d\n", __func__, x, y, lives_num); */
+/* #endif */
 
 	return lives_num;
 }
 
 static void gen_next(void)
 {
+/* #ifdef RUN_LOCAL */
+/* 	printf("## begin: %s\n", __func__); */
+/* #endif */
+
 	unsigned char next_idx = (buf_idx + 1) % 2;
 	unsigned int x, y;
 	for (y = 0; y < SCREEN_HEIGHT; y++) {
@@ -132,10 +155,21 @@ static void gen_next(void)
 	}
 
 	buf_idx = next_idx;
+
+/* #ifdef RUN_LOCAL */
+/* 	printf("## end: %s\n", __func__); */
+/* #endif */
 }
 
+#ifndef RUN_LOCAL
 static void sleep_next(void)
 {
 	volatile unsigned int wait = 10000;
 	while (wait--);
 }
+#else
+static void sleep_next(void)
+{
+	getchar();
+}
+#endif
