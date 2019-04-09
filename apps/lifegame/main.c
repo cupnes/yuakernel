@@ -30,6 +30,11 @@ int main(void)
 
 static void init(void)
 {
+	struct datetime dt;
+	get_datetime(&dt);
+	unsigned short seed = ((unsigned short)dt.min << 8) | dt.sec;
+	set_seed(seed);
+
 	buf_idx = 0;
 	unsigned char next_idx = (buf_idx + 1) % 2;
 
@@ -38,11 +43,16 @@ static void init(void)
 		for (x = 0; x < SCREEN_WIDTH; x++) {
 			screen_buf[next_idx][y][x] = 0;
 
-			if ((x == y) || (y == x + 1) || (y == x + 2) || (y == SCREEN_HEIGHT - x) || (y == SCREEN_HEIGHT - x - 1))
-				screen_buf[buf_idx][y][x] = 1;
+			/* if ((x == y) || (y == x + 1) || (y == x + 2) || (y == SCREEN_HEIGHT - x) || (y == SCREEN_HEIGHT - x - 1)) */
+			/* 	screen_buf[buf_idx][y][x] = 1; */
 
-			if (((x + y) % 2) && ((x + y) % 3))
+			/* if (((x + y) % 2) && ((x + y) % 3)) */
+			/* 	screen_buf[buf_idx][y][x] = 1; */
+
+			if ((rand() % 10000) >= 5000)
 				screen_buf[buf_idx][y][x] = 1;
+			else
+				screen_buf[buf_idx][y][x] = 0;
 		}
 	}
 }
