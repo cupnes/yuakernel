@@ -306,3 +306,20 @@ void nic_rx_enable(void)
 {
 	syscall(SYSCALL_NIC_RX_EN, 0, 0, 0);
 }
+
+#define LGCS_A	5
+#define LGCS_B	3
+#define LGCS_M	32768
+
+static unsigned short lgcs_x;
+
+void set_seed(unsigned short x_0)
+{
+	lgcs_x = x_0;
+}
+
+unsigned short rand(void)
+{
+	lgcs_x = ((LGCS_A * lgcs_x) + LGCS_B) & (LGCS_M - 1);
+	return lgcs_x;
+}
