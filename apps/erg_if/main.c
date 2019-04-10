@@ -59,6 +59,22 @@ unsigned char is_43 = 0;
 unsigned char is_megane = 0;
 unsigned int exec_counter = 0;
 
+#define OSUNC_NUM_SLIDES 3
+struct file e_osunc = {
+	"e.osunc", 0
+};
+static void osunc_init(void);
+static void osunc_kbdhdr(unsigned char c);
+unsigned int file_idx_osunc;
+unsigned char is_running_osunc = 0;
+char *osunc_file_names[OSUNC_NUM_SLIDES] = {
+	"i.osunc00",
+	"i.osunc01",
+	"i.osunc02"
+};
+struct file *osunc_files[OSUNC_NUM_SLIDES];
+unsigned int osunc_idx;
+
 /* TODO: current_yua */
 
 int main(void)
@@ -130,6 +146,15 @@ static void kbc_handler(unsigned char c)
 		redraw();
 		return;
 	}
+	
+	if (is_running_osunc) {
+		osunc_kbdhdr(c);
+		if (!is_running_osunc) {
+			finish_task(urclock_tid);
+			redraw();
+		}
+		return;
+	}
 
 	unsigned char next_file_idx;
 	next_file_idx = current_file_idx;
@@ -155,9 +180,13 @@ static void kbc_handler(unsigned char c)
 
 		case 'e':
 			exec_counter++;
+			if (current_file_idx == file_idx_osunc)
+				osunc_init();
+			else {
 			finish_task(urclock_tid);
 			exec(filelist[current_file_idx]);
 			redraw();
+			}
 			break;
 		}
 		break;
@@ -233,6 +262,11 @@ static void ls(void)
 
 	struct file *f[MAX_FILES];
 	unsigned long long num_files = get_files(f);
+	
+	f[num_files] = e_osunc;
+	file_idx_osunc = num_files;
+	num_files++;
+	
 	unsigned long long i;
 	move_cursor(FILELIST_NAME_X, FILELIST_BASE_Y);
 	filelist_num = 0;
@@ -255,4 +289,35 @@ static void ls(void)
 
 	draw_image(cursor_img, FILELIST_BASE_X,
 		   FILELIST_BASE_Y + (FONT_HEIGHT * current_file_idx));
+}
+
+static void osunc_init(void)
+{
+	is_running_osunc = 1;
+	
+	unsigned int i;
+	for (i = 0; i < OSUNC_NUM_SLIDES; i++)
+		osunc_files[i] = open(osunc_file_names[i]);
+	
+	osunc_idx = 0;
+	draw_image(osunc_files[osunc_idx], 0, 0);
+}
+
+static void osunc_kbdhdr(unsigned char c)
+{
+	switch (c) {
+	case 'j':
+		if (osunc_idx < (OSUNC_NUM_SLIDES - 1))
+			draw_image(osunc_files[++osunc_idx], 0, 0);
+		break;
+
+	case 'k':
+		if (osunc_idx > 0)
+			draw_image(osunc_files[--osunc_idx], 0, 0);
+		break;
+	
+	case 'e':
+		is_running_osunc = 0;
+		break;
+	}
 }
