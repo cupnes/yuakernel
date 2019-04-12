@@ -59,19 +59,30 @@ unsigned char is_43 = 0;
 unsigned char is_megane = 0;
 unsigned int exec_counter = 0;
 
-#define OSUNC_NUM_SLIDES 3
+#define OSUNC_NUM_SLIDES 15
 struct file e_osunc = {
 	"e.osunc", 0
 };
 static void osunc_init(void);
 static void osunc_start(void);
 static void osunc_kbdhdr(unsigned char c);
-unsigned int file_idx_osunc;
 unsigned char is_running_osunc = 0;
-char *osunc_file_names[OSUNC_NUM_SLIDES] = {
+char osunc_file_names[OSUNC_NUM_SLIDES][10] = {
 	"i.osunc00",
 	"i.osunc01",
-	"i.osunc02"
+	"i.osunc02",
+	"i.osunc03",
+	"i.osunc04",
+	"i.osunc05",
+	"i.osunc06",
+	"i.osunc07",
+	"i.osunc08",
+	"i.osunc09",
+	"i.osunc10",
+	"i.osunc11",
+	"i.osunc12",
+	"i.osunc13",
+	"i.osunc14"
 };
 struct file *osunc_files[OSUNC_NUM_SLIDES];
 unsigned int osunc_idx;
@@ -183,12 +194,12 @@ static void kbc_handler(unsigned char c)
 
 		case 'e':
 			exec_counter++;
-			if (current_file_idx == file_idx_osunc)
+			finish_task(urclock_tid);
+			if (filelist[current_file_idx] == &e_osunc)
 				osunc_start();
 			else {
-			finish_task(urclock_tid);
-			exec(filelist[current_file_idx]);
-			redraw();
+				exec(filelist[current_file_idx]);
+				redraw();
 			}
 			break;
 		}
@@ -271,7 +282,6 @@ static void ls(void)
 	unsigned long long num_files = get_files(f);
 
 	f[num_files] = &e_osunc;
-	file_idx_osunc = num_files;
 	num_files++;
 
 	unsigned long long i;
