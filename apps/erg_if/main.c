@@ -64,6 +64,7 @@ struct file e_osunc = {
 	"e.osunc", 0
 };
 static void osunc_init(void);
+static void osunc_start(void);
 static void osunc_kbdhdr(unsigned char c);
 unsigned int file_idx_osunc;
 unsigned char is_running_osunc = 0;
@@ -81,6 +82,8 @@ int main(void)
 {
 	open_sysfiles();
 	/* current_yua = sysfile_list[SFID_YUA_IMG]; */
+	osunc_init();
+
 	redraw();
 
 	return 0;
@@ -146,7 +149,7 @@ static void kbc_handler(unsigned char c)
 		redraw();
 		return;
 	}
-	
+
 	if (is_running_osunc) {
 		osunc_kbdhdr(c);
 		if (!is_running_osunc) {
@@ -181,7 +184,7 @@ static void kbc_handler(unsigned char c)
 		case 'e':
 			exec_counter++;
 			if (current_file_idx == file_idx_osunc)
-				osunc_init();
+				osunc_start();
 			else {
 			finish_task(urclock_tid);
 			exec(filelist[current_file_idx]);
@@ -253,6 +256,10 @@ static unsigned char is_sysfile(struct file *f)
 		if (f == sysfile_list[i])
 			return 1;
 	}
+	for (i = 0; i < OSUNC_NUM_SLIDES; i++) {
+		if (f == osunc_files[i])
+			return 1;
+	}
 	return 0;
 }
 
@@ -262,11 +269,11 @@ static void ls(void)
 
 	struct file *f[MAX_FILES];
 	unsigned long long num_files = get_files(f);
-	
-	f[num_files] = e_osunc;
+
+	f[num_files] = &e_osunc;
 	file_idx_osunc = num_files;
 	num_files++;
-	
+
 	unsigned long long i;
 	move_cursor(FILELIST_NAME_X, FILELIST_BASE_Y);
 	filelist_num = 0;
@@ -293,14 +300,18 @@ static void ls(void)
 
 static void osunc_init(void)
 {
-	is_running_osunc = 1;
-	
 	unsigned int i;
 	for (i = 0; i < OSUNC_NUM_SLIDES; i++)
 		osunc_files[i] = open(osunc_file_names[i]);
-	
+
 	osunc_idx = 0;
-	draw_image(osunc_files[osunc_idx], 0, 0);
+}
+
+static void osunc_start(void)
+{
+	is_running_osunc = 1;
+
+	draw_image((struct image *)osunc_files[osunc_idx]->data, 0, 0);
 }
 
 static void osunc_kbdhdr(unsigned char c)
@@ -308,14 +319,18 @@ static void osunc_kbdhdr(unsigned char c)
 	switch (c) {
 	case 'j':
 		if (osunc_idx < (OSUNC_NUM_SLIDES - 1))
-			draw_image(osunc_files[++osunc_idx], 0, 0);
+			draw_image(
+				(struct image *)osunc_files[++osunc_idx]->data,
+				0, 0);
 		break;
 
 	case 'k':
 		if (osunc_idx > 0)
-			draw_image(osunc_files[--osunc_idx], 0, 0);
+			draw_image(
+				(struct image *)osunc_files[--osunc_idx]->data,
+				0, 0);
 		break;
-	
+
 	case 'e':
 		is_running_osunc = 0;
 		break;
