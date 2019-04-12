@@ -313,14 +313,12 @@ static void osunc_init(void)
 	unsigned int i;
 	for (i = 0; i < OSUNC_NUM_SLIDES; i++)
 		osunc_files[i] = open(osunc_file_names[i]);
-
-	osunc_idx = 0;
 }
 
 static void osunc_start(void)
 {
 	is_running_osunc = 1;
-
+	osunc_idx = 0;
 	draw_image((struct image *)osunc_files[osunc_idx]->data, 0, 0);
 }
 
