@@ -359,9 +359,11 @@ void connect_synack(struct tcp_session *session)
 
 		if (len == 0)
 			continue;
-		puts("len=0x");
+		/* puts("len=0x");
 		puth(len, 4);
-		puts("\r\n");
+		puts("\r\n"); */
+
+		struct ethernet_header
 
 		struct tcp_header *tcp_h = (struct tcp_header *)(
 			recv_buf + sizeof(struct ethernet_header)
