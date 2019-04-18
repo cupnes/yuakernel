@@ -1,3 +1,4 @@
+#ifdef RUN_LOCAL
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -17,6 +18,9 @@
 //Perhaps these headers are more general
 //#include <netinet/tcp.h>
 //#include <netinet/ip.h>
+#else
+#include <lib.h>
+#endif
 
 //Data to be sent (appended at the end of the TCP header)
 #define DATA "datastring"
@@ -24,12 +28,27 @@
 //Debug function: dump 'index' bytes beginning at 'buffer'
 void hexdump(unsigned char *buffer, unsigned long index) {
   unsigned long i;
+#ifdef RUN_LOCAL
   printf("hexdump on address %p:\n", buffer);
+#else
+  puts("hexdump on address ");
+  puth((unsigned long long)buffer, 16);
+  puts(":\r\n");
+#endif
   for (i=0;i<index;i++)
   {
+#ifdef RUN_LOCAL
     printf("%02x ",buffer[i]);
+#else
+    puth(buffer[i], 2);
+    putchar(' ');
+#endif
   }
+#ifdef RUN_LOCAL
   printf("\n");
+#else
+  puts("\r\n");
+#endif
 }
 
 //Calculate the TCP header checksum of a string (as specified in rfc793)
@@ -51,7 +70,7 @@ unsigned short csum(unsigned short *ptr,int nbytes) {
   }
   if(nbytes==1) {
     oddbyte=0;
-    *((u_char*)&oddbyte)=*(u_char*)ptr;
+    *((unsigned char *)&oddbyte)=*(unsigned char *)ptr;
     sum+=oddbyte;
   }
 
@@ -65,11 +84,11 @@ unsigned short csum(unsigned short *ptr,int nbytes) {
 
 //Pseudo header needed for calculating the TCP header checksum
 struct pseudoTCPPacket {
-  uint32_t srcAddr;
-  uint32_t dstAddr;
-  uint8_t zero;
-  uint8_t protocol;
-  uint16_t TCP_len;
+  unsigned int srcAddr;
+  unsigned int dstAddr;
+  unsigned char zero;
+  unsigned char protocol;
+  unsigned short TCP_len;
 };
 
 int main(int argc, char **argv) {
@@ -84,7 +103,7 @@ int main(int argc, char **argv) {
   int srcPort = 30001;
 
   //Initial guess for the SEQ field of the TCP header
-  uint32_t initSeqGuess = 1138083240;
+  unsigned int initSeqGuess = 1138083240;
 
   //Data to be appended at the end of the tcp header
   char *data;
@@ -100,7 +119,8 @@ int main(int argc, char **argv) {
 
   //Pseudo TCP Header + TCP Header + data
   char *pseudo_packet;
-  
+
+#ifdef RUN_LOCAL
   //Raw socket without any protocol-header inside
   if((sock = socket(PF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
     perror("Error while creating socket");
@@ -117,6 +137,7 @@ int main(int argc, char **argv) {
   addr_in.sin_family = AF_INET;
   addr_in.sin_port = htons(dstPort);
   addr_in.sin_addr.s_addr = inet_addr(dstIP);
+#endif
 
   //Allocate mem for ip and tcp headers and zero the allocation
   memset(packet, 0, sizeof(packet));
@@ -139,8 +160,14 @@ int main(int argc, char **argv) {
   ipHdr->daddr = inet_addr(dstIP); //32 bit format of source address
 
   //Now we can calculate the check sum for the IP header check field
-  ipHdr->check = csum((unsigned short *) packet, ipHdr->tot_len); 
+  ipHdr->check = csum((unsigned short *) packet, ipHdr->tot_len);
+#ifdef RUN_LOCAL
   printf("IP header checksum: %d\n\n\n", ipHdr->check);
+#else
+  puts("IP header checksum: ");
+  puth(ipHdr->check, 4);
+  puts("\r\n\r\n\r\n");
+#endif
 
   //Populate tcpHdr
   tcpHdr->source = htons(srcPort); //16 bit in nbp format of source port
@@ -190,15 +217,24 @@ int main(int argc, char **argv) {
     tcpHdr->check = (csum((unsigned short *) pseudo_packet, (int) (sizeof(struct pseudoTCPPacket) + 
           sizeof(struct tcphdr) +  strlen(data))));
 
+#ifdef RUN_LOCAL
     printf("TCP Checksum: %d\n", (int) tcpHdr->check);
+#else
+    puts("TCP Checksum: ");
+    puth((int) tcpHdr->check, 8);
+    puts("\r\n");
+#endif
 
     //Finally, send packet
+#ifdef RUN_LOCAL
     if((bytes = sendto(sock, packet, ipHdr->tot_len, 0, (struct sockaddr *) &addr_in, sizeof(addr_in))) < 0) {
       perror("Error on sendto()");
-    }
-    else {
+    } else {
       printf("Success! Sent %d bytes.\n", bytes);
     }
+#else
+    
+#endif
 
     printf("SEQ guess: %u\n\n", initSeqGuess);
 
