@@ -1,6 +1,15 @@
 #include <lib.h>
 #include <local_conf.h>
 
+#ifdef RUN_LOCAL
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <errno.h>
+#endif
+
 #define EPHEMERAL_PORT_MIN	49152
 
 #define PACKET_BUF_SIZE	1024
@@ -95,19 +104,22 @@ struct tcp_session {
 	unsigned int ack_num;
 };
 
-unsigned char own_ip[4] = {LOCAL_IP_0, LOCAL_IP_1, LOCAL_IP_2, LOCAL_IP_3};
-unsigned char default_gw_mac[6] = {
-	DEFAULT_GW_MAC_0, DEFAULT_GW_MAC_1, DEFAULT_GW_MAC_2,
-	DEFAULT_GW_MAC_3, DEFAULT_GW_MAC_4, DEFAULT_GW_MAC_5};
-/* unsigned char cupnes_com_ip[4] = {49, 212, 139, 172}; */
-/* 0x31, 0xd4, 0x8b, 0xac */
-unsigned char cupnes_com_ip[4] = {192, 168, 10, 6};
-char http_request[] = "GET /\r\n";
+unsigned char own_ip[4] = {OWN_IP_0, OWN_IP_1, OWN_IP_2, OWN_IP_3};
+unsigned char server_mac[6] = {
+	SERVER_MAC_0, SERVER_MAC_1, SERVER_MAC_2,
+	SERVER_MAC_3, SERVER_MAC_4, SERVER_MAC_5};
+unsigned char server_ip[4] = {SERVER_IP_0, SERVER_IP_1, SERVER_IP_2, SERVER_IP_3};
+char http_request[] = HTTP_REQUEST;
 
 unsigned char own_mac[6];
 unsigned char send_buf[PACKET_BUF_SIZE];
 unsigned char recv_buf[PACKET_BUF_SIZE];
 struct tcp_session session_buf;
+
+#ifdef RUN_LOCAL
+int sock;
+struct sockaddr_in addr_in;
+#endif
 
 unsigned short swap_byte_2(unsigned short data);
 unsigned int swap_byte_4(unsigned int data);
@@ -115,12 +127,12 @@ unsigned int swap_byte_4(unsigned int data);
 unsigned short get_ip_checksum(struct ip_header *ip_h);
 unsigned short get_tcp_checksum(struct tcp_header *tcp_h, struct tcp_session *session);
 
-struct tcp_session *connect(
+struct tcp_session *ht_connect(
 	unsigned char dst_mac[], unsigned char dst_ip[],
 	unsigned short dst_port);
 void http_get(struct tcp_session *session);
 void http_rcv(struct tcp_session *session);
-void disconnect(struct tcp_session *session);
+void ht_disconnect(struct tcp_session *session);
 
 int main(void)
 {
@@ -132,14 +144,14 @@ int main(void)
 
 	struct tcp_session *session;
 
-	session = connect(default_gw_mac, cupnes_com_ip, HTTP_PORT);
+	session = ht_connect(server_mac, server_ip, HTTP_PORT);
 
-	http_get(session);
-	http_rcv(session);
+	/* http_get(session); */
+	/* http_rcv(session); */
 
 	puts("HTTP RCVED\r\n");
 
-	/* disconnect(session); */
+	/* ht_disconnect(session); */
 
 	return 0;
 }
@@ -234,13 +246,37 @@ struct tcp_session *connect_init(
 		| (unsigned int)dt.min << 8 | dt.sec;
 	session_buf.ack_num = 0;
 
+#ifdef RUN_LOCAL
+	//Raw socket without any protocol-header inside
+	if ((sock = socket(PF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
+		perror("Error while creating socket");
+		exit(-1);
+	}
+
+	//Set option IP_HDRINCL (headers are included in packet)
+	int one = 1;
+	if (setsockopt(sock, IPPROTO_IP, IP_HDRINCL, (char *)&one, sizeof(one)) < 0) {
+		perror("Error while setting socket options");
+		exit(-1);
+	}
+
+	//Populate address struct
+	addr_in.sin_family = AF_INET;
+	addr_in.sin_port = htons(HTTP_PORT);
+	printf("addr_in.sin_port = %04x\n", addr_in.sin_port);
+	addr_in.sin_addr.s_addr = inet_addr(SERVER_IP_CHR);
+	printf("addr_in.sin_addr.s_addr = %08x\n", addr_in.sin_addr.s_addr);
+#endif
+
 	return &session_buf;
 }
 
 void connect_syn(struct tcp_session *session)
 {
 	unsigned long long base_addr;
+#ifndef RUN_LOCAL
 	struct ethernet_header *eth_h;
+#endif
 	struct ip_header *ip_h;
 	struct tcp_header *tcp_h;
 	/* struct tcp_header_options_a *tcp_opt_h; */
@@ -250,6 +286,7 @@ void connect_syn(struct tcp_session *session)
 
 	/* frame */
 	base_addr = (unsigned long long)send_buf;
+#ifndef RUN_LOCAL
 	eth_h = (struct ethernet_header *)base_addr;
 	memcpy(eth_h->dst_mac, session->dst_mac, 6);
 	memcpy(eth_h->src_mac, own_mac, 6);
@@ -264,11 +301,13 @@ void connect_syn(struct tcp_session *session)
 
 	/* ip */
 	base_addr += sizeof(struct ethernet_header);
+#endif
 	ip_h = (struct ip_header *)base_addr;
 	ip_h->version = 4;
 	ip_h->ihl = 5;
 	ip_h->service_type = 0x00;
-	ip_h->total_length = swap_byte_2(sizeof(struct ip_header) + sizeof(struct tcp_header));
+	/* ip_h->total_length = swap_byte_2(sizeof(struct ip_header) + sizeof(struct tcp_header)); */
+	ip_h->total_length = sizeof(struct ip_header) + sizeof(struct tcp_header);
 	ip_h->identification = swap_byte_2(session->id);
 	/* ip_h->fragment_offset = swap_byte_2(IP_HEADER_FLAGS_DF); */
 	ip_h->fragment_offset = 0;
@@ -343,7 +382,36 @@ void connect_syn(struct tcp_session *session)
 	}
 	puts("\r\n");
 
+#ifdef RUN_LOCAL
+	FILE *dump = fopen("dump.hex", "wb");
+	if (dump == NULL) {
+		perror("fopen");
+		exit(-1);
+	}
+	size_t write_bytes = fwrite(send_buf, 1, ip_h->total_length, dump);
+	if (write_bytes != ip_h->total_length) {
+		perror("fwrite");
+		exit(-1);
+	}
+	int result = fclose(dump);
+	if (result == EOF) {
+		perror("fclose");
+		exit(-1);
+	}
+
+	int bytes;
+	if ((bytes = sendto(sock, send_buf, ip_h->total_length, 0,
+			    (struct sockaddr *)&addr_in, sizeof(addr_in))) < 0) {
+		int _e = errno;
+		perror("Error on sendto()");
+		printf("errno: %d\n", _e);
+		exit(-1);
+	} else {
+		printf("Success! Sent %d bytes.\n", bytes);
+	}
+#else
 	send_packet(send_buf, len);
+#endif
 
 	session->id++;
 	session->seq_num++;
@@ -363,11 +431,9 @@ void connect_synack(struct tcp_session *session)
 		puth(len, 4);
 		puts("\r\n"); */
 
-		struct ethernet_header
-
-		struct tcp_header *tcp_h = (struct tcp_header *)(
-			recv_buf + sizeof(struct ethernet_header)
-			+ sizeof(struct ip_header));
+		struct ethernet_header *eth_h = (struct ethernet_header *)recv_buf;
+		struct ip_header *ip_h = (struct ip_header *)(eth_h + 1);
+		struct tcp_header *tcp_h = (struct tcp_header *)(ip_h + 1);
 
 		puts("header_length_flags=0x");
 		puth(tcp_h->header_length_flags, 4);
@@ -442,15 +508,15 @@ void connect_ack(struct tcp_session *session)
 	session->seq_num++;
 }
 
-struct tcp_session *connect(
+struct tcp_session *ht_connect(
 	unsigned char dst_mac[], unsigned char dst_ip[],
 	unsigned short dst_port)
 {
 	struct tcp_session *session =
 		connect_init(dst_mac, dst_ip, dst_port);
 	connect_syn(session);
-	connect_synack(session);
-	connect_ack(session);
+	/* connect_synack(session); */
+	/* connect_ack(session); */
 
 	return session;
 }
@@ -549,7 +615,7 @@ void http_rcv(struct tcp_session *session)
 	}
 }
 
-void disconnect(struct tcp_session *session __attribute__((unused)))
+void ht_disconnect(struct tcp_session *session __attribute__((unused)))
 {
 	return;
 }

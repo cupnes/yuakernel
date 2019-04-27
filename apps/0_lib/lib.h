@@ -318,8 +318,10 @@ void sleep(unsigned long long us);
 void finish_task(int task_id);
 void get_mac(unsigned char *mac);
 void nic_rx_enable(void);
+#ifndef RUN_LOCAL
 void set_seed(unsigned short seed);
 unsigned short rand(void);
+#endif
 
 extern struct framebuffer *fb;
 
