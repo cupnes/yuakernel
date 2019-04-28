@@ -422,11 +422,22 @@ void connect_synack(struct tcp_session *session)
 	nic_rx_enable();
 
 	while (1) {
+		puts("wait for recv\r\n");
+
+#ifdef RUN_LOCAL
+		struct sockaddr saddr;
+		socklen_t slen = sizeof(struct sockaddr);
+		ssize_t len = recvfrom(sock, recv_buf, PACKET_BUF_SIZE, 0,
+				       &saddr, &slen);
+#else
 		unsigned short len;
 		receive_packet(recv_buf, &len);
+#endif
 
-		if (len == 0)
+		if (len == 0) {
+			puts("len = 0\r\n");
 			continue;
+		}
 		/* puts("len=0x");
 		puth(len, 4);
 		puts("\r\n"); */
@@ -515,7 +526,7 @@ struct tcp_session *ht_connect(
 	struct tcp_session *session =
 		connect_init(dst_mac, dst_ip, dst_port);
 	connect_syn(session);
-	/* connect_synack(session); */
+	connect_synack(session);
 	/* connect_ack(session); */
 
 	return session;
