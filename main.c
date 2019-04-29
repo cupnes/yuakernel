@@ -99,7 +99,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		while (!(io_read(SER_REG_LSR(port)) & SER_LSR_DAT_RDY));
 		unsigned char c = io_read(SER_REG_RBR(port));
 		while (!(io_read(SER_REG_LSR(port)) & SER_LSR_EMP_TXR));
-		io_write(SER_REG_THR(port), '.');
+		io_write(SER_REG_THR(port), c);
 	}
 	/* end: serial.c */
 
