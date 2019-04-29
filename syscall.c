@@ -1,6 +1,6 @@
 #include <intr.h>
 #include <pic.h>
-
+#include <serial.h>
 #include <fb.h>
 #include <fbcon.h>
 #include <kbc.h>
@@ -40,6 +40,8 @@ enum SYSCCALL_NO {
 	SYSCALL_DRAW_PX_FG,
 	SYSCALL_DRAW_PX_BG,
 	SYSCALL_NIC_RX_EN,
+	SYSCALL_SER_GETC,
+	SYSCALL_SER_PUTC,
 	MAX_SYSCALL_NUM
 };
 
@@ -160,6 +162,14 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_NIC_RX_EN:
 		nic_rx_enable();
+		break;
+
+	case SYSCALL_SER_GETC:
+		ret_val = ser_getc_poll();
+		break;
+
+	case SYSCALL_SER_PUTC:
+		ser_putc_poll(arg1);
 		break;
 	}
 
