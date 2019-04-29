@@ -325,3 +325,13 @@ unsigned short rand(void)
 	return lgcs_x;
 }
 #endif
+
+char ser_getc(void)
+{
+	return syscall(SYSCALL_SER_GETC, 0, 0, 0);
+}
+
+void ser_putc(char c)
+{
+	syscall(SYSCALL_SER_PUTC, c, 0, 0);
+}

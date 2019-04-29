@@ -57,6 +57,8 @@ enum SYSCCALL_NO {
 	SYSCALL_DRAW_PX_FG,
 	SYSCALL_DRAW_PX_BG,
 	SYSCALL_NIC_RX_EN,
+	SYSCALL_SER_GETC,
+	SYSCALL_SER_PUTC,
 	MAX_SYSCALL_NUM
 };
 
@@ -322,6 +324,8 @@ void nic_rx_enable(void);
 void set_seed(unsigned short seed);
 unsigned short rand(void);
 #endif
+char ser_getc(void);
+void ser_putc(char c);
 
 extern struct framebuffer *fb;
 
