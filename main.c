@@ -48,6 +48,12 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	kbc_init();
 	i218v_init();
 
+	/* 受信したフレームをダンプし続ける */
+	while (1) {
+		if (dump_packet_ser() > 0)
+			puts("\r\n");
+	}
+
 	/* システムコールの初期化 */
 	syscall_init();
 
