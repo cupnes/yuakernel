@@ -17,6 +17,7 @@
 #include <cmos.h>
 
 /* #define RUN_QEMU */
+/* #define DEBUG_DUMP_PACKETS */
 
 void debug_dump_address_translation(unsigned long long linear_address);
 
@@ -54,11 +55,13 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	i218v_init(QEMU_NIC_BUS_NUM, QEMU_NIC_DEV_NUM, QEMU_NIC_FUNC_NUM);
 #endif
 
+#ifdef DEBUG_DUMP_PACKETS
 	/* 受信したフレームをダンプし続ける */
 	while (1) {
 		if (dump_packet_ser() > 0)
 			puts("\r\n");
 	}
+#endif
 
 	/* システムコールの初期化 */
 	syscall_init();
