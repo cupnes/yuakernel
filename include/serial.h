@@ -45,4 +45,6 @@
 void ser_init(void);
 char ser_getc_poll(void);
 void ser_putc_poll(char c);
+void ser_puts(char *s);
+void ser_puth(unsigned long long val, unsigned char num_digits);
 void ser_debug_echoback(void);
