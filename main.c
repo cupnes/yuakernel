@@ -16,6 +16,8 @@
 #include <nic.h>
 #include <cmos.h>
 
+/* #define RUN_QEMU */
+
 void debug_dump_address_translation(unsigned long long linear_address);
 
 struct __attribute__((packed)) platform_info {
@@ -46,7 +48,11 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	pic_init();
 	hpet_init();
 	kbc_init();
-	i218v_init();
+#ifndef RUN_QEMU
+	i218v_init(I218V_BUS_NUM, I218V_DEV_NUM, I218V_FUNC_NUM);
+#else
+	i218v_init(QEMU_NIC_BUS_NUM, QEMU_NIC_DEV_NUM, QEMU_NIC_FUNC_NUM);
+#endif
 
 	/* 受信したフレームをダンプし続ける */
 	while (1) {

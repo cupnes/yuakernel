@@ -20,17 +20,25 @@ unsigned char package_buf[1024];
 unsigned int package_len = 0;
 unsigned int ip[4] = {0};
 
+unsigned char nic_bus_num;
+unsigned char nic_dev_num;
+unsigned char nic_func_num;
 unsigned char nic_mac[6];
 
-void i218v_init(void)
+void i218v_init(
+	unsigned char bus_num, unsigned char dev_num, unsigned char func_num)
 {
+	nic_bus_num = bus_num;
+	nic_dev_num = dev_num;
+	nic_func_num = func_num;
+
 	i218v_reg_base = pci_read_config_reg(
-		NIC_BUS_NUM, NIC_DEV_NUM, NIC_FUNC_NUM, 0x10);
+		nic_bus_num, nic_dev_num, nic_func_num, 0x10);
 
 	unsigned int status_command = pci_read_config_reg(
-		NIC_BUS_NUM, NIC_DEV_NUM, NIC_FUNC_NUM, 0x04);
+		nic_bus_num, nic_dev_num, nic_func_num, 0x04);
 	pci_write_config_reg(
-		NIC_BUS_NUM, NIC_DEV_NUM, NIC_FUNC_NUM, 0x04,
+		nic_bus_num, nic_dev_num, nic_func_num, 0x04,
 		status_command | 0x00000004);
 
 	unsigned int tmp_reg;
@@ -53,7 +61,7 @@ void i218v_init(void)
 
 	unsigned long long bar =
 		pci_read_config_reg(
-			NIC_BUS_NUM, NIC_DEV_NUM, NIC_FUNC_NUM, 0x10)
+			nic_bus_num, nic_dev_num, nic_func_num, 0x10)
 		& 0xfffffff0;
 
 	unsigned char *mem_base_mac_8 = (unsigned char *)(bar + 0x5400);

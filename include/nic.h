@@ -8,9 +8,9 @@
 #define I218V_DEV_NUM	0x19
 #define I218V_FUNC_NUM	0x00
 
-#define NIC_BUS_NUM	I218V_BUS_NUM
-#define NIC_DEV_NUM	I218V_DEV_NUM
-#define NIC_FUNC_NUM	I218V_FUNC_NUM
+#define QEMU_NIC_BUS_NUM	0x00
+#define QEMU_NIC_DEV_NUM	0x03
+#define QEMU_NIC_FUNC_NUM	0x00
 
 #define I218V_NUM_RX_DESC	32
 #define I218V_NUM_TX_DESC	8
@@ -116,7 +116,8 @@ struct __attribute__((packed)) dhcp {
 
 extern unsigned char nic_mac[6];
 
-void i218v_init(void);
+void i218v_init(
+	unsigned char bus_num, unsigned char dev_num, unsigned char func_num);
 unsigned int i218v_read_reg(unsigned short ofs);
 void i218v_write_reg(unsigned short ofs, unsigned int val);
 void handleReceive(void);
