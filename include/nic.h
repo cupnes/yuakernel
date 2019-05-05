@@ -82,6 +82,8 @@
 #define TSTA_LC                         (1 << 2)    // Late Collision
 #define LSTA_TU                         (1 << 3)    // Transmit Underrun
 
+#define PACKET_BUFFER_SIZE	1024
+
 struct __attribute__((packed)) i218v_rx_desc {
 	unsigned long long addr;
 	unsigned short length;
@@ -118,5 +120,6 @@ void nic_rx_enable(void);
 void txinit(void);
 void sendPacket(const void *p_data, unsigned short p_len);
 void receive_packet(void *p_data, unsigned short *p_len);
+unsigned short dump_packet_ser(void);
 void send_test(void);
 void i218v_test(void);

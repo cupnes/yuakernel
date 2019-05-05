@@ -4,6 +4,7 @@
 #include <nic.h>
 #include <fb.h>
 #include <fbcon.h>
+#include <serial.h>
 #include <common.h>
 
 unsigned long long i218v_reg_base;
@@ -233,6 +234,28 @@ void receive_packet(void *p_data, unsigned short *p_len)
 		rx_cur = (rx_cur + 1) % I218V_NUM_RX_DESC;
 		i218v_write_reg(REG_RXDESCTAIL, old_cur);
 	}
+}
+
+unsigned short dump_packet_ser(void)
+{
+	unsigned char buf[PACKET_BUFFER_SIZE];
+	unsigned short len;
+	receive_packet(buf, &len);
+
+	unsigned short i;
+	for (i = 0; i < len; i++) {
+		ser_puth(buf[i], 2);
+		ser_putc_poll(' ');
+
+		if (((i + 1) % 24) == 0)
+			ser_puts("\r\n");
+		else if (((i + 1) % 4) == 0)
+			ser_putc_poll(' ');
+	}
+	if (len > 0)
+		ser_puts("\r\n");
+
+	return len;
 }
 
 void rxinit(void)
