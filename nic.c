@@ -1,367 +1,331 @@
 #include <x86.h>
 #include <pci.h>
-#include <network.h>
 #include <nic.h>
-#include <fb.h>
 #include <fbcon.h>
-#include <serial.h>
 #include <common.h>
 
-unsigned long long i218v_reg_base;
+#define RXDESC_NUM	80
+#define TXDESC_NUM	8
+#define ALIGN_MARGIN	16
 
-unsigned char i218v_rx_desc_arr[sizeof(struct i218v_rx_desc) * I218V_NUM_RX_DESC + 16];
-unsigned char i218v_tx_desc_arr [sizeof(struct i218v_tx_desc)*I218V_NUM_TX_DESC+16];
-struct i218v_rx_desc *rx_descs[I218V_NUM_RX_DESC];
-struct i218v_tx_desc *tx_descs[I218V_NUM_TX_DESC];
-unsigned char i218v_rx_temp[8192+16];
-unsigned short rx_cur;
-unsigned short tx_cur;
-unsigned char package_buf[1024];
-unsigned int package_len = 0;
-unsigned int ip[4] = {0};
+unsigned char nic_mac_addr[6] = { 0 };
 
-unsigned char nic_bus_num;
-unsigned char nic_dev_num;
-unsigned char nic_func_num;
-unsigned char nic_mac[6];
+struct __attribute__((packed)) rxdesc {
+	unsigned long long buffer_address;
+	unsigned short length;
+	unsigned short packet_checksum;
+	unsigned char status;
+	unsigned char errors;
+	unsigned short special;
+};
 
-void i218v_init(
-	unsigned char bus_num, unsigned char dev_num, unsigned char func_num)
+struct __attribute__((packed)) txdesc {
+	unsigned long long buffer_address;
+	unsigned short length;
+	unsigned char cso;
+	unsigned char cmd;
+	unsigned char sta:4;
+	unsigned char _rsv:4;
+	unsigned char css;
+	unsigned short special;
+};
+
+static unsigned char nic_bus_num, nic_dev_num, nic_func_num;
+
+static unsigned int nic_reg_base;
+
+static unsigned char rx_buffer[RXDESC_NUM][PACKET_BUFFER_SIZE];
+static unsigned char rxdesc_data[
+	(sizeof(struct rxdesc) * RXDESC_NUM) + ALIGN_MARGIN];
+static struct rxdesc *rxdesc_base;
+static unsigned short current_rx_idx;
+
+static unsigned char txdesc_data[
+	(sizeof(struct txdesc) * TXDESC_NUM) + ALIGN_MARGIN];
+static struct txdesc *txdesc_base;
+static unsigned short current_tx_idx;
+
+static void disable_nic_interrupt(void)
 {
-	nic_bus_num = bus_num;
-	nic_dev_num = dev_num;
-	nic_func_num = func_num;
+	/* 一旦、コマンドとステータスを読み出す */
+	unsigned int conf_data = get_pci_conf_reg(
+		nic_bus_num, nic_dev_num, nic_func_num,
+		PCI_CONF_STATUS_COMMAND);
 
-	i218v_reg_base = pci_read_config_reg(
-		nic_bus_num, nic_dev_num, nic_func_num, 0x10);
+	/* ステータス(上位16ビット)をクリア */
+	conf_data &= 0x0000ffff;
+	/* コマンドに割り込み無効設定 */
+	conf_data |= PCI_COM_INTR_DIS;
 
-	unsigned int status_command = pci_read_config_reg(
-		nic_bus_num, nic_dev_num, nic_func_num, 0x04);
-	pci_write_config_reg(
-		nic_bus_num, nic_dev_num, nic_func_num, 0x04,
-		status_command | 0x00000004);
+	/* コマンドとステータスに書き戻す */
+	set_pci_conf_reg(nic_bus_num, nic_dev_num, nic_func_num,
+			 PCI_CONF_STATUS_COMMAND, conf_data);
 
-	unsigned int tmp_reg;
+	/* NICの割り込みをIMC(Interrupt Mask Clear Register)で全て無効化 */
+	set_nic_reg(NIC_REG_IMC, 0xffffffff);
+}
 
-	i218v_write_reg(0x0014, 1);
-	unsigned int eeprom_exists = 0;
+#define EERD_TIMEOUT	10000
+/* 1万回分のEERD読み出し処理を経てもDONEビットが立たない場合
+ * タイムアウトとする */
+static int get_eeprom_data(unsigned char eeprom_addr)
+{
+	/* アクセスしたいEEPROMアドレスとSTARTビットをセット */
+	set_nic_reg(NIC_REG_EERD,
+		    (eeprom_addr << NIC_EERD_ADDRESS_SHIFT) | NIC_EERD_START);
+
+	/* DONEビットが設定されるのをタイムアウト付きで待つ */
+	volatile unsigned int wait = EERD_TIMEOUT;
+	while (wait--) {
+		unsigned int eerd = get_nic_reg(NIC_REG_EERD);
+		if (eerd & NIC_EERD_DONE) {
+			/* DONEビットが設定されたら
+			 * EERDに格納されたデータ(上位16ビット)を返す */
+			return eerd >> NIC_EERD_DATA_SHIFT;
+		}
+	}
+
+	/* タイムアウトの際は-1を返す */
+	return -1;
+}
+
+static void get_mac_addr_eeprom(void)
+{
+	unsigned short mac_1_0 = (unsigned short)get_eeprom_data(0x00);
+	unsigned short mac_3_2 = (unsigned short)get_eeprom_data(0x01);
+	unsigned short mac_5_4 = (unsigned short)get_eeprom_data(0x02);
+
+	nic_mac_addr[0] = mac_1_0 & 0x00ff;
+	nic_mac_addr[1] = mac_1_0 >> 8;
+	nic_mac_addr[2] = mac_3_2 & 0x00ff;
+	nic_mac_addr[3] = mac_3_2 >> 8;
+	nic_mac_addr[4] = mac_5_4 & 0x00ff;
+	nic_mac_addr[5] = mac_5_4 >> 8;
+}
+
+static void get_mac_addr_rar(void)
+{
+	unsigned int ral_0 = get_nic_reg(NIC_REG_RAL(0));
+	unsigned int rah_0 = get_nic_reg(NIC_REG_RAH(0));
+
+	nic_mac_addr[0] = ral_0 & 0x000000ff;
+	nic_mac_addr[1] = (ral_0 >> 8) & 0x000000ff;
+	nic_mac_addr[2] = (ral_0 >> 16) & 0x000000ff;
+	nic_mac_addr[3] = (ral_0 >> 24) & 0x000000ff;
+	nic_mac_addr[4] = rah_0 & 0x000000ff;
+	nic_mac_addr[5] = (rah_0 >> 8) & 0x000000ff;
+}
+
+static void get_mac_addr(void)
+{
+	unsigned char eeprom_accessible = get_eeprom_data(0x00) >= 0;
+
+	if (eeprom_accessible) {
+		puts("EEPROM ACCESSIBLE\r\n");
+		get_mac_addr_eeprom();
+	} else {
+		puts("EEPROM NOT ACCESSIBLE\r\n");
+		get_mac_addr_rar();
+	}
+
+	unsigned char i;
+	for (i = 0; i < 6; i++) {
+		puth(nic_mac_addr[i], 2);
+		putc(' ');
+	}
+}
+
+static void rx_init(void)
+{
 	unsigned int i;
-	for (i = 0; i < 1000; i++) {
-		tmp_reg = i218v_read_reg(0x0014);
-		eeprom_exists = tmp_reg & 0x10;
-		if (eeprom_exists)
-			break;
-	}
-	if (eeprom_exists) {
-		puts("eeprom exists\r\n");
 
-		while (1)
-			cpu_halt();
-	}
+	/* rxdescの先頭アドレスを16バイトの倍数となるようにする */
+	unsigned long long rxdesc_addr = (unsigned long long)rxdesc_data;
+	rxdesc_addr = (rxdesc_addr + ALIGN_MARGIN) & 0xfffffffffffffff0;
 
-	unsigned long long bar =
-		pci_read_config_reg(
-			nic_bus_num, nic_dev_num, nic_func_num, 0x10)
-		& 0xfffffff0;
-
-	unsigned char *mem_base_mac_8 = (unsigned char *)(bar + 0x5400);
-	unsigned int *mem_base_mac_32 = (unsigned int *)(bar + 0x5400);
-	if (mem_base_mac_32[0] != 0) {
-		for (i = 0; i < 6; i++) {
-			nic_mac[i] = mem_base_mac_8[i];
-		}
+	/* rxdescの初期化 */
+	rxdesc_base = (struct rxdesc *)rxdesc_addr;
+	struct rxdesc *cur_rxdesc = rxdesc_base;
+	for (i = 0; i < RXDESC_NUM; i++) {
+		cur_rxdesc->buffer_address = (unsigned long long)rx_buffer[i];
+		cur_rxdesc->status = 0;
+		cur_rxdesc->errors = 0;
+		cur_rxdesc++;
 	}
 
-	for (i = 0; i < 0x80; i++)
-		i218v_write_reg(0x5200 + i*4, 0);
+	/* rxdescの先頭アドレスとサイズをNICレジスタへ設定 */
+	set_nic_reg(NIC_REG_RDBAH, rxdesc_addr >> 32);
+	set_nic_reg(NIC_REG_RDBAL, rxdesc_addr & 0x00000000ffffffff);
+	set_nic_reg(NIC_REG_RDLEN, sizeof(struct rxdesc) * RXDESC_NUM);
 
-	/* disable interrupt */
-	unsigned int imask = i218v_read_reg(I218V_REG_IMASK);
-	puts("imask:");
-	puth(imask, 8);
-	puts("\r\n");
-	i218v_write_reg(I218V_REG_IMASK, 0);
-	imask = i218v_read_reg(I218V_REG_IMASK);
-	puts("imask:");
-	puth(imask, 8);
-	puts("\r\n");
+	/* 先頭と末尾のインデックスをNICレジスタへ設定 */
+	current_rx_idx = 0;
+	set_nic_reg(NIC_REG_RDH, current_rx_idx);
+	set_nic_reg(NIC_REG_RDT, RXDESC_NUM - 1);
 
-	rxinit();
-	txinit();
-}
-
-unsigned int i218v_read_reg(unsigned short ofs)
-{
-	unsigned long long addr = i218v_reg_base + ofs;
-	return *(volatile unsigned int *)addr;
-}
-
-void i218v_write_reg(unsigned short ofs, unsigned int val)
-{
-	unsigned long long addr = i218v_reg_base + ofs;
-	*(volatile unsigned int *)addr = val;
-}
-
-void debug_dump_regs(void)
-{
-	puts("cr0:");
-	puth(read_cr0(), 16);
-	puts("\r\n");
-	puts("cr4:");
-	puth(read_cr4(), 16);
-	puts("\r\n");
-	puts("rflags:");
-	puth(read_rflags(), 16);
-	puts("\r\n");
-	puts("efer:");
-	puth(read_msr(MSR_IA32_EFER), 16);
-	puts("\r\n");
-}
-
-void debug_dump_address_translation(unsigned long long linear_address)
-{
-	union linear_address_4lv_2mpage la;
-	la.raw = linear_address;
-	puth(la.raw, 16);
-	puts("\r\n");
-	puth(la.pml4, 3);
-	putc(':');
-	puth(la.directory_ptr, 3);
-	putc(':');
-	puth(la.directory, 3);
-	putc(':');
-	puth(la.offset, 6);
-	puts("\r\n");
-
-	unsigned long long cr3 = read_cr3();
-	puts("cr3:");
-	puth(cr3, 16);
-	puts("\r\n");
-
-	unsigned long long pml4 = cr3 & ~CR3_FLAGS_MASK;
-	puts("pml4:");
-	puth(pml4, 16);
-	puts("\r\n");
-
-	unsigned long long pml4e_addr = pml4 + (la.pml4 * 8);
-	puts("pml4ea:");
-	puth(pml4e_addr, 16);
-	puts("\r\n");
-
-	unsigned long long pml4e = *(volatile unsigned long long *)pml4e_addr;
-	puts("pml4e:");
-	puth(pml4e, 16);
-	puts("\r\n");
-
-	unsigned long long pdpt = pml4e & ~PML4E_FLAGS_MASK;
-	puts("pdpt:");
-	puth(pdpt, 16);
-	puts("\r\n");
-
-	unsigned long long pdpte_addr = pdpt + (la.directory_ptr * 8);
-	puts("pdptea:");
-	puth(pdpte_addr, 16);
-	puts("\r\n");
-
-	unsigned long long pdpte = *(volatile unsigned long long *)pdpte_addr;
-	puts("pdpte:");
-	puth(pdpte, 16);
-	puts("\r\n");
-
-	unsigned long long pd = pdpte & ~PDPTE_FLAGS_MASK;
-	puts("pd:");
-	puth(pd, 16);
-	puts("\r\n");
-
-	unsigned long long pde_addr = pd + (la.directory * 8);
-	puts("pdea:");
-	puth(pde_addr, 16);
-	puts("\r\n");
-
-	unsigned long long pde = *(volatile unsigned long long *)pde_addr;
-	puts("pde:");
-	puth(pde, 16);
-	puts("\r\n");
-}
-
-void handleReceive(void)
-{
-	unsigned short old_cur;
-
-	while (rx_descs[rx_cur]->status & 0x1) {
-		unsigned char *buf = (unsigned char *)rx_descs[rx_cur]->addr;
-		unsigned short len = rx_descs[rx_cur]->length;
-
-		package_len = len;
-		memcpy(package_buf, buf, len);
-
-		move_cursor(0, 0);
-		clear_screen();
-		unsigned char i;
-		for (i = 0; i < 181; i++) {
-			puth(buf[i], 2);
-		}
-
-		rx_descs[rx_cur]->status = 0;
-		old_cur = rx_cur;
-		rx_cur = (rx_cur + 1) % I218V_NUM_RX_DESC;
-		i218v_write_reg(REG_RXDESCTAIL, old_cur);
-	}
-}
-
-unsigned int switch_endian32(unsigned int nb)
-{
-	return(((nb>>24)&0xff)|
-	       ((nb<<8)&0xff0000)|
-	       ((nb>>8)&0xff00)|
-	       ((nb<<24)&0xff000000));
-}
-
-void sendPacket(const void *p_data, unsigned short p_len)
-{
-	tx_descs[tx_cur]->addr = (unsigned long long)p_data;
-	tx_descs[tx_cur]->length = p_len;
-	tx_descs[tx_cur]->cmd = CMD_EOP | CMD_IFCS | CMD_RS | CMD_RPS;
-	tx_descs[tx_cur]->status = 0;
-	unsigned char old_cur = tx_cur;
-	tx_cur = (tx_cur + 1) % E1000_NUM_TX_DESC;
-	i218v_write_reg(REG_TXDESCTAIL, tx_cur);
-	while(!(tx_descs[old_cur]->status & 0xff));
-}
-
-/* FIXME: p_lenは戻り値として返すようにする */
-void receive_packet(void *p_data, unsigned short *p_len)
-{
-	*p_len = 0;
-
-	if (rx_descs[rx_cur]->status & 0x1) {
-		unsigned char *buf = (unsigned char *)rx_descs[rx_cur]->addr;
-		unsigned short len = rx_descs[rx_cur]->length;
-		unsigned short old_cur;
-
-		*p_len = len;
-		memcpy(p_data, buf, len);
-
-		rx_descs[rx_cur]->status = 0;
-		old_cur = rx_cur;
-		rx_cur = (rx_cur + 1) % I218V_NUM_RX_DESC;
-		i218v_write_reg(REG_RXDESCTAIL, old_cur);
-	}
-}
-
-unsigned short dump_packet_ser(void)
-{
-	unsigned char buf[PACKET_BUFFER_SIZE];
-	unsigned short len;
-	receive_packet(buf, &len);
-
-	unsigned short i;
-	for (i = 0; i < len; i++) {
-		ser_puth(buf[i], 2);
-		ser_putc_poll(' ');
-
-		if (((i + 1) % 24) == 0)
-			ser_puts("\r\n");
-		else if (((i + 1) % 4) == 0)
-			ser_putc_poll(' ');
-	}
-	if (len > 0)
-		ser_puts("\r\n");
-
-	return len;
-}
-
-void rxinit(void)
-{
-	struct i218v_rx_desc *descs;
-
-	descs = (struct i218v_rx_desc *)i218v_rx_desc_arr;
-	int i;
-	for (i = 0; i < I218V_NUM_RX_DESC; i++) {
-		rx_descs[i] = (struct i218v_rx_desc *)((unsigned char *)descs + i*16);
-		rx_descs[i]->addr = (unsigned long long)(unsigned char *)i218v_rx_temp;
-		rx_descs[i]->status = 0;
-	}
-
-	i218v_write_reg(I218V_REG_TXDESCLO,
-			(unsigned int)((unsigned long long)i218v_rx_desc_arr >> 32));
-	i218v_write_reg(I218V_REG_TXDESCHI,
-			(unsigned int)((unsigned long long)i218v_rx_desc_arr & 0xffffffff));
-
-	i218v_write_reg(I218V_REG_RXDESCLO, (unsigned long long)i218v_rx_desc_arr);
-	i218v_write_reg(I218V_REG_RXDESCHI, 0);
-
-	i218v_write_reg(I218V_REG_RXDESCLEN, I218V_NUM_RX_DESC * 16);
-
-	i218v_write_reg(I218V_REG_RXDESCHEAD, 0);
-	i218v_write_reg(I218V_REG_RXDESCTAIL, I218V_NUM_RX_DESC - 1);
-	rx_cur = 0;
-	i218v_write_reg(I218V_REG_RCTRL,
-			RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE
-			| RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_2048);
-
+	/* NICの受信動作設定 */
+	set_nic_reg(NIC_REG_RCTL, PACKET_RBSIZE_BIT | NIC_RCTL_BAM
+		    | NIC_RCTL_MPE | NIC_RCTL_UPE | NIC_RCTL_SBP);
 }
 
 void nic_rx_enable(void)
 {
-	unsigned int rctrl = i218v_read_reg(I218V_REG_RCTRL);
-	i218v_write_reg(I218V_REG_RCTRL, rctrl | RCTL_EN);
+	unsigned int rctrl = get_nic_reg(NIC_REG_RCTL);
+	set_nic_reg(NIC_REG_RCTL, rctrl | NIC_RCTL_EN);
 }
 
-void txinit(void)
+static void tx_init(void)
 {
-	int i ;
-	struct i218v_tx_desc *descs;
+	unsigned int i;
 
-	descs = (struct i218v_tx_desc *)i218v_tx_desc_arr;
-	for (i = 0; i < I218V_NUM_TX_DESC; i++) {
-		tx_descs[i] = (struct i218v_tx_desc *)((unsigned char*)descs + i*16);
-		tx_descs[i]->addr = 0;
-		tx_descs[i]->cmd = 0;
-		tx_descs[i]->status = TSTA_DD;
+	/* txdescの先頭アドレスを16バイトの倍数となるようにする */
+	unsigned long long txdesc_addr = (unsigned long long)txdesc_data;
+	txdesc_addr = (txdesc_addr + ALIGN_MARGIN) & 0xfffffffffffffff0;
+
+	/* txdescの初期化 */
+	txdesc_base = (struct txdesc *)txdesc_addr;
+	struct txdesc *cur_txdesc = txdesc_base;
+	for (i = 0; i < TXDESC_NUM; i++) {
+		cur_txdesc->buffer_address = 0;
+		cur_txdesc->length = 0;
+		cur_txdesc->cso = 0;
+		cur_txdesc->cmd = NIC_TDESC_CMD_RS | NIC_TDESC_CMD_EOP;
+		cur_txdesc->sta = 0;
+		cur_txdesc->_rsv = 0;
+		cur_txdesc->css = 0;
+		cur_txdesc->special = 0;
+		cur_txdesc++;
 	}
 
-	i218v_write_reg(REG_TXDESCHI, (unsigned int)((unsigned long long)i218v_tx_desc_arr >> 32));
-	i218v_write_reg(REG_TXDESCLO, (unsigned int)((unsigned long long)i218v_tx_desc_arr & 0xFFFFFFFF));
+	/* txdescの先頭アドレスとサイズをNICレジスタへ設定 */
+	set_nic_reg(NIC_REG_TDBAH, txdesc_addr >> 32);
+	set_nic_reg(NIC_REG_TDBAL, txdesc_addr & 0x00000000ffffffff);
+	set_nic_reg(NIC_REG_TDLEN, sizeof(struct txdesc) * TXDESC_NUM);
 
-	i218v_write_reg(REG_TXDESCLEN, I218V_NUM_TX_DESC * 16);
+	/* 先頭と末尾のインデックスをNICレジスタへ設定 */
+	current_tx_idx = 0;
+	set_nic_reg(NIC_REG_TDH, current_tx_idx);
+	set_nic_reg(NIC_REG_TDT, current_tx_idx);
 
-	i218v_write_reg( REG_TXDESCHEAD, 0);
-	i218v_write_reg( REG_TXDESCTAIL, 0);
-	tx_cur = 0;
-	i218v_write_reg(REG_TCTRL,  TCTL_EN
-			| TCTL_PSP
-			| (15 << TCTL_CT_SHIFT)
-			| (64 << TCTL_COLD_SHIFT)
-			| TCTL_RTLC);
-
-	i218v_write_reg(REG_TCTRL, 0x3003F0FA);
-	i218v_write_reg(REG_TIPG,  0x0060200A);
+	/* NICの送信動作設定 */
+	set_nic_reg(NIC_REG_TCTL, (0x40 << NIC_TCTL_COLD_SHIFT)
+		    | (0x0f << NIC_TCTL_CT_SHIFT) | NIC_TCTL_PSP | NIC_TCTL_EN);
 }
 
-
-#define SEND_TEST_WAIT	1000000
-void send_test(void)
+void nic_init(
+	unsigned char bus_num, unsigned char dev_num, unsigned char func_num)
 {
-	unsigned int data = 0xbeefcafe;
-	volatile unsigned int c;
-	while (1) {
-		sendPacket(&data, sizeof(data));
-		for (c = 0; c < SEND_TEST_WAIT; c++);
-	}
+	/* バス番号・デバイス番号・ファンクション番号をグローバル変数へ設定 */
+	nic_bus_num = bus_num;
+	nic_dev_num = dev_num;
+	nic_func_num = func_num;
+
+	/* NICのレジスタのベースアドレスを取得しておく */
+	nic_reg_base = get_nic_reg_base(bus_num, dev_num, func_num);
+
+	/* NICの割り込みを全て無効にする */
+	disable_nic_interrupt();
+
+	/* MACアドレスを取得 */
+	get_mac_addr();
+
+	/* 受信の初期化処理 */
+	rx_init();
+
+	/* 送信の初期化処理 */
+	tx_init();
 }
 
-void i218v_test(void)
+unsigned int get_nic_reg_base(
+	unsigned char bus_num, unsigned char dev_num, unsigned char func_num)
 {
-	volatile unsigned int counter = 100000;
-	while (counter--);
+	/* PCIコンフィグレーション空間からBARを取得 */
+	unsigned int bar = get_pci_conf_reg(
+		bus_num, dev_num, func_num, PCI_CONF_BAR);
 
-	send_test();
+	/* メモリ空間用ベースアドレス(32ビット)を返す */
+	return bar & PCI_BAR_MASK_MEM_ADDR;
+}
 
-	puts("receiving interupt\r\n");
-	while (1) {
-		unsigned int status = i218v_read_reg(0xc0);
-		(void)status;
-		handleReceive();
+unsigned int get_nic_reg(unsigned short reg)
+{
+	unsigned long long addr = nic_reg_base + reg;
+	return *(volatile unsigned int *)addr;
+}
+
+void set_nic_reg(unsigned short reg, unsigned int val)
+{
+	unsigned long long addr = nic_reg_base + reg;
+	*(volatile unsigned int *)addr = val;
+}
+
+void dump_nic_ims(void)
+{
+	unsigned int ims = get_nic_reg(NIC_REG_IMS);
+
+	puts("IMS ");
+	puth(ims, 8);
+	puts("\r\n");
+}
+
+unsigned short receive_frame(void *buf)
+{
+	unsigned short len = 0;
+
+	struct rxdesc *cur_rxdesc = rxdesc_base + current_rx_idx;
+	if (cur_rxdesc->status & NIC_RDESC_STAT_DD) {
+		len = cur_rxdesc->length;
+		memcpy(buf, (void *)cur_rxdesc->buffer_address,
+		       cur_rxdesc->length);
+
+		cur_rxdesc->status = 0;
+
+		set_nic_reg(NIC_REG_RDT, current_rx_idx);
+
+		current_rx_idx = (current_rx_idx + 1) % RXDESC_NUM;
 	}
+
+	return len;
+}
+
+unsigned short dump_frame(void)
+{
+	unsigned char buf[PACKET_BUFFER_SIZE];
+	unsigned short len;
+	len = receive_frame(buf);
+
+	unsigned short i;
+	for (i = 0; i < len; i++) {
+		puth(buf[i], 2);
+		putc(' ');
+
+		if (((i + 1) % 24) == 0)
+			puts("\r\n");
+		else if (((i + 1) % 4) == 0)
+			putc(' ');
+	}
+	if (len > 0)
+		puts("\r\n");
+
+	return len;
+}
+
+unsigned char send_frame(void *buf, unsigned short len)
+{
+	/* txdescの設定 */
+	struct txdesc *cur_txdesc = txdesc_base + current_tx_idx;
+	cur_txdesc->buffer_address = (unsigned long long)buf;
+	cur_txdesc->length = len;
+	cur_txdesc->sta = 0;
+
+	/* idx更新 */
+	current_tx_idx = (current_tx_idx + 1) % TXDESC_NUM;
+	set_nic_reg(NIC_REG_TDT, current_tx_idx);
+
+	/* 送信完了を待つ */
+	unsigned char send_status = 0;
+	while (!send_status)
+		send_status = cur_txdesc->sta & 0x0f;
+
+	return send_status;
 }

@@ -12,7 +12,6 @@
 #include <sched.h>
 #include <common.h>
 #include <pci.h>
-#include <network.h>
 #include <nic.h>
 #include <cmos.h>
 
@@ -50,9 +49,9 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	hpet_init();
 	kbc_init();
 #ifndef RUN_QEMU
-	i218v_init(I218V_BUS_NUM, I218V_DEV_NUM, I218V_FUNC_NUM);
+	nic_init(I218V_BUS_NUM, I218V_DEV_NUM, I218V_FUNC_NUM);
 #else
-	i218v_init(QEMU_NIC_BUS_NUM, QEMU_NIC_DEV_NUM, QEMU_NIC_FUNC_NUM);
+	nic_init(QEMU_NIC_BUS_NUM, QEMU_NIC_DEV_NUM, QEMU_NIC_FUNC_NUM);
 #endif
 
 #ifdef DEBUG_DUMP_PACKETS

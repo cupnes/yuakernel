@@ -1,31 +1,51 @@
 #pragma once
 
-#define PCI_MAX_DEV_NUM		32
+#define PCI_CONF_DID_VID	0x00
+#define PCI_CONF_STATUS_COMMAND	0x04
 
-#define PCI_IO_CONFIG_ADDR	0x0cf8
-#define PCI_IO_CONFIG_DATA	0x0cfc
+#define PCI_COM_IO_EN	(1U << 0)
+#define PCI_COM_MEM_EN	(1U << 1)
+#define PCI_COM_BUS_MASTER_EN	(1U << 2)
+#define PCI_COM_SPECIAL_CYCLE	(1U << 3)
+#define PCI_COM_MEMW_INV_EN	(1U << 4)
+#define PCI_COM_VGA_PAL_SNP	(1U << 5)
+#define PCI_COM_PARITY_ERR_RES	(1U << 6)
+#define PCI_COM_SERR_EN	(1U << 8)
+#define PCI_COM_FAST_BACK2BACK_EN	(1U << 9)
+#define PCI_COM_INTR_DIS	(1U << 10)
 
-#define CSR_HW_IF_CONFIG_REG_NIC_READY	(0x00400000) /* PCI_OWN_SEM */
-#define CSR_HW_IF_CONFIG_REG_PREPARE	(0x08000000) /* WAKE_ME */
+#define PCI_STAT_INTR	(1U << 3)
+#define PCI_STAT_MULT_FUNC	(1U << 4)
+#define PCI_STAT_66MHZ	(1U << 5)
+#define PCI_STAT_FAST_BACK2BACK	(1U << 7)
+#define PCI_STAT_DATA_PARITY_ERR	(1U << 8)
+#define PCI_STAT_DEVSEL_MASK	(3U << 9)
+#define PCI_STAT_DEVSEL_FAST	(0b00 << 9)
+#define PCI_STAT_DEVSEL_MID	(0b01 << 9)
+#define PCI_STAT_DEVSEL_LOW	(0b10 << 9)
+#define PCI_STAT_SND_TARGET_ABORT	(1U << 11)
+#define PCI_STAT_RCV_TARGET_ABORT	(1U << 12)
+#define PCI_STAT_RCV_MASTER_ABORT	(1U << 13)
+#define PCI_STAT_SYS_ERR	(1U << 14)
+#define PCI_STAT_PARITY_ERR	(1U << 15)
 
-union pci_config_address {
-	unsigned int raw;
-	struct __attribute__((packed)) {
-		unsigned int reg_addr:8;
-		unsigned int func_num:3;
-		unsigned int dev_num:5;
-		unsigned int bus_num:8;
-		unsigned int _reserved:7;
-		unsigned int enable_bit:1;
-	};
-};
+#define PCI_CONF_BAR	0x10
 
-unsigned int pci_read_config_reg(unsigned char bus, unsigned char dev,
-				 unsigned char func, unsigned char reg);
-void pci_write_config_reg(unsigned char bus, unsigned char dev,
-			  unsigned char func, unsigned char reg,
-			  unsigned int val);
-void pci_put_ids(unsigned char bus, unsigned char dev, unsigned char func,
-		 unsigned short vid, unsigned short did);
-void pci_dump_config_reg(unsigned char bus, unsigned char dev, unsigned char func);
-void pci_scan_bus(unsigned char bus);
+#define PCI_BAR_MASK_IO	0x00000001
+#define PCI_BAR_MASK_MEM_TYPE	0x00000006
+#define PCI_BAR_MEM_TYPE_32BIT	0x00000000
+#define PCI_BAR_MEM_TYPE_1M	0x00000002
+#define PCI_BAR_MEM_TYPE_64BIT	0x00000004
+#define PCI_BAR_MASK_MEM_PREFETCHABLE	0x00000008
+#define PCI_BAR_MASK_MEM_ADDR	0xfffffff0
+#define PCI_BAR_MASK_IO_ADDR	0xfffffffc
+
+unsigned int get_pci_conf_reg(
+	unsigned char bus, unsigned char dev, unsigned char func,
+	unsigned char reg);
+void set_pci_conf_reg(unsigned char bus, unsigned char dev, unsigned char func,
+		      unsigned char reg, unsigned int val);
+void dump_vid_did(unsigned char bus, unsigned char dev, unsigned char func);
+void dump_command_status(
+	unsigned char bus, unsigned char dev, unsigned char func);
+void dump_bar(unsigned char bus, unsigned char dev, unsigned char func);

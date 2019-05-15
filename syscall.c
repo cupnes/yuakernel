@@ -103,11 +103,11 @@ unsigned long long do_syscall_interrupt(
 		break;
 
 	case SYSCALL_RCV_PKT:
-		receive_packet((void *)arg1, (unsigned short *)arg2);
+		ret_val = receive_frame((void *)arg1);
 		break;
 
 	case SYSCALL_SND_PKT:
-		sendPacket((void *)arg1, arg2);
+		send_frame((void *)arg1, arg2);
 		break;
 
 	case SYSCALL_MOV_CUR:
@@ -149,7 +149,7 @@ unsigned long long do_syscall_interrupt(
 		break;
 
 	case SYSCALL_GET_MAC:
-		memcpy((void *)arg1, nic_mac, 6);
+		memcpy((void *)arg1, nic_mac_addr, 6);
 		break;
 
 	case SYSCALL_DRAW_PX_FG:

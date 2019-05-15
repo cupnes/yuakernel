@@ -1,132 +1,109 @@
 #pragma once
 
-#define PCI_VID_INTEL		0x8086
-#define PCI_DID_IWM7265		0x095b
-#define PCI_DID_I218V		0x15a3
+#define I218V_BUS_NUM  0x00
+#define I218V_DEV_NUM  0x19
+#define I218V_FUNC_NUM 0x00
 
-#define I218V_BUS_NUM	0x00
-#define I218V_DEV_NUM	0x19
-#define I218V_FUNC_NUM	0x00
+#define QEMU_NIC_BUS_NUM       0x00
+#define QEMU_NIC_DEV_NUM       0x03
+#define QEMU_NIC_FUNC_NUM      0x00
 
-#define QEMU_NIC_BUS_NUM	0x00
-#define QEMU_NIC_DEV_NUM	0x03
-#define QEMU_NIC_FUNC_NUM	0x00
+#define NIC_REG_EERD	0x0014
+#define NIC_REG_IMS	0x00d0
+#define NIC_REG_IMC	0x00d8
+#define NIC_REG_RCTL	0x0100
+#define NIC_REG_TCTL	0x0400
+#define NIC_REG_RDBAL	0x2800
+#define NIC_REG_RDBAH	0x2804
+#define NIC_REG_RDLEN	0x2808
+#define NIC_REG_RDH	0x2810
+#define NIC_REG_RDT	0x2818
+#define NIC_REG_TDBAL	0x3800
+#define NIC_REG_TDBAH	0x3804
+#define NIC_REG_TDLEN	0x3808
+#define NIC_REG_TDH	0x3810
+#define NIC_REG_TDT	0x3818
+#define NIC_REG_RAL(n)	(0x5400 + ((n) * 8))
+#define NIC_REG_RAH(n)	(0x5404 + ((n) * 8))
 
-#define I218V_NUM_RX_DESC	32
-#define I218V_NUM_TX_DESC	8
+#define NIC_EERD_START	(1U << 0)
+#define NIC_EERD_DONE	(1U << 4)
+#define NIC_EERD_ADDRESS_SHIFT	8
+#define NIC_EERD_DATA_SHIFT	16
 
-#define REG_CTRL        0x0000
-#define REG_STATUS      0x0008
-#define REG_EEPROM      0x0014
-#define REG_CTRL_EXT    0x0018
-#define REG_IMASK       0x00D0
-#define REG_RCTRL       0x0100
-#define REG_RXDESCLO    0x2800
-#define REG_RXDESCHI    0x2804
-#define REG_RXDESCLEN   0x2808
-#define REG_RXDESCHEAD  0x2810
-#define REG_RXDESCTAIL  0x2818
+#define NIC_RCTL_EN	(1U << 1)
+#define NIC_RCTL_SBP	(1U << 2)
+#define NIC_RCTL_UPE	(1U << 3)
+#define NIC_RCTL_MPE	(1U << 4)
+#define NIC_RCTL_LPE	(1U << 5)
+#define NIC_RCTL_LBM_NO_LOOPBACK	(0b00 << 6)
+#define NIC_RCTL_LBM_LOOPBACK	(0b11 << 6)
+#define NIC_RCTL_RDMTS_TH_1_2	(0b00 << 8)
+#define NIC_RCTL_RDMTS_TH_1_4	(0b01 << 8)
+#define NIC_RCTL_RDMTS_TH_1_8	(0b10 << 8)
+#define NIC_RCTL_MO_B47_36	(0b00 << 12)
+#define NIC_RCTL_MO_B46_35	(0b01 << 12)
+#define NIC_RCTL_MO_B45_34	(0b10 << 12)
+#define NIC_RCTL_MO_B43_32	(0b11 << 12)
+#define NIC_RCTL_BAM	(1U << 15)
+#define NIC_RCTL_BSIZE_2048B	(0b00 << 16)
+#define NIC_RCTL_BSIZE_1024B	(0b01 << 16)
+#define NIC_RCTL_BSIZE_512B	(0b10 << 16)
+#define NIC_RCTL_BSIZE_256B	(0b11 << 16)
+#define NIC_RCTL_BSIZE_16384B	(0b01 << 16)
+#define NIC_RCTL_BSIZE_8192B	(0b10 << 16)
+#define NIC_RCTL_BSIZE_4096B	(0b11 << 16)
+#define NIC_RCTL_VFE	(1U << 18)
+#define NIC_RCTL_CFIEN	(1U << 19)
+#define NIC_RCTL_CFI	(1U << 20)
+#define NIC_RCTL_DPF	(1U << 22)
+#define NIC_RCTL_PMCF	(1U << 23)
+#define NIC_RCTL_BSEX	(1U << 25)
+#define NIC_RCTL_SECRC	(1U << 26)
 
-#define I218V_REG_CTRL	0x0000
-#define I218V_REG_STATUS	0x0008
-#define I218V_REG_EEPROM	0x0014
-#define I218V_REG_CTRL_EXT	0x0018
-#define I218V_REG_IMASK	0x00D0
-#define I218V_REG_RCTRL	0x0100
-#define I218V_REG_RXDESCLO	0x2800
-#define I218V_REG_RXDESCHI	0x2804
-#define I218V_REG_RXDESCLEN	0x2808
-#define I218V_REG_RXDESCHEAD	0x2810
-#define I218V_REG_RXDESCTAIL	0x2818
-#define I218V_REG_TCTRL	0x0400
-#define I218V_REG_TXDESCLO	0x3800
-#define I218V_REG_TXDESCHI	0x3804
-#define I218V_REG_TXDESCLEN	0x3808
-#define I218V_REG_TXDESCHEAD	0x3810
-#define I218V_REG_TXDESCTAIL	0x3818
-#define I218V_REG_IP	0x5840
-#define I218V_REG_RDTR	0x2820 // RX Delay Timer Register
-#define I218V_REG_RXDCTL	0x3828 // RX Descriptor Control
-#define I218V_REG_RADV	0x282C // RX Int. Absolute Delay Timer
-#define I218V_REG_RSRPD	0x2C00 // RX Small Packet Detect Interrupt
-#define I218V_REG_TIPG	0x0410      // Transmit Inter Packet Gap
-#define I218V_ECTRL_SLU	0x40        //set link up
+#define NIC_TCTL_EN	(1U << 1)
+#define NIC_TCTL_PSP	(1U << 3)
+#define NIC_TCTL_CT_SHIFT	4
+#define NIC_TCTL_COLD_SHIFT	12
+#define NIC_TCTL_SWXOFF	(1U << 22)
+#define NIC_TCTL_RTLC	(1U << 24)
+#define NIC_TCTL_NRTU	(1U << 25)
 
-#define RCTL_EN                         (1 << 1)    // Receiver Enable
-#define RCTL_SBP                        (1 << 2)    // Store Bad Packets
-#define RCTL_UPE                        (1 << 3)    // Unicast Promiscuous Enabled
-#define RCTL_MPE                        (1 << 4)    // Multicast Promiscuous Enabled
-#define RCTL_LPE                        (1 << 5)    // Long Packet Reception Enable
-#define RCTL_LBM_NONE                   (0 << 6)    // No Loopback
-#define RCTL_LBM_PHY                    (3 << 6)    // PHY or external SerDesc loopback
-#define RTCL_RDMTS_HALF                 (0 << 8)    // Free Buffer Threshold is 1/2 of RDLEN
-#define RTCL_RDMTS_QUARTER              (1 << 8)    // Free Buffer Threshold is 1/4 of RDLEN
-#define RTCL_RDMTS_EIGHTH               (2 << 8)    // Free Buffer Threshold is 1/8 of RDLEN
-#define RCTL_MO_36                      (0 << 12)   // Multicast Offset - bits 47:36
-#define RCTL_MO_35                      (1 << 12)   // Multicast Offset - bits 46:35
-#define RCTL_MO_34                      (2 << 12)   // Multicast Offset - bits 45:34
-#define RCTL_MO_32                      (3 << 12)   // Multicast Offset - bits 43:32
-#define RCTL_BAM                        (1 << 15)   // Broadcast Accept Mode
-#define RCTL_VFE                        (1 << 18)   // VLAN Filter Enable
-#define RCTL_CFIEN                      (1 << 19)   // Canonical Form Indicator Enable
-#define RCTL_CFI                        (1 << 20)   // Canonical Form Indicator Bit Value
-#define RCTL_DPF                        (1 << 22)   // Discard Pause Frames
-#define RCTL_PMCF                       (1 << 23)   // Pass MAC Control Frames
-#define RCTL_SECRC                      (1 << 26)   // Strip Ethernet CRC
+#define NIC_RDESC_STAT_DD	(1U << 0)
+#define NIC_RDESC_STAT_EOP	(1U << 1)
+#define NIC_RDESC_STAT_IXSM	(1U << 2)
+#define NIC_RDESC_STAT_VP	(1U << 3)
+#define NIC_RDESC_STAT_TCPCS	(1U << 5)
+#define NIC_RDESC_STAT_IPCS	(1U << 6)
+#define NIC_RDESC_STAT_PIF	(1U << 7)
 
-// Buffer Sizes
-#define RCTL_BSIZE_256                  (3 << 16)
-#define RCTL_BSIZE_512                  (2 << 16)
-#define RCTL_BSIZE_1024                 (1 << 16)
-#define RCTL_BSIZE_2048                 (0 << 16)
-#define RCTL_BSIZE_4096                 ((3 << 16) | (1 << 25))
-#define RCTL_BSIZE_8192                 ((2 << 16) | (1 << 25))
-#define RCTL_BSIZE_16384                ((1 << 16) | (1 << 25))
+#define NIC_TDESC_CMD_EOP	(1U << 0)
+#define NIC_TDESC_CMD_IFCS	(1U << 1)
+#define NIC_TDESC_CMD_IC	(1U << 2)
+#define NIC_TDESC_CMD_RS	(1U << 3)
+#define NIC_TDESC_CMD_RPS	(1U << 4)
+#define NIC_TDESC_CMD_DEXT	(1U << 5)
+#define NIC_TDESC_CMD_VLE	(1U << 6)
+#define NIC_TDESC_CMD_IDE	(1U << 7)
 
-#define TSTA_DD                         (1 << 0)    // Descriptor Done
-#define TSTA_EC                         (1 << 1)    // Excess Collisions
-#define TSTA_LC                         (1 << 2)    // Late Collision
-#define LSTA_TU                         (1 << 3)    // Transmit Underrun
+#define NIC_TDESC_STA_DD	(1U << 0)
+#define NIC_TDESC_STA_EC	(1U << 1)
+#define NIC_TDESC_STA_LC	(1U << 2)
+#define NIC_TDESC_STA_TU	(1U << 3)
 
 #define PACKET_BUFFER_SIZE	1024
+#define PACKET_RBSIZE_BIT	NIC_RCTL_BSIZE_1024B
 
-struct __attribute__((packed)) i218v_rx_desc {
-	unsigned long long addr;
-	unsigned short length;
-	unsigned short checksum;
-	unsigned char status;
-	unsigned char errors;
-	unsigned short special;
-};
+extern unsigned char nic_mac_addr[6];
 
-struct __attribute__((packed)) i218v_tx_desc {
-	unsigned long long addr;
-	unsigned short length;
-	unsigned char cso;
-	unsigned char cmd;
-	unsigned char status;
-	unsigned char css;
-	unsigned short special;
-};
-
-struct __attribute__((packed)) dhcp {
-	unsigned int a[85];
-	unsigned short b;
-};
-
-extern unsigned char nic_mac[6];
-
-void i218v_init(
+void nic_init(
 	unsigned char bus_num, unsigned char dev_num, unsigned char func_num);
-unsigned int i218v_read_reg(unsigned short ofs);
-void i218v_write_reg(unsigned short ofs, unsigned int val);
-void handleReceive(void);
-unsigned int switch_endian32(unsigned int nb);
-void rxinit(void);
 void nic_rx_enable(void);
-void txinit(void);
-void sendPacket(const void *p_data, unsigned short p_len);
-void receive_packet(void *p_data, unsigned short *p_len);
-unsigned short dump_packet_ser(void);
-void send_test(void);
-void i218v_test(void);
+unsigned int get_nic_reg_base(
+	unsigned char bus_num, unsigned char dev_num, unsigned char func_num);
+unsigned int get_nic_reg(unsigned short reg);
+void set_nic_reg(unsigned short reg, unsigned int val);
+void dump_nic_ims(void);
+unsigned short receive_frame(void *buf);
+unsigned short dump_frame(void);
+unsigned char send_frame(void *buf, unsigned short len);
