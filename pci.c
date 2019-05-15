@@ -14,10 +14,6 @@ unsigned int pci_read_config_reg(unsigned char bus, unsigned char dev,
 	addr.reg_addr = reg;
 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
 	return io_read32(PCI_IO_CONFIG_DATA);
-	/* unsigned int data = io_read32(PCI_IO_CONFIG_DATA); */
-	/* addr.enable_bit = 0; */
-	/* io_write32(PCI_IO_CONFIG_ADDR, addr.raw); */
-	/* return data; */
 }
 
 void pci_write_config_reg(unsigned char bus, unsigned char dev,
@@ -33,8 +29,6 @@ void pci_write_config_reg(unsigned char bus, unsigned char dev,
 	addr.reg_addr = reg;
 	io_write32(PCI_IO_CONFIG_ADDR, addr.raw);
 	io_write32(PCI_IO_CONFIG_DATA, val);
-	/* addr.enable_bit = 0; */
-	/* io_write32(PCI_IO_CONFIG_ADDR, addr.raw); */
 }
 
 void pci_put_ids(unsigned char bus, unsigned char dev, unsigned char func,
