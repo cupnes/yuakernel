@@ -42,6 +42,7 @@ enum SYSCCALL_NO {
 	SYSCALL_NIC_RX_EN,
 	SYSCALL_SER_GETC,
 	SYSCALL_SER_PUTC,
+	SYSCALL_IS_ALIVE,
 	MAX_SYSCALL_NUM
 };
 
@@ -51,6 +52,7 @@ unsigned long long do_syscall_interrupt(
 	unsigned long long current_rsp)
 {
 	unsigned long long ret_val = 0;
+	unsigned int task_status;
 
 	switch (syscall_id) {
 	case SYSCALL_PUTC:
@@ -170,6 +172,14 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_SER_PUTC:
 		ser_putc_poll(arg1);
+		break;
+
+	case SYSCALL_IS_ALIVE:
+		task_status = get_task_status(arg1);
+		if (task_status != TS_FREE)
+			ret_val = 1;
+		else
+			ret_val = 0;
 		break;
 	}
 
