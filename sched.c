@@ -1,3 +1,4 @@
+#include <sched.h>
 #include <hpet.h>
 #include <pic.h>
 #include <fbcon.h>
@@ -6,12 +7,6 @@
 #define SCHED_PERIOD	(5 * MS_TO_US)
 #define MAX_TASKS		100
 #define TASK_STASK_BYTES	4096
-
-enum TASK_STATUS {
-	TS_FREE,
-	TS_RUNNING,
-	TS_SLEEP
-};
 
 unsigned long long task_sp[MAX_TASKS];
 volatile int current_task;
@@ -141,6 +136,11 @@ void sleep_currnet_task(unsigned long long us)
 void finish_task(int task_id)
 {
 	task_status[task_id] = TS_FREE;
+}
+
+unsigned int get_task_status(int task_id)
+{
+	return task_status[task_id];
 }
 
 void sched_test(
