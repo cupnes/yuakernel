@@ -43,6 +43,7 @@ enum SYSCCALL_NO {
 	SYSCALL_SER_GETC,
 	SYSCALL_SER_PUTC,
 	SYSCALL_IS_ALIVE,
+	SYSCALL_FINISH_CURRENT_TASK,
 	MAX_SYSCALL_NUM
 };
 
@@ -180,6 +181,11 @@ unsigned long long do_syscall_interrupt(
 			ret_val = 1;
 		else
 			ret_val = 0;
+		break;
+
+	case SYSCALL_FINISH_CURRENT_TASK:
+		finish_task(get_current_task_id());
+		schedule(current_rsp);
 		break;
 	}
 
