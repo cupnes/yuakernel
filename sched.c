@@ -138,6 +138,11 @@ void finish_task(int task_id)
 	task_status[task_id] = TS_FREE;
 }
 
+int get_current_task_id(void)
+{
+	return current_task;
+}
+
 unsigned int get_task_status(int task_id)
 {
 	return task_status[task_id];
