@@ -3,6 +3,16 @@
 #include <fbcon.h>
 #include <common.h>
 
+#define DEBUG
+
+#define	MP_PROCESSOR	0
+#define	MP_BUS		1
+#define	MP_IOAPIC	2
+#define	MP_INTSRC	3
+#define	MP_LINTSRC	4
+
+unsigned long long mp_lapic_addr;	// address of Local APIC of BSP
+
 struct mp_floating *mp_find_config(
 	unsigned long long base, unsigned long long length)
 {
@@ -42,6 +52,139 @@ struct mp_floating *mp_find_config(
 #endif
 
 	return NULL;
+}
+
+int smp_read_mpc(struct mp_config_table *mpc)
+{
+	// count processing data
+	unsigned long long count = sizeof(*mpc);
+
+	// pointer to entry type stored in MP configuration table entry
+	// The first byte of entry indicates entry type.
+	unsigned char *mpt = ((unsigned char *)mpc) + count;
+
+	// read signature "PCMP"
+	if (strncmp(mpc->mpc_signature, MPC_SIGNATURE, 4) != 0) {
+		puts("MPCTable: Bad signature[");
+		putc(mpc->mpc_signature[0]);
+		putc(mpc->mpc_signature[1]);
+		putc(mpc->mpc_signature[2]);
+		putc(mpc->mpc_signature[3]);
+		puts("]\r\n");
+		return 0;
+	}
+
+	// MP specification version 1.1 or 1.4
+	if (mpc->mpc_spec != 0x01 && mpc->mpc_spec != 0x04) {
+		puts("MPCTable: bad table version (");
+		putd(mpc->mpc_spec, 3);
+		puts(")\r\n");
+		return 0;
+	}
+
+	// Local APIC address must exist
+	if (mpc->mpc_lapic == 0) {
+		puts("MPCTable: null local APIC address\r\n");
+		return 0;
+	}
+
+	// Local APIC
+	mp_lapic_addr = mpc->mpc_lapic;
+
+#ifdef DEBUG
+	do {
+		char str[16];
+		memcpy(str, mpc->mpc_oem, 8);
+		str[8] = 0;
+
+		memcpy(str, mpc->mpc_productid, 12);
+		str[12] = 0;
+
+		puts("MPCTable: Product ID: ");
+		puts(str);
+		puts("\r\n");
+		puts("MPCTable: OEM ID: ");
+		puts(str);
+		puts("\r\n");
+		puts("MPCTable: Local APIC at: 0x");
+		puth(mpc->mpc_lapic, 8);
+		puts("\r\n");
+		puts("MPCTable: Base table length: ");
+		putd(mpc->mpc_length, 5);
+		puts("\r\n");
+	} while (0);
+#endif
+
+	//
+	// read entries in the table
+	//
+	mpt = ((unsigned char *)mpc) + count; /* start point of tables */
+	while (count < mpc->mpc_length) {
+		switch (*mpt) { // read type information, 
+			// one entry per processor
+		case MP_PROCESSOR:
+		{
+			puts("MP_PROCESSOR\r\n");
+			/* struct mpc_config_processor *m = (struct mpc_config_processor *)mpt; */
+
+			/* MP_processor_info(m); */
+			/* mpt += sizeof(*m); */
+			/* count += sizeof(*m); */
+			break;
+		}
+		// one entry per bus
+		case MP_BUS:
+		{
+			puts("MP_BUS");
+			/* struct mpc_config_bus *m = (struct mpc_config_bus *)mpt; */
+
+			/* MP_bus_info(m); */
+			/* mpt += sizeof(*m); */
+			/* count += sizeof(*m); */
+			break;
+		}
+		// one entry per IO APIC
+		case MP_IOAPIC:
+		{
+			puts("MP_IOAPIC");
+			/* struct mpc_config_ioapic *m = (struct mpc_config_ioapic *)mpt; */
+
+			/* MP_ioapic_info(m); */
+			/* mpt += sizeof(*m); */
+			/* count += sizeof(*m); */
+			break;
+		}
+		// one entry per bus interrupt source
+		case MP_INTSRC:
+		{
+			puts("MP_INTSRC\r\n");
+			/* struct mpc_config_intsrc *m = (struct mpc_config_intsrc *)mpt; */
+
+			/* MP_intsrc_info(m); */
+			/* mpt += sizeof(*m); */
+			/* count += sizeof(*m); */
+			break;
+		}
+		// one entry per system interrupt source
+		case MP_LINTSRC:
+		{
+			puts("MP_LINTSRC\r\n");
+			/* struct mpc_config_lintsrc *m = (struct mpc_config_lintsrc *)mpt; */
+
+			/* MP_lintsrc_info(m); */
+			/* mpt += sizeof(*m); */
+			/* count += sizeof(*m); */
+			break;
+		}
+		}
+	}
+
+
+#ifdef DEBUG
+	puts("MPCTable: success to read tables!\r\n");
+#endif
+
+	return 1;
 }
 
 void mp_init(void)
