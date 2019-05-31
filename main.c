@@ -66,6 +66,21 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		puts("mpf was not found...\r\n");
 	}
 
+	if (mpf->mpf_feature1 == 0 && mpf->mpf_physptr != 0) {
+		puts("read MP configure at 0x");
+		puth(mpf->mpf_physptr, 8);
+		puts("\r\n");
+
+		/* if (smp_read_mpc(mpf->mpf_physptr) == 0) { */
+		/* 	caos_printf("BIOS bus, MP table error detected!!!\n"); */
+		/* 	halt(); */
+		/* } */
+	} else if (mpf->mpf_feature1 != 0) {
+		puts("Default MP configurationg processing is not implemented yet!!!\r\n");
+	} else {
+		puts("SMP structure ERROR\r\n");
+	}
+
 	/* haltして待つ */
 	while (1)
 		cpu_halt();
