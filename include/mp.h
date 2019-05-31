@@ -15,3 +15,5 @@ struct __attribute__((packed)) mp_floating
 	unsigned char mpf_feature4;	/* Unused (0)			*/
 	unsigned char mpf_feature5;	/* Unused (0)			*/
 };
+
+void mp_init(void);
