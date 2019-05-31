@@ -18,7 +18,7 @@ run: $(TARGET)
 	qemu-system-x86_64 -m 4G \
 	-drive if=pflash,format=raw,readonly,file=$$HOME/ovmf/OVMF_CODE.fd \
 	-drive if=pflash,format=raw,file=$$HOME/ovmf/OVMF_VARS.fd \
-	-hda fat:../fs
+	-hda fat:../fs -smp 2
 
 clean:
 	rm -f *~ *.o *.map $(TARGET) include/*~
