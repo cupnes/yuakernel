@@ -64,11 +64,11 @@ void mp_init(void)
 		puts("\r\n");
 
 		/* if (smp_read_mpc(mpf->mpf_physptr) == 0) { */
-		/* 	caos_printf("BIOS bus, MP table error detected!!!\n"); */
-		/* 	halt(); */
+		/* 	puts("BIOS bus, MP table error detected!!!\n"); */
 		/* } */
 	} else if (mpf->mpf_feature1 != 0) {
-		puts("Default MP configurationg processing is not implemented yet!!!\r\n");
+		puts("Default MP configurationg processing is");
+		puts(" not implemented yet!!!\r\n");
 	} else {
 		puts("SMP structure ERROR\r\n");
 	}
