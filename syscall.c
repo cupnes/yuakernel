@@ -7,6 +7,7 @@
 #include <sched.h>
 #include <nic.h>
 #include <cmos.h>
+#include <mp.h>
 
 #include <common.h>
 
@@ -44,6 +45,7 @@ enum SYSCCALL_NO {
 	SYSCALL_SER_PUTC,
 	SYSCALL_IS_ALIVE,
 	SYSCALL_FINISH_CURRENT_TASK,
+	SYSCALL_EXEC_AP,
 	MAX_SYSCALL_NUM
 };
 
@@ -186,6 +188,10 @@ unsigned long long do_syscall_interrupt(
 	case SYSCALL_FINISH_CURRENT_TASK:
 		finish_task(get_current_task_id());
 		schedule(current_rsp);
+		break;
+
+	case SYSCALL_EXEC_AP:
+		ap_task[arg2] = (struct file *)arg1;
 		break;
 	}
 

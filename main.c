@@ -1,4 +1,5 @@
 #include <x86.h>
+#include <mp.h>
 #include <intr.h>
 #include <pic.h>
 #include <acpi.h>
@@ -23,13 +24,24 @@ void debug_dump_address_translation(unsigned long long linear_address);
 struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
 	void *rsdp;
+	unsigned char pnum;
 };
 
 #define INIT_APP	"init"
 
+struct file *ap_task[NUM_AP] = { NULL };
+
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  void *_fs_start)
 {
+	if (pi->pnum) {
+		while (1) {
+			while (!ap_task[pi->pnum - 1]);
+			exec(ap_task[pi->pnum - 1]);
+			ap_task[pi->pnum - 1] = NULL;
+		}
+	}
+
 	/* フレームバッファ周りの初期化 */
 	fb_init(&pi->fb);
 	set_fg(255, 255, 255);
