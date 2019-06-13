@@ -24,6 +24,7 @@ void debug_dump_address_translation(unsigned long long linear_address);
 struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
 	void *rsdp;
+	void *fs_start;
 	unsigned char pnum;
 };
 
@@ -32,9 +33,9 @@ struct __attribute__((packed)) platform_info {
 struct file *ap_task[NUM_AP] = { NULL };
 
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
-		  void *_fs_start)
+		  unsigned long long pnum)
 {
-	if (pi->pnum) {
+	if (pnum) {
 		while (1) {
 			while (!ap_task[pi->pnum - 1]);
 			exec(ap_task[pi->pnum - 1]);
@@ -78,7 +79,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	syscall_init();
 
 	/* ファイルシステムの初期化 */
-	fs_init(_fs_start);
+	fs_init(pi->fs_start);
 
 	/* スケジューラの初期化 */
 	sched_init();
