@@ -92,6 +92,11 @@ static void draw_char_68x73(unsigned int _c)
 
 void putc(char _c)
 {
+	static unsigned char lock = 0;
+
+	while (lock);
+	lock = 1;
+
 	unsigned int font_height;
 
 	unsigned int c = (unsigned char)_c;
@@ -131,6 +136,8 @@ void putc(char _c)
 			draw_char_default(c);
 		}
 	}
+
+	lock = 0;
 }
 
 void puts(char *s)

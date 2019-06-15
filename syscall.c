@@ -192,6 +192,7 @@ unsigned long long do_syscall_interrupt(
 
 	case SYSCALL_EXEC_AP:
 		ap_task[arg2 - 1] = (struct file *)arg1;
+		while (ap_task[arg2 - 1]);
 		break;
 	}
 

@@ -45,13 +45,13 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 		while (1) {
 			while (!ap_task[pnum - 1]);
-			putc('B');
-			puth(pnum, 1);
-			puts("\r\n");
+			/* putc('B'); */
+			/* puth(pnum, 1); */
+			/* puts("\r\n"); */
 			exec(ap_task[pnum - 1]);
-			putc('E');
-			puth(pnum, 1);
-			puts("\r\n");
+			/* putc('E'); */
+			/* puth(pnum, 1); */
+			/* puts("\r\n"); */
 			ap_task[pnum - 1] = NULL;
 		}
 	}
