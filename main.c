@@ -25,7 +25,7 @@ struct __attribute__((packed)) platform_info {
 	struct framebuffer fb;
 	void *rsdp;
 	void *fs_start;
-	unsigned char pnum;
+	unsigned int nproc;
 };
 
 #define INIT_APP	"init"
@@ -36,10 +36,23 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  unsigned long long pnum)
 {
 	if (pnum) {
+		/* CPU周りの初期化 */
+		gdt_init();
+		intr_init();
+
+		/* システムコールの初期化 */
+		syscall_init();
+
 		while (1) {
-			while (!ap_task[pi->pnum - 1]);
-			exec(ap_task[pi->pnum - 1]);
-			ap_task[pi->pnum - 1] = NULL;
+			while (!ap_task[pnum - 1]);
+			putc('B');
+			puth(pnum, 1);
+			puts("\r\n");
+			exec(ap_task[pnum - 1]);
+			putc('E');
+			puth(pnum, 1);
+			puts("\r\n");
+			ap_task[pnum - 1] = NULL;
 		}
 	}
 
