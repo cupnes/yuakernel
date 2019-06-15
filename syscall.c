@@ -191,7 +191,7 @@ unsigned long long do_syscall_interrupt(
 		break;
 
 	case SYSCALL_EXEC_AP:
-		ap_task[arg2] = (struct file *)arg1;
+		ap_task[arg2 - 1] = (struct file *)arg1;
 		break;
 	}
 
