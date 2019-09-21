@@ -62,13 +62,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	set_bg(0, 70, 250);
 	clear_screen();
 
-	unsigned int x, y;
-	for (y = 0; y < fb.vr; y++) {
-		for (x = 0; x < fb.hr; x++) {
-			if (x == y)
-				draw_px_fg(x, y);
-		}
-	}
+	putc('A');
 
 	/* haltして待つ */
 	while (1)
