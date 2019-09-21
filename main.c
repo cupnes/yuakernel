@@ -62,7 +62,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	set_bg(0, 70, 250);
 	clear_screen();
 
-	putc('A');
+	puts("A");
 
 	/* haltして待つ */
 	while (1)
