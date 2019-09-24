@@ -60,9 +60,9 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	fb_init(&pi->fb);
 	set_fg(255, 255, 255);
 	set_bg(0, 70, 250);
-	clear_screen();
+	/* clear_screen(); */
 
-	puts("A");
+	puts("HELLO\r\n");
 
 	/* haltして待つ */
 	while (1)

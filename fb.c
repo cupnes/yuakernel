@@ -127,9 +127,9 @@ void draw_image(struct image *img, unsigned int px, unsigned int py)
 	}
 }
 
-inline void fill_rect(unsigned int x, unsigned int y,
-		      unsigned int w, unsigned int h,
-		      unsigned char r, unsigned char g, unsigned char b)
+void fill_rect(unsigned int x, unsigned int y,
+	       unsigned int w, unsigned int h,
+	       unsigned char r, unsigned char g, unsigned char b)
 {
 	unsigned int i, j;
 	for (i = y; i < (y + h); i++)
