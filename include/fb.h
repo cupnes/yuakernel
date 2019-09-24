@@ -14,6 +14,7 @@ struct __attribute__((packed)) framebuffer {
 	unsigned long long size;
 	unsigned int hr;
 	unsigned int vr;
+	unsigned int px_per_sl;
 };
 
 struct __attribute__((packed)) image {

@@ -11,6 +11,7 @@ void fb_init(struct framebuffer *_fb)
 	fb.size = _fb->size;
 	fb.hr = _fb->hr;
 	fb.vr = _fb->vr;
+	fb.px_per_sl = _fb->px_per_sl;
 }
 
 void set_fg(unsigned char r, unsigned char g, unsigned char b)
@@ -30,7 +31,7 @@ void set_bg(unsigned char r, unsigned char g, unsigned char b)
 void get_px(unsigned int x, unsigned int y, struct pixelformat *val)
 {
 	struct pixelformat *p = fb.base;
-	p += y * fb.hr + x;
+	p += y * fb.px_per_sl + x;
 
 	val->b = p->b;
 	val->g = p->g;
@@ -42,7 +43,7 @@ inline void draw_px(unsigned int x, unsigned int y,
 		    unsigned char r, unsigned char g, unsigned char b)
 {
 	struct pixelformat *p = fb.base;
-	p += y * fb.hr + x;
+	p += y * fb.px_per_sl + x;
 
 	p->b = b;
 	p->g = g;
