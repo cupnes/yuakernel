@@ -15,6 +15,7 @@ struct __attribute__((packed)) framebuffer {
 	unsigned int hr;
 	unsigned int vr;
 	unsigned int px_per_sl;
+	unsigned int _padding;
 };
 
 struct __attribute__((packed)) image {
