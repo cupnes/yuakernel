@@ -80,7 +80,10 @@ kbc_exit:
 
 void kbc_init(void)
 {
-	set_intr_desc(KBC_INTR_NO, kbc_handler);
+	void *addr;
+	asm volatile ("lea kbc_handler, %[addr]"
+		      : [addr]"=r"(addr));
+	set_intr_desc(KBC_INTR_NO, addr);
 	enable_pic_intr(KBC_INTR_NO);
 }
 

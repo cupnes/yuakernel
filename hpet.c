@@ -125,7 +125,10 @@ void hpet_init(void)
 	TNCCR(TIMER_N) = tnccr.raw;
 
 	/* IDTへHPET割り込みのハンドラ登録 */
-	set_intr_desc(HPET_INTR_NO, hpet_handler);
+	void *addr;
+	asm volatile ("lea hpet_handler, %[addr]"
+		      : [addr]"=r"(addr));
+	set_intr_desc(HPET_INTR_NO, addr);
 
 	/* PICの割り込みマスク解除 */
 	enable_pic_intr(HPET_INTR_NO);

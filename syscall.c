@@ -205,7 +205,10 @@ unsigned long long do_syscall_interrupt(
 void syscall_handler(void);
 void syscall_init(void)
 {
-	set_intr_desc(SYSCALL_INTR_NO, syscall_handler);
+	void *addr;
+	asm volatile ("lea syscall_handler, %[addr]"
+		      : [addr]"=r"(addr));
+	set_intr_desc(SYSCALL_INTR_NO, addr);
 	enable_pic_intr(SYSCALL_INTR_NO);
 }
 
