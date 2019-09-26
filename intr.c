@@ -18,9 +18,13 @@ void set_intr_desc(unsigned char intr_no, void *handler)
 
 void intr_init(void)
 {
+	void *addr;
+	asm volatile ("lea default_handler, %[addr]"
+		      : [addr]"=r"(addr));
+
 	int i;
 	for (i = 0; i < MAX_INTR_NO; i++)
-		set_intr_desc(i, default_handler);
+		set_intr_desc(i, addr);
 
 	idtr[0] = ((unsigned long long)idt << 16) | (sizeof(idt) - 1);
 	idtr[1] = ((unsigned long long)idt >> 48);

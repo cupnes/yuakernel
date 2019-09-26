@@ -62,12 +62,6 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	set_bg(0, 70, 250);
 	/* clear_screen(); */
 
-	puts("HELLO\r\n");
-
-	/* haltして待つ */
-	while (1)
-		cpu_halt();
-
 	/* ACPIの初期化 */
 	acpi_init(pi->rsdp);
 
@@ -77,11 +71,6 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 
 	/* 周辺ICの初期化 */
 	ser_init();
-
-	while (1) {
-		ser_putc_poll('A');
-	}
-
 	pic_init();
 	hpet_init();
 	kbc_init();
