@@ -111,7 +111,16 @@ void draw_fg(struct file *img)
 
 void draw_bg(struct file *img)
 {
-	memcpy(fb.base, img->data, img->size);
+	if (fb.px_per_sl == fb.hr)
+		memcpy(fb.base, img->data, img->size);
+	else {
+		struct pixelformat *img_ptr = (struct pixelformat *)img->data;
+		unsigned int y;
+		for (y = 0; y < fb.vr; y++) {
+			memcpy(fb.base + (fb.px_per_sl * y),
+			       img_ptr + (fb.hr * y), fb.hr * 4);
+		}
+	}
 }
 
 void draw_image(struct image *img, unsigned int px, unsigned int py)
