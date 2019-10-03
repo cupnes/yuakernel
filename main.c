@@ -14,6 +14,7 @@
 #include <common.h>
 #include <pci.h>
 #include <nic.h>
+#include <hda.h>
 #include <cmos.h>
 
 /* #define RUN_QEMU */
@@ -74,6 +75,7 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	pic_init();
 	hpet_init();
 	kbc_init();
+	hda_init(X280_HDA_BUS_NUM, X280_HDA_DEV_NUM, X280_HDA_FUNC_NUM);
 #ifndef RUN_QEMU
 	nic_init(I218V_BUS_NUM, I218V_DEV_NUM, I218V_FUNC_NUM);
 #else
