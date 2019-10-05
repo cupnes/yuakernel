@@ -36,7 +36,4 @@ void hda_init(
 	puts("\r\n");
 
 	puts("## E: hda_init()\r\n");
-
-	while (1)
-		cpu_halt();
 }
