@@ -106,7 +106,13 @@ void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 	sched_start();
 
 	/* initアプリ起動 */
-	exec(open(INIT_APP));
+	struct file *init_file = open(INIT_APP);
+	if (!init_file) {
+		puts("ERROR: init file not found.\r\n");
+		while (1)
+			cpu_halt();
+	}
+	exec(init_file);
 
 	/* haltして待つ */
 	while (1)
