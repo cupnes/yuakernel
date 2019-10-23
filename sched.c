@@ -33,6 +33,17 @@ void schedule(unsigned long long current_rsp)
 		}
 	}
 
+	unsigned char is_running_task = 0;
+	for (i = 0; i < used_tasks; i++) {
+		if (task_status[i] == TS_RUNNING)
+			is_running_task = 1;
+	}
+	if (is_running_task == 0) {
+		/* FIXME: TS_RUNNINGのタスクが無い時
+		 *        SPを調整してPICのマスク解除後、
+		 *        hltの無限ループで待機する	*/
+	}
+
 	while (1) {
 		current_task = (current_task + 1) % used_tasks;
 		if (task_status[current_task] == TS_RUNNING)
