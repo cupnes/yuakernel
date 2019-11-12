@@ -24,6 +24,13 @@ struct __attribute__((packed)) image {
 	struct pixelformat data[0];
 };
 
+struct __attribute__((packed)) rect {
+	unsigned int x;
+	unsigned int y;
+	unsigned int w;
+	unsigned int h;
+};
+
 extern struct framebuffer fb;
 
 void fb_init(struct framebuffer *_fb);

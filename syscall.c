@@ -46,6 +46,7 @@ enum SYSCCALL_NO {
 	SYSCALL_IS_ALIVE,
 	SYSCALL_FINISH_CURRENT_TASK,
 	SYSCALL_EXEC_AP,
+	SYSCALL_FILL_RECT,
 	MAX_SYSCALL_NUM
 };
 
@@ -56,6 +57,8 @@ unsigned long long do_syscall_interrupt(
 {
 	unsigned long long ret_val = 0;
 	unsigned int task_status;
+	struct rect *r;
+	struct pixelformat *px;
 
 	switch (syscall_id) {
 	case SYSCALL_PUTC:
@@ -193,6 +196,12 @@ unsigned long long do_syscall_interrupt(
 	case SYSCALL_EXEC_AP:
 		ap_task[arg2 - 1] = (struct file *)arg1;
 		while (ap_task[arg2 - 1]);
+		break;
+
+	case SYSCALL_FILL_RECT:
+		r = (struct rect *)arg1;
+		px = (struct pixelformat *)arg2;
+		fill_rect(r->x, r->y, r->w, r->h, px->r, px->g, px->b);
 		break;
 	}
 

@@ -39,11 +39,29 @@ void get_px(unsigned int x, unsigned int y, struct pixelformat *val)
 	val->_reserved = p->_reserved;
 }
 
+unsigned char diff_color(struct pixelformat *c1, struct pixelformat *c2)
+{
+	if ((c1->b == c2->b) && (c1->g == c2->g) && (c1->r == c2->r))
+		return 0;
+	else
+		return 1;
+}
+
 inline void draw_px(unsigned int x, unsigned int y,
 		    unsigned char r, unsigned char g, unsigned char b)
 {
 	struct pixelformat *p = fb.base;
 	p += y * fb.px_per_sl + x;
+
+	/* struct pixelformat d = { */
+	/* 	.b = b, .g = g, .r = r */
+	/* }; */
+
+	/* if (diff_color(p, &d)) { */
+	/* 	p->b = b; */
+	/* 	p->g = g; */
+	/* 	p->r = r; */
+	/* } */
 
 	p->b = b;
 	p->g = g;
@@ -88,6 +106,14 @@ unsigned char is_trans_color(struct pixelformat *c)
 {
 	/* if ((c->b == 0) && (c->g == 0) && (c->r == 0) && (c->_reserved == 0)) */
 	if (c->_reserved == 0)
+		return 1;
+	else
+		return 0;
+}
+
+unsigned char is_bg_color(struct pixelformat *c)
+{
+	if (!diff_color(c, &color_bg))
 		return 1;
 	else
 		return 0;
@@ -148,5 +174,20 @@ void fill_rect(unsigned int x, unsigned int y,
 
 void clear_screen(void)
 {
-	fill_rect(0, 0, fb.hr, fb.vr, color_bg.r, color_bg.g, color_bg.b);
+	union color_data {
+		struct pixelformat pix;
+		unsigned int data;
+	} cd;
+	cd.pix.b = color_bg.b;
+	cd.pix.g = color_bg.g;
+	cd.pix.r = color_bg.r;
+	cd.pix._reserved = color_bg._reserved;
+
+	unsigned int i;
+	unsigned int num_pix = fb.size / sizeof(struct pixelformat);
+	unsigned int *fb_ptr = (unsigned int *)fb.base;
+	for (i = 0; i < num_pix; i++)
+		*fb_ptr++ = cd.data;
+
+	/* fill_rect(0, 0, fb.hr, fb.vr, color_bg.r, color_bg.g, color_bg.b); */
 }
