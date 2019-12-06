@@ -24,7 +24,7 @@ struct file *open(char *name)
 	return NULL;
 }
 
-unsigned long long get_files(struct file *files[])
+static unsigned long long _get_files_all(struct file *files[])
 {
 	struct file *f = fs_start;
 	unsigned int num;
@@ -36,4 +36,28 @@ unsigned long long get_files(struct file *files[])
 	}
 
 	return num;
+}
+
+static unsigned long long _get_files_with_prefix(
+	struct file *files[], char prefix)
+{
+	struct file *f;
+	unsigned int num = 0;
+	for (f = fs_start; f->name[0] != END_OF_FS;) {
+		if (f->name[0] == prefix)
+			files[num++] = f;
+
+		f = (struct file *)((unsigned long long)f + sizeof(struct file)
+				    + f->size);
+	}
+
+	return num;
+}
+
+unsigned long long get_files(struct file *files[], char prefix)
+{
+	if (prefix == 0)
+		return _get_files_all(files);
+	else
+		return _get_files_with_prefix(files, prefix);
 }

@@ -99,7 +99,7 @@ unsigned long long do_syscall_interrupt(
 		break;
 
 	case SYSCALL_GET_FILES:
-		ret_val = get_files((struct file **)arg1);
+		ret_val = get_files((struct file **)arg1, (char)arg2);
 		break;
 
 	case SYSCALL_EXEC:

@@ -14,7 +14,7 @@ void view(unsigned long long idx)
 
 void iv_init(void)
 {
-	iv_num_files = get_files(iv_files);
+	iv_num_files = get_files(iv_files, 0);
 	view(iv_idx);
 }
 
