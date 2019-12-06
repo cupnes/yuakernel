@@ -1,3 +1,4 @@
+#include <x86.h>
 #include <sched.h>
 #include <hpet.h>
 #include <pic.h>
@@ -14,10 +15,12 @@ unsigned char task_stack[MAX_TASKS - 1][TASK_STASK_BYTES];
 int used_tasks;
 unsigned long long sleep_timer[MAX_TASKS] = { 0 };
 unsigned long long task_status[MAX_TASKS] = { TS_FREE };
+static unsigned char is_idle;
 
 void schedule(unsigned long long current_rsp)
 {
-	task_sp[current_task] = current_rsp;
+	if (!is_idle)
+		task_sp[current_task] = current_rsp;
 
 	int i;
 	for (i = 0; i < used_tasks; i++) {
@@ -33,23 +36,27 @@ void schedule(unsigned long long current_rsp)
 		}
 	}
 
-	unsigned char is_running_task = 0;
-	for (i = 0; i < used_tasks; i++) {
-		if (task_status[i] == TS_RUNNING)
-			is_running_task = 1;
-	}
-	if (is_running_task == 0) {
-		/* FIXME: TS_RUNNINGのタスクが無い時
-		 *        SPを調整してPICのマスク解除後、
-		 *        hltの無限ループで待機する	*/
-	}
-
+	int begin = current_task;
 	while (1) {
 		current_task = (current_task + 1) % used_tasks;
-		if (task_status[current_task] == TS_RUNNING)
+		if (task_status[current_task] == TS_RUNNING) {
+			is_idle = 0;
 			break;
+		}
+		if (current_task == begin) {
+			is_idle = 1;
+			break;
+		}
+	}
 
-		/* FIXME: At least one task must be running. */
+	if (is_idle) {
+		/* 割り込み有効化 */
+		set_pic_eoi(HPET_INTR_NO);
+		enable_cpu_intr();
+
+		/* アイドルループ */
+		while (1)
+			cpu_halt();
 	}
 
 	set_pic_eoi(HPET_INTR_NO);
@@ -72,6 +79,7 @@ void sched_init(void)
 	current_task = 0;
 	used_tasks = 1;
 	task_status[current_task] = TS_RUNNING;
+	is_idle = 0;
 
 	/* 5ms周期の周期タイマー設定 */
 	ptimer_setup(SCHED_PERIOD, schedule);
