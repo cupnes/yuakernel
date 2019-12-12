@@ -119,3 +119,48 @@ void gdt_init(void)
 		      : [dummy]"=r"(dummy)
 		      : [selector]"m"(selector));
 }
+
+/*
+Spin_Lock:
+	CMP lockvar, 0		;Check if lock is free
+	JE Get_Lock
+	PAUSE			;Short delay
+	JMP Spin_Lock
+Get_Lock:
+	MOV EAX, 1
+	XCHG EAX, lockvar	;Try to get lock
+	CMP EAX, 0		;Test if successful
+	JNE Spin_Lock
+Critical_Section:
+	<critical section code>
+	MOV lockvar, 0
+	...
+Continue:
+
+# ref:
+# 8.10.6.1 Use the PAUSE Instruction in Spin-Wait Loops
+# - Intel(R) 64 and IA-32 Architectures Software Developer's Manual
+#   Volume 3 System Programming Guide
+*/
+
+void spin_lock(unsigned int *lockvar)
+{
+	unsigned char got_lock = 0;
+	do {
+		while (*lockvar)
+			CPU_PAUSE();
+
+		unsigned int lock = 1;
+		asm volatile ("xchg %[lock], %[lockvar]"
+			      : [lock]"+r"(lock), [lockvar]"+m"(*lockvar)
+			      :: "memory", "cc");
+
+		if (!lock)
+			got_lock = 1;
+	} while (!got_lock);
+}
+
+void spin_unlock(volatile unsigned int *lockvar __attribute__((unused)))
+{
+	*lockvar = 0;
+}
