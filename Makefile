@@ -2,9 +2,9 @@ TARGET = kernel.bin
 FS_DIR = ../fs
 CFLAGS = -Wall -Wextra -nostdinc -nostdlib -fno-builtin -fno-common -Iinclude
 LDFLAGS = -Map kernel.map -s -x -T kernel.ld
-OBJS = main.o syscall.o fbcon.o fb.o font.o kbc.o x86.o cmos.o intr.o	\
-	serial.o pic.o sched.o hpet.o acpi.o pci.o nic.o hda.o		\
-	handler.o fs.o common.o
+OBJS = main.o syscall.o fbcon.o fb.o font.o kbc.o x86.o ap.o cmos.o	\
+	intr.o serial.o pic.o apic.o sched.o hpet.o acpi.o pci.o	\
+	nic.o hda.o handler.o fs.o common.o
 ifdef NO_GRAPHIC
 	QEMU_ADDITIONAL_ARGS += --nographic
 endif
