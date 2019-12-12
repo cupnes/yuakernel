@@ -48,6 +48,8 @@ enum SYSCCALL_NO {
 	SYSCALL_FINISH_CURRENT_TASK,
 	SYSCALL_EXEC_AP,
 	SYSCALL_FILL_RECT,
+	SYSCALL_DRAW_PX,
+	SYSCALL_GET_PNUM,
 	MAX_SYSCALL_NUM
 };
 
@@ -202,6 +204,15 @@ unsigned long long do_syscall_interrupt(
 		r = (struct rect *)arg1;
 		px = (struct pixelformat *)arg2;
 		fill_rect(r->x, r->y, r->w, r->h, px->r, px->g, px->b);
+		break;
+
+	case SYSCALL_DRAW_PX:
+		px = (struct pixelformat *)arg3;
+		draw_px(arg1, arg2, px->r, px->g, px->b);
+		break;
+
+	case SYSCALL_GET_PNUM:
+		ret_val = get_pnum();
 		break;
 	}
 
