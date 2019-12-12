@@ -11,6 +11,8 @@
 #define PML4E_FLAGS_MASK	0x0000000000000fff
 #define PDPTE_FLAGS_MASK	0x0000000000000fff
 
+#define CPU_PAUSE()	asm volatile ("pause")
+
 struct __attribute__((packed)) interrupt_descriptor {
 	unsigned short offset_00_15;
 	unsigned short segment_selector;
