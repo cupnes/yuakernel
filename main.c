@@ -1,5 +1,5 @@
 #include <x86.h>
-#include <mp.h>
+#include <ap.h>
 #include <intr.h>
 #include <pic.h>
 #include <acpi.h>
@@ -31,30 +31,13 @@ struct __attribute__((packed)) platform_info {
 
 #define INIT_APP	"init"
 
-struct file *ap_task[NUM_AP] = { NULL };
-
 void start_kernel(void *_t __attribute__((unused)), struct platform_info *pi,
 		  unsigned long long pnum)
 {
+	/* 専用の初期化処理を行い、実行を開始する */
 	if (pnum) {
-		/* CPU周りの初期化 */
-		gdt_init();
-		intr_init();
-
-		/* システムコールの初期化 */
-		syscall_init();
-
-		while (1) {
-			while (!ap_task[pnum - 1]);
-			/* putc('B'); */
-			/* puth(pnum, 1); */
-			/* puts("\r\n"); */
-			exec(ap_task[pnum - 1]);
-			/* putc('E'); */
-			/* puth(pnum, 1); */
-			/* puts("\r\n"); */
-			ap_task[pnum - 1] = NULL;
-		}
+		ap_init();
+		ap_run(pnum);
 	}
 
 	/* フレームバッファ周りの初期化 */

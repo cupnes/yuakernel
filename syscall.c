@@ -1,5 +1,6 @@
 #include <intr.h>
 #include <pic.h>
+#include <apic.h>
 #include <serial.h>
 #include <fb.h>
 #include <fbcon.h>
@@ -7,7 +8,7 @@
 #include <sched.h>
 #include <nic.h>
 #include <cmos.h>
-#include <mp.h>
+#include <ap.h>
 
 #include <common.h>
 
@@ -194,8 +195,7 @@ unsigned long long do_syscall_interrupt(
 		break;
 
 	case SYSCALL_EXEC_AP:
-		ap_task[arg2 - 1] = (struct file *)arg1;
-		while (ap_task[arg2 - 1]);
+		ret_val = ap_enq_task((struct file *)arg1, arg2);
 		break;
 
 	case SYSCALL_FILL_RECT:

@@ -1,3 +1,4 @@
+#include <x86.h>
 #include <fbcon.h>
 #include <fb.h>
 #include <font.h>
@@ -8,6 +9,7 @@
 
 unsigned int cursor_x = 0, cursor_y = 0;
 unsigned char font_size = FONT_SIZE_DEFAULT;
+unsigned int putc_lock = 0;
 
 void putc_pos(unsigned int pos_x, unsigned int pos_y, unsigned char c)
 {
@@ -92,10 +94,7 @@ static void draw_char_68x73(unsigned int _c)
 
 void putc(char _c)
 {
-	static unsigned char lock = 0;
-
-	while (lock);
-	lock = 1;
+	spin_lock(&putc_lock);
 
 	unsigned int font_height;
 
@@ -137,7 +136,7 @@ void putc(char _c)
 		}
 	}
 
-	lock = 0;
+	spin_unlock(&putc_lock);
 }
 
 void puts(char *s)
