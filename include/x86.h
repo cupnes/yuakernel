@@ -50,3 +50,5 @@ void io_write16(unsigned short addr, unsigned short value);
 unsigned int io_read32(unsigned short addr);
 void io_write32(unsigned short addr, unsigned int value);
 void gdt_init(void);
+void spin_lock(unsigned int *lockvar);
+void spin_unlock(volatile unsigned int *lockvar);
